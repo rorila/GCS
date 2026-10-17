@@ -11,6 +11,7 @@ import { registerCollectionActions } from './handlers/CollectionActions';
 import { registerEventActions } from './handlers/EventActions';
 import { registerEffectActions } from './handlers/EffectActions';
 import { registerRecordListActions } from './handlers/RecordListActions';
+import { registerStageInterfaceActions } from './handlers/StageInterfaceActions';
 
 /**
  * REGISTRIERUNG ALLER STANDARD-AKTIONEN
@@ -32,4 +33,5 @@ export function registerStandardActions() {
     registerEventActions();
     registerEffectActions();
     registerRecordListActions();
+    registerStageInterfaceActions();
 }

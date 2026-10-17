@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as esbuild from 'esbuild';
+import './build-math.mjs';
 
 /**
  * Baut public/runtime-standalone.js mit esbuild.

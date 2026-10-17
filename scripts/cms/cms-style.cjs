@@ -118,6 +118,7 @@ function addChromePanels(stage) {
 function applyCmsTheme(project) {
   let styled = 0, paneled = 0, stages = 0;
   for (const stage of project.stages || []) {
+    if (stage.cmsTheme === 'custom') continue;
     const ui = (stage.objects || []).some(isVisible);
     if (!ui) continue;
     stages++;

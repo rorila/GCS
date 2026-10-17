@@ -18,9 +18,16 @@ const {createLiveSync}=require('./cms-live.cjs');
 const root=path.resolve(__dirname,'../..');
 const {renderCms}=require('./cms-project.cjs');
 const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
-function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-server/data/cms-v1.json'),ttsCacheDirectory=process.env.CMS_TTS_CACHE_DIR}={}){
- if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
- const store=createJsonStore({dataPath}),core=createCore(store.load()),launches=new Map();
+function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-server/data/cms-v1.json'),storage=process.env.CMS_STORAGE||'json',sqlitePath=process.env.CMS_SQLITE_PATH,ttsCacheDirectory=process.env.CMS_TTS_CACHE_DIR}={}){
+ if(!['json','sqlite'].includes(storage))throw Error('Unbekannter CMS-Speicher.');
+ if(storage==='sqlite')dataPath=sqlitePath||path.join(path.dirname(dataPath),'cms.sqlite');
+ if(storage==='json'&&!fs.existsSync(dataPath)){
+  if(process.env.NODE_ENV==='production')throw Error('CMS-Daten fehlen; explizite Initialisierung erforderlich.');
+  fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);
+ }
+ const store=storage==='sqlite'?require('./cms-sqlite-store.cjs').createSqliteStore({dataPath}):createJsonStore({dataPath});
+ const state=store.load();if(storage==='sqlite'&&state.meta?.recoveryReviewRequired){store.close();throw Error('Recoveryprüfung erforderlich; kein automatischer Spielstart.');}
+ const core=createCore(state),launches=new Map();
  // Produktionshärtung: Diagnose-Schalter dürfen außerhalb lokaler Entwicklung
  // nicht auf 'off' stehen (unmaskierte Anmeldecodes, ungeschützte Trace-Abrufe).
  if(process.env.CMS_TRACE_MASK==='off'||process.env.CMS_TRACE_ADMIN==='off')
@@ -28,10 +35,17 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
  const admin=createAdmin(core,dataPath,{store}),traces=createTraceStore();
  // Serverseitige Runtime: TServerEndpoint-Tasks aus der Projektdatei werden deklarativ ausgeführt.
  const runtime=loadRuntime(cmsFile);
+ // Eigenständiges Begleitprojekt: SQL-Konsole für den SQLite-Bestand
+ // (SuperAdmin, nur lesend). Fehlt die Datei, bleibt der CMS unverändert.
+ const sqlFile=path.join(root,'game-server/public/projects/GCS-SQL-Tool.json');
+ let sqlRuntime=fs.existsSync(sqlFile)?loadRuntime(sqlFile):null;
+ // Das Begleitprojekt kann im Editor geändert werden, während der CMS läuft.
+ // Seite und Endpunkt müssen denselben aktuellen Projektstand verwenden.
+ const refreshSqlRuntime=()=>{sqlRuntime=fs.existsSync(sqlFile)?loadRuntime(sqlFile):null;};
  const loginPage=()=>renderCms(cmsFile,'stage_admin_login');
  // Profil: kein Legacy-Handler mehr — TServerEndpoint-Tasks in stage_server_profile.
  const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
- const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json');
+ const credentialPath=store.credentials||path.join(path.dirname(dataPath),'cms-admin-auth.json');
  const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
  const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
  const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,launches);
@@ -45,19 +59,23 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
  const speech=require('./cms-speech.cjs').createSpeechService({core,launches});
  const tts=require('./cms-tts.cjs').createTtsService({core,launches,store,cacheDirectory:ttsCacheDirectory});
  const editorTest=require('./cms-editor-test.cjs').createEditorTestService({cmsFile});
+ // Eingangsschutz: PUBLIC_ORIGIN macht Host-/Origin-Prüfung und Secure-Cookies
+ // proxyfähig; CMS_TRUST_PROXY erlaubt X-Forwarded-For vom eigenen Loopback-Proxy.
+ const guards=require('./cms-http-guard.cjs').createHttpGuards();
+ const secureCookie=guards.secure?'; Secure':'';
  const sweepIntervalMs=Math.max(5000,Number(playComponent.sweepIntervalMs)||30000);
  const sweepSessions=()=>{try{methods.TServerPlaySession.sweep({session:{personId:'system'},core,commit,play,launches},playComponent,[])}catch(e){console.error('[CMS session-sweep]',e.message)}};
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
- const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
+ const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`+secureCookie;
  // Jeder Anmeldeversuch beendet zuerst eine bestehende Sitzung dieses Browsers —
  // auch bei Fehlschlag. Sonst bliebe die Sitzung einer anderen Person nutzbar.
- const CLEAR_COOKIES=['cms_admin=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0','cms_account=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'];
+ const CLEAR_COOKIES=['cms_admin=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+secureCookie,'cms_account=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+secureCookie];
  const endPreviousSessions=req=>{const prev=admin.readSession(req);if(prev)admin.endSession(prev);const acc=cookie(req,'cms_account');if(acc)core.logout(acc);};
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
   try{
-   const url=new URL(req.url,'http://localhost');if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host||'')){res.writeHead(403);return res.end();}res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
+   const url=new URL(req.url,'http://localhost');if(!guards.hostOk(req)){res.writeHead(403);return res.end();}req.clientIp=guards.clientIp(req);res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
    if(['/api/cms/speech','/api/cms/speech/status'].includes(url.pathname)){const result=await speech.handle(req);return reply(res,result.status,result.data);}
    if(url.pathname==='/api/cms/tts'){const result=await tts.handle(req);return reply(res,result.status,result.data);}
    if(url.pathname==='/api/cms/tts/preferences'){const result=await tts.preferences(req);return reply(res,result.status,result.data);}
@@ -75,30 +93,50 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
    if(req.method==='GET'&&url.pathname.startsWith('/avatars/')){
     const file=uploads.asset(url.pathname.slice(9));if(!file)return reply(res,404,{ok:false});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'});return res.end(fs.readFileSync(file));
    }
+   if(req.method==='GET'&&url.pathname.startsWith('/images/')){
+    const rel=decodeURIComponent(url.pathname.slice(8)).replace(/\\/g,'/');
+    if(!rel||rel.endsWith('/')||rel.split('/').some(s=>!s||s==='.'||s==='..'))return reply(res,404,{ok:false});
+    const imgRoot=path.join(root,'public','images'),target=path.resolve(imgRoot,rel);
+    if(!target.startsWith(imgRoot+path.sep)||!fs.existsSync(target)||!fs.statSync(target).isFile())return reply(res,404,{ok:false});
+    res.writeHead(200,{'Content-Type':uploads.mediaType(target),'Cache-Control':'public, max-age=86400'});return res.end(fs.readFileSync(target));
+   }
    // Binär-Uploads: der Transport streamt Bytes (hartes Limit = größtes
    // Komponenten-Limit), liest den Metadaten-Header und normalisiert Avatare
    // als Codec — Berechtigung, Fachprüfung und Speicherung laufen im Task.
-   if(req.method==='POST'&&['/api/cms/upload/game','/api/cms/upload/avatar'].includes(url.pathname)){
-    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
-    const kind=url.pathname.endsWith('/game')?'game':'avatar',ep=runtime.find(url.pathname,'POST');
+   if(req.method==='POST'&&['/api/cms/upload/game','/api/cms/upload/avatar','/api/cms/upload/resident-avatar'].includes(url.pathname)){
+    if(!guards.originOk(req))return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    const kind=url.pathname.endsWith('/game')?'game':url.pathname.endsWith('/resident-avatar')?'resident-avatar':'avatar',ep=runtime.find(url.pathname,'POST');
     if(!ep)return reply(res,404,{ok:false,message:'Endpunkt fehlt'});
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id)}const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,note:'Binärinhalt nicht protokolliert'});
     // Avatar-Uploads akzeptieren beide Sitzungsarten: Spieler laden ihr
     // eigenes Bild per Konto-Token hoch, HouseAdmins ordnen Bilder über
     // ihre Admin-Sitzung (cms_admin-Cookie) zu. Berechtigung → Task.
-    const session=kind==='game'?admin.readSession(req):(core.session((req.headers.authorization||'').replace(/^Bearer /,''))||admin.readSession(req));
+    const session=(kind==='game'||kind==='resident-avatar')?admin.readSession(req):(core.session((req.headers.authorization||'').replace(/^Bearer /,''))||admin.readSession(req)||core.session(cookie(req,'cms_account')));
     let bytes=0,chunks=[];for await(const chunk of req.iterator({destroyOnReturn:false})){bytes+=chunk.length;if(bytes>uploads.hardCap){req.resume();emit('Datei zu groß',{bytes});return reply(res,413,{ok:false,message:'Datei ist zu groß.'});}chunks.push(chunk);}
     let meta=null;try{meta=JSON.parse(decodeURIComponent(req.headers['x-upload-metadata']||'%7B%7D'))}catch{}
     if(meta===null)return reply(res,400,{ok:false,message:'Ungültige Upload-Angaben.'});
     const upload={kind,bytes:Buffer.concat(chunks),meta};
-    if(session&&kind==='avatar'){const n=await uploads.normalizeAvatar(upload.bytes);if(n.png)upload.png=n.png;else upload.error=n.error;}
+    if(session&&(kind==='avatar'||kind==='resident-avatar')){const n=await uploads.normalizeAvatar(upload.bytes);if(n.png)upload.png=n.png;else upload.error=n.error;}
     const result=runtime.run(ep,{session,body:{},emit,core,admin,commit,credentialPath,uploads,upload});
     emit('Response senden',{status:result.status,body:result.data});return reply(res,result.status,result.data);
    }
    if(req.method==='GET'&&url.pathname.startsWith('/api/cms/debug/traces/')){
     if(process.env.CMS_TRACE_ADMIN!=='off'){const actor=admin.readSession(req);if(!actor||!core.can(actor,'manageArea',{areaId:'root'}))return reply(res,403,{ok:false,message:'SuperAdmin-Anmeldung für Server-Diagnose erforderlich.'});}
     const trace=traces.get(url.pathname.slice('/api/cms/debug/traces/'.length));return reply(res,trace?200:404,trace||{ok:false,message:'Vorgang abgelaufen oder Diagnose ausgeschaltet.'});
+   }
+   // SQL-Konsole: eigene Seite aus dem Begleitprojekt, nur für die aktive
+   // SuperAdmin-Rolle — wie /super, inklusive Redirect bei Rollenwahl.
+   if(req.method==='GET'&&url.pathname==='/sql'){
+    refreshSqlRuntime();
+    res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
+    if(!sqlRuntime){res.writeHead(404);return res.end('SQL-Werkzeug nicht installiert.');}
+    const session=admin.readSession(req);
+    // Anmeldung und Rollenwahl laufen deklarativ innerhalb des Projekts.
+    if(!session)return res.end(renderCms(sqlFile,'stage_login'));
+    if(!session.activeRole)return res.end(renderCms(sqlFile,'stage_roles'));
+    if(!require('./cms-super.cjs').isSuper(core.db,session)){res.writeHead(303,{Location:'/admin','Cache-Control':'no-store'});return res.end();}
+    return res.end(renderCms(sqlFile,'stage_main'));
    }
    if(req.method==='GET'&&['/admin','/house','/super','/roles'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -134,7 +172,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
    // POST läuft deklarativ über stage_server_enroll — die Meldung wird HTML.
    if(req.method==='POST'&&['/parent-enroll','/observer-enroll','/admin-enroll','/sponsor-enroll'].includes(url.pathname)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
-    if(req.headers.origin!==`http://${req.headers.host}`){res.statusCode=403;return res.end('Fremder Ursprung');}
+    if(!guards.originOk(req)){res.statusCode=403;return res.end('Fremder Ursprung');}
     let raw='';for await(const c of req){raw+=c;if(raw.length>2048){res.statusCode=413;return res.end('Zu groß');}}
     const body=Object.fromEntries(new URLSearchParams(raw)),ep=runtime.find(url.pathname,'POST');
     const result=ep?runtime.run(ep,{session:null,body,core,commit,credentialPath,enroll:{parent:parent.enroll,observer:parent.enrollObserver,admin:admin.enroll,sponsor:b=>enrollSponsor(core,credentialPath,b.ticket,b.username,b.password,commit)}}):{status:400,data:{message:'Endpunkt fehlt'}};
@@ -143,7 +181,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
      const signedIn=admin.login(req,{username:body.username,password:body.password}),houseId=result.data.houseId;
      const selectedHouse=houseId!=='root'&&signedIn.house&&core.db.areas.some(a=>a.id===houseId&&a.type==='house'&&a.active)&&core.db.roles.some(r=>r.personId===signedIn.personId&&r.areaId===houseId&&r.role==='areaAdmin'&&r.active);
      if(signedIn.token&&signedIn.personId===result.data.personId&&(houseId==='root'?signedIn.super:selectedHouse)){
-      const cookies=[`cms_admin=${signedIn.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`];
+      const cookies=[`cms_admin=${signedIn.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`+secureCookie];
       if(signedIn.accountToken&&(signedIn.contexts?.some(c=>c!=='admin')||!signedIn.token))cookies.push(accountCookie(signedIn.accountToken));
       const location=houseId==='root'?'/super':'/house?house='+encodeURIComponent(houseId);
       res.writeHead(303,{Location:location,'Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
@@ -173,13 +211,13 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Verwaltungszugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Verwaltungszugang einrichten</h1><p>Passwort zurückgesetzt? Dann den bisherigen Benutzernamen eingeben und ein neues Passwort wählen.</p><form method="post" action="/admin-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
    }
    if(req.method==='POST'&&url.pathname==='/admin-login'){
-    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
+    if(!guards.originOk(req))return reply(res,403,{error:'Fremder Ursprung'});
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
     endPreviousSessions(req);
     const result=admin.login(req,Object.fromEntries(new URLSearchParams(raw)));
     console.log('[Rollenwahl] /admin-login → result.roles:',JSON.stringify(result.roles),'| super:',result.super,'| house:',result.house);
     if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Set-Cookie':CLEAR_COOKIES});return res.end(loginPage());}
-    const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`+secureCookie);
     // Konto-Cookie nur bei Eltern-/Beobachterkontext oder fehlender Verwaltungszuständigkeit.
     if(result.accountToken&&(result.contexts?.some(c=>c!=='admin')||!result.token))cookies.push(accountCookie(result.accountToken));
     res.writeHead(303,{'Location':result.token?((result.roles||[]).length>1?'/roles':(result.super?'/super':result.house?'/house':'/admin')):(result.contexts||[]).includes('observer')?'/observer':(result.contexts||[]).includes('parent')?'/parent':(result.contexts||[]).includes('sponsor')?'/sponsor':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
@@ -248,6 +286,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
       return res.end(fs.readFileSync(pfile));
      }
      const pproject=JSON.parse(fs.readFileSync(pfile,'utf8')),pencoded=JSON.stringify(pproject).replace(/</g,'\\u003c');
+     if(pproject.learningShell)res.setHeader('Content-Security-Policy',playCsp.replace("connect-src 'none'","frame-src blob:; connect-src 'none'").replace("base-uri 'self'","base-uri 'self'"+hs));
      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
      return res.end('<!doctype html><meta charset="utf-8"><base href="/play/'+launchKey+'/"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}#pv{position:fixed;left:0;right:0;top:0;height:26px;z-index:99998;background:#5a3c00;color:#ffd166;font:14px Segoe UI;line-height:26px;text-align:center}</style><div id="pv">Vorschau — Entwurf, keine Spielsitzung</div><main id="run-stage"></main><script>window.PROJECT='+pencoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
     }
@@ -269,10 +308,12 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
      return res.end(fs.readFileSync(uploaded));
     }
     const project=JSON.parse(fs.readFileSync(uploaded||projFile,'utf8'));
+    if(uploaded&&project.learningShell)res.setHeader('Content-Security-Policy',playCsp.replace("connect-src 'none'","frame-src blob:; connect-src 'none'").replace("base-uri 'self'","base-uri 'self'"+hs));
     // Spiele erhalten ihren Launch-Schluessel als Projektvariable CMS_LAUNCH —
     // so koennen sie deklarative http-Actions gegen /api/cms/play und
     // /api/cms/party richten, ohne das Sitzungstoken zu kennen (E08).
     const autoParty=!!(launch.partyId&&core.db.parties.find(p=>p.id===launch.partyId)?.oneClick);
+    for(const v of project.variables||[])if(v.name==='CMS_LAUNCH'){v.value=launchKey;v.defaultValue=launchKey;}
     for(const st of project.stages||[]){
      for(const v of st.variables||[]){if(v.name==='CMS_LAUNCH')v.value=launchKey;if(autoParty&&v.name==='PartyId')v.value=launch.partyId;if(v.name==='CMS_AUTO_PARTY')v.value=autoParty;}
      if(autoParty){for(const o of st.objects||[]){if(o.name==='TimerPoll'){o.enabled=true;o.maxInterval=0;o.currentInterval=0;}if(o.name==='BtnMitspielen'||o.name==='BtnStarten')o.visible=false;if(o.name==='Status')o.text='Warte auf die Antwort der eingeladenen Person …';}}
@@ -289,24 +330,24 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
      +'function send(a,x){return fetch("/api/cms/play",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({launchKey:K,action:a},x||{}))}).then(function(r){return r.json()}).catch(function(){return{ok:false}})}'
      +'window.CMS={report:function(m,v,u){return send("progress",{eventId:crypto.randomUUID(),metric:m,value:v,unit:u,schemaVersion:1})},end:function(){return send("end")}};'
      +'setInterval(function(){send("heartbeat").then(function(r){if(!r.ok)return;if(r.warn==="5min")note("Noch 5 Minuten","#ffd166");if(r.warn==="1min")note("Noch 1 Minute","#ef8354");if(r.warn==="grace")note("Zeit um — wird gespeichert","#ef8354");if(r.ended||r.status==="ended")note("Zeit für heute ist um. Gut gemacht!","#edf7f4")})},30000);'
-     +'addEventListener("pagehide",function(){navigator.sendBeacon("/api/cms/play",new Blob([JSON.stringify({launchKey:K,action:"end"})],{type:"application/json"}))});'
+     +(uploaded?'addEventListener("pagehide",function(){send('+JSON.stringify(game.mathEnabled===true?'pause':'end')+')});':'addEventListener("pagehide",function(){navigator.sendBeacon("/api/cms/play",new Blob([JSON.stringify({launchKey:K,action:'+JSON.stringify(game.mathEnabled===true?'pause':'end')+'})],{type:"application/json"}))});')
      +'})();</script>';
     return res.end('<!doctype html><meta charset="utf-8"><base href="/play/'+launchKey+'/"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script>'+bridge+heart+'<script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
    }
    if(req.method!=='POST'||!url.pathname.startsWith('/api/cms/'))return reply(res,404,{error:'Nicht gefunden'});
-   if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
+   if(!guards.originOk(req))return reply(res,403,{error:'Fremder Ursprung'});
    let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>8192)return reply(res,413,{error:'Anfrage zu groß'});}let body;try{body=JSON.parse(raw||'{}');}catch{return reply(res,400,{error:'Ungültiges JSON'});}
    if(url.pathname==='/api/cms/admin-login'){
-    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    if(!guards.originOk(req))return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
     const ep=runtime.find(url.pathname,'POST');if(!ep)return reply(res,404,{ok:false,message:'Endpunkt fehlt'});
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,body});
     endPreviousSessions(req);
-    const result=runtime.run(ep,{session:null,body,emit,core,admin,commit,credentialPath,remoteAddress:req.socket.remoteAddress});
+    const result=runtime.run(ep,{session:null,body,emit,core,admin,commit,credentialPath,remoteAddress:guards.clientIp(req)});
     // Transport: Tokens der Antwort werden HttpOnly-Cookies und verlassen den Body.
     const data=result.data||{},cookies=[];
     if(!data.adminToken&&!data.accountToken)cookies.push(...CLEAR_COOKIES);
-    if(data.adminToken)cookies.push(`cms_admin=${data.adminToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    if(data.adminToken)cookies.push(`cms_admin=${data.adminToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`+secureCookie);
     if(data.accountToken)cookies.push(accountCookie(data.accountToken));
     delete data.adminToken;delete data.accountToken;delete data.personId;
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
@@ -319,11 +360,14 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     return reply(res,result.status||200,result.data);
    }
    if(url.pathname.startsWith('/api/cms/admin/')){
-    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    if(!guards.originOk(req))return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
     if(['true','false','1','0'].includes(body.active))body.active=body.active==='true'||body.active==='1';
     if(body.confirm==='true')body.confirm=true;
     // Registrierte TServerEndpoint-Tasks laufen über die Runtime; Rest bleibt beim Legacy-Dispatch.
-    const ep=runtime.find(url.pathname,'POST');
+    // Begleitprojekte (GCS-SQL-Tool) dürfen ebenfalls /api/cms/admin/* bedienen.
+    if(url.pathname==='/api/cms/admin/sql')refreshSqlRuntime();
+    let ep=runtime.find(url.pathname,'POST'),activeRuntime=runtime;
+    if(!ep&&sqlRuntime){ep=sqlRuntime.find(url.pathname,'POST');activeRuntime=sqlRuntime;}
     if(url.pathname.includes('/rol'))console.log('[Rollenwahl] →',url.pathname,'| ep:',ep?'gefunden':'NICHT in Runtime','| session:',admin.readSession(req)?'da':'keine');
     let result;
     if(ep){
@@ -334,7 +378,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
      // requireRole('admin') verlangt nur eine gültige Sitzung — die fachliche
      // Zuständigkeit prüft weiterhin _manageable/manageArea pro Bereich.
      // Legacy-Endpunkte (admin.api) bleiben Admin-Cookie-only.
-     result=runtime.run(ep,{session:admin.readSession(req)||core.session(body.token||cookie(req,'cms_account')),body,emit,core,admin,commit,credentialPath,uploads,launches});
+     result=activeRuntime.run(ep,{session:admin.readSession(req)||core.session(body.token||cookie(req,'cms_account')),body,emit,core,admin,store,commit,credentialPath,uploads,launches});
      if(url.pathname==='/api/cms/admin/role'&&result.data?.ok&&result.data.accountToken){
       res.setHeader('Set-Cookie',accountCookie(result.data.accountToken));
       delete result.data.accountToken;
@@ -343,7 +387,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     }else{
      result=admin.api(req,url.pathname.slice('/api/cms/admin/'.length),body);
     }
-    if(result.data.link)result.data.link=`http://${req.headers.host}${result.data.link}`;
+    if(result.data.link)result.data.link=guards.baseUrl(req)+result.data.link;
     if(result.data.items){const items=result.data.items;const page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(items.length/4)-1)));Object.assign(result.data,{page,pages:Math.ceil(items.length/4),total:items.length},slots(items.slice(page*4,page*4+4).map(i=>({...i,label:(url.pathname.endsWith('/rooms')?'':i.active?'✓  ':'○  ')+i.label,visible:true,next:!i.active}))));}
     return reply(res,result.status,result.data);
    }
@@ -352,7 +396,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     const trace=traces.begin(req,ep?.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,path:url.pathname,headers:req.headers,body});
-    const result=runtime.run(ep,{session:null,body,emit,core,admin,commit,credentialPath,remoteAddress:req.socket.remoteAddress});
+    const result=runtime.run(ep,{session:null,body,emit,core,admin,commit,credentialPath,remoteAddress:guards.clientIp(req)});
     res.once('finish',()=>emit('Response gesendet',{status:result.status,headers:{'Content-Type':'application/json; charset=utf-8','X-GCS-Trace-ID':trace?.id},body:result.data}));
     return reply(res,result.status,result.data);
    }
@@ -408,7 +452,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,body});
-    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,store,commit,credentialPath,play,mp,launches,uploads,remoteAddress:req.socket.remoteAddress});
+    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,store,commit,credentialPath,play,mp,launches,uploads,remoteAddress:guards.clientIp(req)});
     emit('Response gesendet',{status:result.status,body:result.data});
     return reply(res,result.status,result.data);
    }
@@ -429,10 +473,10 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
   });
  }catch(e){console.error('[CMS retention-sweep]',e.message)}};
  const retentionTimer=setInterval(sweepRetention,6*3600e3);retentionTimer.unref?.();
- server.on('close',()=>{clearInterval(sweepTimer);clearInterval(retentionTimer)});sweepSessions();sweepRetention();
+ server.on('close',()=>{clearInterval(sweepTimer);clearInterval(retentionTimer);store.close?.()});sweepSessions();sweepRetention();
  live.attach(server,editorTest.upgrade);
  server.on('close',editorTest.dispose);
- return {server,core,store,launches,closeLive:()=>{live.close();editorTest.dispose()}};
+ return {server,core,store,uploads,launches,closeLive:()=>{live.close();editorTest.dispose()}};
 }
 
 async function startCms({port=Number(process.env.CMS_PORT||8081),dataPath,ttsCacheDirectory,manageServices=process.env.CMS_SERVICES_MANAGED!=='1'}={}){
@@ -451,7 +495,7 @@ async function startCms({port=Number(process.env.CMS_PORT||8081),dataPath,ttsCac
   runtime=createServer({dataPath,ttsCacheDirectory});
   await new Promise((resolve,reject)=>{runtime.server.once('error',reject);runtime.server.listen(port,'127.0.0.1',()=>{runtime.server.removeListener('error',reject);resolve();});});
   runtime.server.once('close',()=>{void shutdown();});
-  console.log('GCS-CMS: http://localhost:'+runtime.server.address().port);
+  console.log('GCS-CMS: http://localhost:'+runtime.server.address().port+' | Speicher: '+(runtime.store.kind||'json'));
   return {...runtime,stop:shutdown};
  }catch(error){await shutdown();throw error;}
 }

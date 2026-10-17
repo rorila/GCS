@@ -2,6 +2,11 @@ import { Logger } from '../../../utils/Logger';
 
 const logger = Logger.get('EmojiPickerRenderer', 'Inspector_Update');
 
+const CMS_EMOJI_IDS: Record<string, string> = {
+    '🐶': 'dog', '🐱': 'cat', '🌳': 'tree', '🏠': 'house',
+    '🐘': 'elephant', '🦉': 'owl', '🌷': 'flower', '🐷': 'pig'
+};
+
 /**
  * EmojiPickerRenderer - Handles rendering of the TEmojiPicker component.
  * This can be used both in-game (runtime) and in the editor.
@@ -51,6 +56,7 @@ export class EmojiPickerRenderer {
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     obj.selectedEmoji = emoji;
+                    obj.selectedId = CMS_EMOJI_IDS[emoji] || emoji;
                     if (onEvent) onEvent(obj.id, 'onSelect', emoji);
                     // Re-render itself to update selected state
                     this.renderEmojiPicker(el, obj, cellSize, onEvent);

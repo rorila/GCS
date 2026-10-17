@@ -109,7 +109,7 @@ const decksServer = stageShell('stage_server_decks', 'Server · Kartenstapel');
       'Server_StapelFreigeben_Verarbeiten', 'requireRole(account) → Erwachsenen-Freigabe für Kind-Stapel'),
     ep('StapelZuordnen', '/api/cms/decks/assign', 'deckAssign',
       { deckId: '$body.deckId', childId: '$body.childId', assign: '$body.assign' },
-      'Server_StapelZuordnen_Verarbeiten', 'requireRole(account) → Stapel einem Kind zuordnen/entziehen'),
+      'Server_StapelZuordnen_Verarbeiten', 'requireRole(account) → Stapel einem Bewohner zuordnen/entziehen'),
     ep('StapelKinder', '/api/cms/decks/assignables', 'deckAssignables',
       { deckId: '$body.deckId' },
       'Server_StapelKinder_Verarbeiten', 'requireRole(account) → Kinder im Zuordnungsbereich der Rolle'),
@@ -162,7 +162,7 @@ const buildGalleryStage = () => {
     ], 'Stapel_Auswaehlen', { displayMode: 'table', rowHeight: 34 }),
     label('VorschauTitel', 'VORSCHAU', 4, 21, 15, 1.5, 16),
     button('Bearbeiten', '✏ Bearbeiten', 21, 21, 11, 2, 'Navigation_Bearbeiten', { visible: false }),
-    button('Uebernehmen', '⬇ Übernehmen', 33, 21, 13, 2, 'Sperre_StapelUebernehmen', { visible: false }),
+    button('Uebernehmen', '＋ Hinzufügen', 33, 21, 13, 2, 'Sperre_StapelUebernehmen', { visible: false }),
     button('Veroeffentlichen', '📢 Veröff.', 48, 21, 12, 2, 'Sperre_StapelVeroeffentlichen', { visible: false }),
     objList('StapelKarten', 'Karten des gewählten Stapels (Vorschau).'),
     table('StapelKartenTabelle', 4, 23, 56, 13, 'StapelKarten', [
@@ -172,7 +172,7 @@ const buildGalleryStage = () => {
       { field: 'topic', label: 'Thema', type: 'meta', x: 0.5, y: 4.15, width: 6, height: 1 },
       { field: 'createdByName', label: 'Von', type: 'meta', x: 7, y: 4.15, width: 4, height: 1 },
     ], null, { flippable: true, cardConfig: { width: 200, height: 96, gap: 14 } }),
-    label('Hinweis', 'Übernehmen legt neue Stapelkarten in den Karteikasten (Fach 1). Eigene Stapel kannst du bearbeiten — nach der Freigabe sehen sie alle Hauskinder.', 4, 37, 56, 3, 13),
+    label('Hinweis', 'Wähle einen freigegebenen Stapel und füge ihn deinem Karteikasten hinzu. Neue Karten starten in Fach 1. Bereits vorhandene Karten behalten ihren Lernstand.', 4, 37, 56, 3, 13),
     { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'GalerieInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
   );
   s.variables.push(
@@ -269,7 +269,7 @@ const buildDecksStage = () => {
       { field: 'cardCount', label: 'Karten', width: '70px' },
     ], 'Stapel_Auswaehlen', { displayMode: 'table', rowHeight: 34 }),
     label('AufgabeTitel', 'WAS MÖCHTEST DU TUN?', 4, 27, 56, 1.5, 16),
-    button('ZuordnenNav', '👶 Kindern zuordnen', 4, 29, 16, 3, 'Navigation_Zuordnen'),
+    button('ZuordnenNav', '👥 Bewohner zuordnen', 4, 29, 16, 3, 'Navigation_Zuordnen'),
     button('BearbeitenNav', '✏ Stapel bearbeiten', 22, 29, 16, 3, 'Navigation_Bearbeiten'),
     button('NeuNav', '＋ Neuer Stapel', 40, 29, 14, 3, 'Navigation_Neu'),
     label('Hinweis', 'Markiere einen Stapel und wähle die Aufgabe. Kind-Stapel mit „wartet auf Freigabe" gibst du unter „Stapel bearbeiten" frei.', 4, 34, 56, 3, 13),
@@ -306,31 +306,31 @@ const buildDecksStage = () => {
       B.nav('Act_Nav_Neu', 'stage_decks_create'),
     ])),
     task('Navigation_Zurueck', busyGuard([
-      cond('DeckHerkunft', 'house', [B.nav('Act_Nav_ZurHaus', 'stage_house')], [B.nav('Act_Nav_ZurEltern', 'stage_parent')]),
+      cond('DeckHerkunft', 'house', [B.nav('Act_Nav_ZurHaus', 'stage_house')], [B.nav('Act_Nav_ZurEltern', project.stages.some(s => s.id === 'stage_parent_child') ? 'stage_parent_child' : 'stage_parent')]),
     ])),
   );
-  s.features = [{ id: 'stage-decks', name: 'Kartenstapel-Übersicht', description: 'Stapel-Liste mit Aufgabenwahl: Kindern zuordnen, bearbeiten oder neu anlegen.', tags: ['CMS', 'Kartenstapel', 'Eltern'], userStoryIds: [], blueprintTaskNames: s.tasks.map(t => t.name) }];
+  s.features = [{ id: 'stage-decks', name: 'Kartenstapel-Übersicht', description: 'Stapel-Liste mit Aufgabenwahl: Bewohnern zuordnen, bearbeiten oder neu anlegen.', tags: ['CMS', 'Kartenstapel', 'Eltern'], userStoryIds: [], blueprintTaskNames: s.tasks.map(t => t.name) }];
   s.group = 'Eltern & Beobachtung';
   return s;
 };
 
 // 3b. stage_decks_assign — nur die Zuordnung Stapel → Kind
 const buildAssignStage = () => {
-  const s = stageShell('stage_decks_assign', 'Kartenstapel · Kindern zuordnen');
+  const s = stageShell('stage_decks_assign', 'Kartenstapel · Bewohnern zuordnen');
   const B = bind(s);
   s.objects.push(
     label('Titel', 'STAPEL ZUORDNEN', 4, 1, 40, 2, 28),
     label('StapelName', '', 4, 4, 40, 2, 18),
     label('Status', '', 4, 7, 40, 2),
     button('Zurueck', '⬅ Zurück', 46, 4, 14, 2, 'Navigation_Zurueck'),
-    objList('KinderListe', 'Kinder im Zuordnungsbereich dieser Rolle.'),
+    objList('KinderListe', 'Lernende Bewohner im Zuordnungsbereich dieser Rolle.'),
     table('KinderTabelle', 4, 10, 56, 20, 'KinderListe', [
-      { field: 'name', label: 'Kind' },
+      { field: 'name', label: 'Bewohner' },
       { field: 'assignedLabel', label: 'Zugeordnet', width: '120px' },
     ], 'Kind_Auswaehlen', { displayMode: 'table', rowHeight: 34 }),
     button('Zuordnen', '➕ Zuordnen', 4, 32, 16, 3, 'Sperre_KindZuordnen', { visible: false }),
     button('Entfernen', '➖ Entfernen', 22, 32, 16, 3, 'Sperre_KindEntfernen', { visible: false }),
-    label('Hinweis', 'Zugeordnete Karten landen sofort in Fach 1 des Kindes. Beim Entfernen bleiben bereits übernommene Karten im Karteikasten erhalten.', 4, 36, 56, 3, 13),
+    label('Hinweis', 'Zugeordnete Karten landen sofort in Fach 1 der lernenden Person. Beim Entfernen bleiben bereits übernommene Karten im Karteikasten erhalten.', 4, 36, 56, 3, 13),
     { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'ZuordnenInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
   );
   s.variables.push(strVar('KindId'), objVar('KinderAntwort'), boolVar('KinderGueltig'), intVar('Busy'));
@@ -340,11 +340,11 @@ const buildAssignStage = () => {
       cond('DeckKontextId', '', [B.prop('Act_Kein_Stapel', { 'Status.text': 'Bitte zuerst in der Übersicht einen Stapel wählen.' })], [callTask('Kinder_Laden')]),
     ], 'Erstladung: Stapelkontext prüfen, Kinder laden'),
     task('Kinder_Laden', [
-      B.prop('Act_Kinder_Warten', { Busy: 1, 'Status.text': 'Kinder werden geladen …' }),
+      B.prop('Act_Kinder_Warten', { Busy: 1, 'Status.text': 'Bewohner werden geladen …' }),
       B.http('Act_Kinder_Server', '/api/cms/decks/assignables', { token: '${Token}', deckId: '${DeckKontextId}' }, 'KinderAntwort'),
       cond('KinderAntwort.ok', true, [
         B.call('Act_Kinder_Uebernehmen', 'KinderListe', 'tryReplaceRecords', ['${KinderAntwort.items}'], 'KinderGueltig'),
-        B.prop('Act_Kinder_Fertig', { Busy: 0, 'Status.text': 'Kind markieren → zuordnen oder entfernen.' }),
+        B.prop('Act_Kinder_Fertig', { Busy: 0, 'Status.text': 'Bewohner markieren → zuordnen oder entfernen.' }),
       ], [B.prop('Act_Kinder_Fehler', { Busy: 0, 'Status.text': '${KinderAntwort.message}' })]),
     ]),
     task('Kind_Auswaehlen', busyGuard([
@@ -375,7 +375,7 @@ const buildAssignStage = () => {
     task('Navigation_Zurueck', busyGuard([B.nav('Act_Nav_Uebersicht', 'stage_decks')])),
   );
   s.variables.push(objVar('AktionsAntwort'));
-  s.features = [{ id: 'decks-assign', name: 'Stapel einem Kind zuordnen', description: 'Kernaufgabe: gewählten Stapel einem Kind zuordnen oder die Zuordnung entfernen.', tags: ['CMS', 'Kartenstapel', 'Zuordnung'], userStoryIds: [], blueprintTaskNames: s.tasks.map(t => t.name) }];
+  s.features = [{ id: 'decks-assign', name: 'Stapel einem Bewohner zuordnen', description: 'Kernaufgabe: gewählten Stapel einem Bewohner zuordnen oder die Zuordnung entfernen.', tags: ['CMS', 'Kartenstapel', 'Zuordnung'], userStoryIds: [], blueprintTaskNames: s.tasks.map(t => t.name) }];
   s.group = 'Eltern & Beobachtung';
   return s;
 };
@@ -456,7 +456,7 @@ const buildDeckEditStage = () => {
     button('KarteNeu', '↺ Neue Karte', 40, 26, 9, 2, 'Sperre_KarteNeu', { visible: false }),
     button('KarteSpeichern', '💾 Speichern', 51, 26, 9, 2, 'Sperre_KarteSpeichern', { visible: false }),
     button('KarteLoeschen', '🗑 Löschen', 40, 28, 9, 2, 'Sperre_KarteLoeschen', { visible: false }),
-    label('Hinweis', 'Karten markieren zum Bearbeiten. Der Stapel erscheint zugeordneten Kindern erst nach „Veröffentlichen“.', 4, 39, 56, 1, 12),
+    label('Hinweis', 'Karten markieren zum Bearbeiten. Der Stapel erscheint zugeordneten Personen erst nach „Veröffentlichen“.', 4, 39, 56, 1, 12),
     { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'BearbeitenInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
   );
   s.variables.push(
@@ -608,7 +608,7 @@ if (blueprint) {
 }
 
 // Einstieg Eltern: stage_parent → „📦 Kartenstapel" (Herkunft merken).
-const parentStage = project.stages.find(s => s.id === 'stage_parent');
+const parentStage = project.stages.find(s => s.id === 'stage_parent_child') || project.stages.find(s => s.id === 'stage_parent');
 if (parentStage && !(parentStage.objects || []).some(o => o.name === 'KartenstapelVerwalten')) {
   parentStage.objects.push(button('KartenstapelVerwalten', '📦 Kartenstapel', 48, 30, 12, 2, 'Navigation_stage_decks'));
   parentStage.tasks.push(task('Navigation_stage_decks', [
@@ -651,6 +651,7 @@ if (missing) { console.error(missing + ' fehlende Referenzen — Abbruch.'); pro
 // Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
 const { applyCmsTheme } = require('./cms-style.cjs');
 const themeResult = applyCmsTheme(project);
+require('./cms-deck-card-editor.cjs').configureDeckCardEditor(project);
 console.log(`Theme: ${themeResult.styled} Objekte, ${themeResult.paneled} Panels.`);
 
 fs.writeFileSync(FILE, JSON.stringify(project, null, 1));

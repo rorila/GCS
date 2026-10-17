@@ -192,3 +192,19 @@ Zusätzlich vorbestehender Bruch dokumentiert: `test-cms-stages.cjs` meldet
 `us_konto_role_*`-User-Stories verweisen auf nicht mehr existierende
 Feature-IDs (bereits im Commit `7ab0f48` enthalten, unabhängig vom
 Karteikasten). Stage-Zähler auf 36 Oberflächen + 14 Server-Stages angehoben.
+
+
+## Erwachsene als Lernende
+
+Auch aktive Erwachsene können Stapel zugeordnet bekommen und mit eigenem Leitner-Lernstand lernen. Als HouseAdmin: Hausverwaltung → Kartenstapel → Stapel markieren → Bewohner zuordnen → Person markieren → Zuordnen. Haus- und Raumadmins sehen nur Bewohner ihres gewählten Verwaltungsbereichs; Eltern weiterhin nur ihre bestätigten Kinder, SuperAdmins alle aktiven Personen. Die Zuordnung ändert keine Rollen und gewährt keinen Einblick in fremde Karteikästen. Erwachsene öffnen ihren eigenen Kasten über Mein Karteikasten in der Spieleauswahl.
+
+Die bestehenden internen Felder `childId` und `assignedChildIds` werden aus Kompatibilitätsgründen auch für erwachsene Lernende verwendet. Keine Datenmigration und keine Umwandlung von Erwachsenen in Kinder erforderlich. Für Lernspiele muss der Stapel veröffentlicht sein; die Spiel-, Haus- und Raumfreigaben gelten weiterhin.
+
+Prüfung: `node --test scripts/test-adult-learners.cjs` und `node scripts/test-cms-decks.cjs`.
+
+
+## Aufgabenstapel selbst hinzufügen
+
+Kinder und Erwachsene öffnen in der Spieleauswahl **Mein Karteikasten → Stapel hinzufügen**. Dort einen Stapel markieren, die Vorschau ansehen und **Hinzufügen** wählen. Sichtbar sind eigene Stapel, ausdrücklich zugeordnete veröffentlichte Stapel sowie veröffentlichte, genehmigte Stapel aus dem eigenen Haus. Entwürfe anderer Personen und nicht zugeordnete Stapel fremder Häuser bleiben verborgen.
+
+Die Übernahme verknüpft den Stapel mit der lernenden Person und kopiert neue Karten in Fach 1. Bereits vorhandene Karten und Lernstände bleiben erhalten. Erneutes Hinzufügen lädt nur neue Karten nach. Die Verknüpfung macht den Stapel auch in den Filtern der Lernspiele verfügbar. Der Einstieg aus dem eigenen Karteikasten löscht einen zuvor ausgewählten Eltern-Kind-Kontext.

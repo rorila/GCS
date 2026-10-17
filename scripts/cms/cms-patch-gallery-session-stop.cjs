@@ -70,5 +70,6 @@ const btn = stage.objects.find(o => o.name === 'SitzungBeenden');
 if (btn?.events?.onClick && !names.has(btn.events.onClick)) { console.error('Event-Task fehlt: ' + btn.events.onClick); missing++; }
 if (missing) { console.error(missing + ' fehlende Referenzen in den neuen Teilen — Abbruch.'); process.exit(1); }
 
+require('./cms-gallery-session-stop.cjs').apply(project);
 fs.writeFileSync(file, JSON.stringify(project, null, 1));
 console.log(added.length ? 'stage_gallery ergänzt: ' + added.join(', ') : 'stage_gallery bereits vollständig');

@@ -1,5 +1,6 @@
 import { ClientMessage, ServerMessage } from './Protocol';
 import { Logger } from '../utils/Logger';
+import { gameServerWs, gameServerHttp } from '../utils/ServerUrl';
 
 const logger = Logger.get('NetworkManager');
 
@@ -21,15 +22,24 @@ export class NetworkManager {
     public roomCode: string | null = null;
     public playerNumber: 1 | 2 | null = null;
 
-    constructor(serverUrl: string = 'ws://localhost:8080') {
+    constructor(serverUrl: string = '') {
         this.serverUrl = serverUrl;
+    }
+
+    /** Effektive WebSocket-URL — leer/alter Localhost-Default → same-origin. */
+    private resolvedUrl(): string {
+        return this.serverUrl && this.serverUrl !== 'ws://localhost:8080'
+            ? this.serverUrl
+            : gameServerWs();
     }
 
     /**
      * Get the HTTP base URL based on the WebSocket URL
      */
     public getHttpUrl(): string {
-        return this.serverUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+        return this.serverUrl && this.serverUrl !== 'ws://localhost:8080'
+            ? this.serverUrl.replace('ws://', 'http://').replace('wss://', 'https://')
+            : gameServerHttp('');
     }
 
     /**
@@ -43,7 +53,7 @@ export class NetworkManager {
             }
 
             this.state = 'connecting';
-            this.ws = new WebSocket(this.serverUrl);
+            this.ws = new WebSocket(this.resolvedUrl());
 
             this.ws.onopen = () => {
                 this.state = 'connected';

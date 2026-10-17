@@ -3,6 +3,7 @@ import { DebugLogService } from '../services/DebugLogService';
 import { applyReferenceIds } from './actions/ActionReferences';
 
 export interface ActionContext {
+    stageInterface?: import('./StageInterfaceService').StageInterfaceService;
     vars: Record<string, any>;
     contextVars: any;
     objects: any[]; // New: objects list passed dynamically per execution

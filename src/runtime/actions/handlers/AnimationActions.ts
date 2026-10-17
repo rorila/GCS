@@ -97,7 +97,8 @@ export function registerAnimationActions() {
                     case 'wobble':
                         animManager.wobble(targetObj, Number(action.intensity) || 15, duration);
                         break;
-                    case 'flip': {
+                    case 'flip':
+                    case 'flip3d': {
                         const midpointTask = action.midpointTask || '';
                         const onMidpoint = midpointTask && context.runTask
                             ? () => {
@@ -105,7 +106,7 @@ export function registerAnimationActions() {
                                 context.runTask!(interpolatedTask, { self: targetObj, sender: targetObj, target: targetObj }, targetObj);
                             }
                             : undefined;
-                        animManager.flip(targetObj, duration, onMidpoint, context.objects);
+                        animManager.flip(targetObj, duration, onMidpoint, context.objects, effect === 'flip3d');
                         break;
                     }
                     default: {
@@ -143,7 +144,7 @@ export function registerAnimationActions() {
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
                 'grow', 'shrink', 'explode', 'pop', 'implode',
-                'fadeIn', 'fadeOut', 'spin', 'wobble', 'flip'
+                'fadeIn', 'fadeOut', 'spin', 'wobble', 'flip', 'flip3d'
             ], defaultValue: 'shake' },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500, hint: 'Zeit in Millisekunden' },
             { name: 'source', label: 'Quell-Objekt (Saug-Ziel)', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: '', placeholder: '--- Objekt auswählen ---', hint: 'Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte.', visibleWhen: { field: 'effect', values: ['implode'] } },
@@ -154,7 +155,7 @@ export function registerAnimationActions() {
             { name: 'intensity', label: 'Intensität', type: 'number', defaultValue: 15, hint: 'Für wobble/shake', visibleWhen: { field: 'effect', values: ['wobble', 'shake'] } },
             { name: 'height', label: 'Sprunghöhe (px)', type: 'number', defaultValue: 20, hint: 'Für bounce', visibleWhen: { field: 'effect', values: ['bounce'] } },
             { name: 'targetOpacity', label: 'Ziel-Transparenz (0-1)', type: 'number', defaultValue: 0, hint: 'Für fade', visibleWhen: { field: 'effect', values: ['fade'] } },
-            { name: 'midpointTask', label: 'Midpoint-Task', type: 'select', source: 'tasks', defaultValue: '', placeholder: '--- Task auswählen ---', hint: 'Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln).', visibleWhen: { field: 'effect', values: ['flip'] } }
+            { name: 'midpointTask', label: 'Midpoint-Task', type: 'select', source: 'tasks', defaultValue: '', placeholder: '--- Task auswählen ---', hint: 'Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln).', visibleWhen: { field: 'effect', values: ['flip', 'flip3d'] } }
         ]
     });
 

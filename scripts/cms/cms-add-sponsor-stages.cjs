@@ -511,7 +511,7 @@ function addNavButton(stageId, btnName, text, targetStage, y) {
   st.actions = mergeByName(st.actions, [nav('Act_Sponsor_' + btnName, targetStage)]);
   st.tasks = mergeByName(st.tasks, [task('Sponsor_' + btnName, [A('Act_Sponsor_' + btnName)])]);
 }
-addNavButton('stage_parent', 'NavSponsoren', 'Sponsoren', 'stage_parent_sponsors', 37);
+addNavButton(project.stages.some(s => s.id === 'stage_parent_child') ? 'stage_parent_child' : 'stage_parent', 'NavSponsoren', 'Sponsoren', 'stage_parent_sponsors', 37);
 addNavButton('stage_gallery', 'NavBegleiter', 'Meine Begleiter', 'stage_child_sponsors', 37);
 
 // Globale Kontextvariable für die gewählte Begleitung (wie CMSKindId).

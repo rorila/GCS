@@ -1,5 +1,6 @@
 import { IRenderContext } from './IRenderContext';
 import { SecurityUtils } from '../../../utils/SecurityUtils';
+import { setRenderedContent } from './RenderedContent';
 import { Logger } from '../../../utils/Logger';
 
 const logger = Logger.get('TextObjectRenderer');
@@ -9,7 +10,7 @@ export class TextObjectRenderer {
     public static renderLabel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
             (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
-        if (el.innerText !== textValue) el.innerText = textValue;
+        setRenderedContent(el, textValue, 'innerText', ctx.host.runMode);
         const fs = obj.style?.fontSize || obj.fontSize || 14;
         el.style.fontSize = ctx.scaleFontSize(fs);
         
@@ -34,7 +35,7 @@ export class TextObjectRenderer {
 
     public static renderPanel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         const textValue = obj.caption || (ctx.host.runMode ? '' : obj.name);
-        if (el.innerText !== textValue) el.innerText = textValue;
+        setRenderedContent(el, textValue, 'innerText', ctx.host.runMode);
 
         const color = obj.style?.color || '#777';
         if (color) el.style.color = color;
@@ -50,7 +51,7 @@ export class TextObjectRenderer {
         el.style.alignItems = 'center';
     }
 
-    public static renderCard(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
+    public static renderCard(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         const title = obj.title || '';
         const subtitle = obj.subtitle || '';
         
@@ -65,9 +66,7 @@ export class TextObjectRenderer {
         // Wrap in a padding container
         const finalHtml = `<div style="padding: 12px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column;">${html}</div>`;
 
-        if (el.innerHTML !== finalHtml) {
-            el.innerHTML = finalHtml;
-        }
+        setRenderedContent(el, finalHtml, 'innerHTML', ctx.host.runMode);
 
         const align = obj.style?.textAlign || 'left';
         el.style.alignItems = align === 'center' ? 'center' : (align === 'right' ? 'flex-end' : 'flex-start');
@@ -92,9 +91,7 @@ export class TextObjectRenderer {
         }
 
         // innerHTML verwenden, damit <b>, <i>, <span style="color:"> etc. greifen
-        if (el.innerHTML !== textValue) {
-            el.innerHTML = textValue;
-        }
+        setRenderedContent(el, textValue, 'innerHTML', ctx.host.runMode);
 
         // --- Link-Klicks abfangen ---
         if (ctx.host.runMode) {
@@ -106,7 +103,7 @@ export class TextObjectRenderer {
                 if (href && href.startsWith('stage:')) {
                     a.setAttribute('data-stage', href);
                     a.setAttribute('href', '#');
-                    a.addEventListener('click', (e) => e.preventDefault());
+                    a.onclick = (e) => e.preventDefault();
                 }
             });
 
@@ -191,8 +188,8 @@ export class TextObjectRenderer {
         el.style.overflowX = 'hidden';
     }
 
-    public static renderGameHeader(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
-        if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
+    public static renderGameHeader(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        setRenderedContent(el, obj.title || obj.caption || obj.name, 'innerText', ctx.host.runMode);
         el.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : '18px';
         if (obj.style?.color) el.style.color = obj.style.color;
         const fw = obj.style?.fontWeight;
@@ -222,7 +219,7 @@ export class TextObjectRenderer {
             });
         }
         const titleEl = el.querySelector('.card-title') as HTMLElement;
-        if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
+        if (titleEl) setRenderedContent(titleEl, obj.gameName, 'innerText', ctx.host.runMode);
     }
 
     public static renderButton(ctx: IRenderContext, el: HTMLElement, obj: any, _isNew: boolean): void {
@@ -242,7 +239,7 @@ export class TextObjectRenderer {
             textSpan.style.width = '100%';
             el.insertBefore(textSpan, el.firstChild);
         }
-        if (textSpan.textContent !== textValue) textSpan.textContent = textValue;
+        setRenderedContent(textSpan, textValue, 'textContent', ctx.host.runMode);
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;
@@ -258,7 +255,12 @@ export class TextObjectRenderer {
         el.style.textAlign = flexAlign;
 
         if (ctx.host.runMode) {
+            const isDisabled = obj.enabled === false;
+            el.style.opacity = isDisabled ? '0.45' : '1';
+            el.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+            el.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
             el.onmouseenter = () => {
+                if (obj.enabled === false) return;
                 el.style.filter = 'brightness(1.1)';
                 if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onMouseEnter');
             };
@@ -268,6 +270,7 @@ export class TextObjectRenderer {
                 if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onMouseLeave');
             };
             el.onmousedown = () => {
+                if (obj.enabled === false) return;
                 if (!el.style.transform.includes('scale(0.98)')) {
                     el.style.transform += ' scale(0.98)';
                 }
@@ -275,12 +278,14 @@ export class TextObjectRenderer {
             el.onmouseup = () => el.style.transform = el.style.transform.replace(' scale(0.98)', '');
             el.onclick = (e: MouseEvent) => {
                 e.stopPropagation();
+                if (obj.enabled === false) return;
                 if (ctx.host.onEvent) {
                     ctx.host.onEvent(obj.id, 'onClick');
                 }
             };
             el.ondblclick = (e: MouseEvent) => {
                 e.stopPropagation();
+                if (obj.enabled === false) return;
                 if (ctx.host.onEvent) {
                     ctx.host.onEvent(obj.id, 'onDoubleClick');
                 }

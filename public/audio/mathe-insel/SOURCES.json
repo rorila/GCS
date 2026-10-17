@@ -1,0 +1,42 @@
+[
+  {
+    "file": "public/audio/mathe-insel/correct.ogg",
+    "sourceFile": "Audio/confirmation_001.ogg",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a"
+  },
+  {
+    "file": "public/audio/mathe-insel/build.ogg",
+    "sourceFile": "Audio/drop_002.ogg",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "sha256": "4ac4d1cef7e936965cbf795852ca2020300b9e2ba7daa59f2bf4f1f7bf416218"
+  },
+  {
+    "file": "public/audio/mathe-insel/try-again.ogg",
+    "sourceFile": "Audio/error_004.ogg",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "sha256": "0b574cea597d96507e782ae9764f88482ce49f46e931e57054bf7150047f2d69"
+  },
+  {
+    "file": "public/audio/mathe-insel/complete.ogg",
+    "sourceFile": "Audio/confirmation_004.ogg",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "sha256": "568967a3d9f8a8f6af54ea01729c4882284308f2a27d78c07ffd7ee0d6951661"
+  },
+  {
+    "file": "public/audio/mathe-insel/forest-loop.ogg",
+    "author": "beardalaxy",
+    "source": "https://opengameart.org/content/iremos-forest-theme-loop",
+    "download": "https://opengameart.org/sites/default/files/iremos_forest_in_game.ogg",
+    "license": "CC0-1.0",
+    "sha256": "52103c8ef155224a9faeb3a834efe589a27ec0eeb929fdfa855e23d365f8fc01"
+  }
+]

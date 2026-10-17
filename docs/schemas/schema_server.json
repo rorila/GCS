@@ -246,6 +246,9 @@
       "methods": [
         {
           "name": "choose"
+        },
+        {
+          "name": "clear"
         }
       ],
       "events": [
@@ -293,6 +296,31 @@
           ]
         },
         {
+          "name": "startResidentCreate",
+          "parameters": [
+            {
+              "name": "houseId",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "kind",
+              "type": "string"
+            },
+            {
+              "name": "sequenceText",
+              "type": "string"
+            },
+            {
+              "name": "requestId",
+              "type": "string"
+            }
+          ]
+        },
+        {
           "name": "cancel"
         }
       ],
@@ -306,6 +334,34 @@
       "example": {
         "className": "TFileUpload",
         "name": "FileUpload"
+      }
+    },
+    "TServerSql": {
+      "description": "Führt eine lesende Rohe-SQL-Abfrage auf dem SQLite-Bestand aus (readOnly-Verbindung, Zeilenlimit 500). Berechtigung wird vorgeschaltet (TServerSession.requireRole).",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "queryPolicy": {
+          "type": "string",
+          "default": "Nur lesende Anweisungen (SELECT/WITH/EXPLAIN); Engine-Readonly; Limit 500 Zeilen",
+          "description": "Verbindliche Abfrageregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "query",
+          "description": "Liest body.sql, führt readOnly aus, liefert {columns,rows,rowCount,truncated,message}"
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerSql",
+        "name": "SqlDatenbank",
+        "executionSide": "server",
+        "isService": true,
+        "isHiddenInRun": true
       }
     },
     "TServerUpload": {
@@ -344,6 +400,28 @@
       "example": {
         "className": "TServerUpload",
         "name": "ServerUpload"
+      }
+    },
+    "TServerAccess": {
+      "description": "Serverseitige Zugriffsmethoden. learningCatalog liest den gemeinsamen Lernzielkatalog für HouseAdmins, SuperAdmins und bestätigte Eltern nach erneuter Rollenprüfung.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {},
+      "methods": [
+        {
+          "name": "learningCatalog",
+          "description": "Liest state, grade, search und availability aus dem Request. Antwort: ok, items, options.states, options.grades und message. Keine Kinddaten oder Schreibzugriffe. Nur Konto-/Verwaltungssitzungen; aktive Hausrolle oder bestätigte Elternbeziehung erforderlich.",
+          "parameters": []
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerAccess",
+        "name": "CatalogAccess",
+        "executionSide": "server",
+        "isService": true
       }
     }
   }

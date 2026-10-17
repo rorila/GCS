@@ -98,7 +98,7 @@ function playPage(key, project, partyId) {
     + 'function send(a,x){return fetch("/api/cms/play",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({launchKey:K,action:a},x||{}))}).then(function(r){return r.json()}).catch(function(){return{ok:false}})}'
     + 'window.CMS={report:function(m,v,u){return send("progress",{eventId:crypto.randomUUID(),metric:m,value:v,unit:u,schemaVersion:1})},end:function(){return send("end")}};'
     + 'setInterval(function(){send("heartbeat").then(function(r){if(!r.ok)return;if(r.warn==="5min")note("Noch 5 Minuten","#ffd166");if(r.warn==="1min")note("Noch 1 Minute","#ef8354");if(r.warn==="grace")note("Zeit um — wird gespeichert","#ef8354");if(r.ended||r.status==="ended")note("Zeit für heute ist um. Gut gemacht!","#edf7f4")})},30000);'
-    + 'addEventListener("pagehide",function(){navigator.sendBeacon("/api/cms/editor-test/play",new Blob([JSON.stringify({launchKey:K,action:"end"})],{type:"application/json"}))});'
+    + 'addEventListener("pagehide",function(){send("end")});'
     + '})();</script>';
   return '<!doctype html><meta charset="utf-8"><base href="/"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:center center}'
     + '#pv{position:fixed;left:0;right:0;top:0;height:26px;z-index:99998;background:#3c2a00;color:#ffd166;font:14px Segoe UI;line-height:26px;text-align:center}</style>'
@@ -108,6 +108,11 @@ function playPage(key, project, partyId) {
 }
 
 function createEditorTestService({ cmsFile, enabled = process.env.CMS_EDITOR_TEST !== 'off', maxContexts = 5, ttlMs = 30 * 60_000, now = () => Date.now() } = {}) {
+  const guards = require('./cms-http-guard.cjs').createHttpGuards();
+  // Hinter einem vertrauenswürdigen Proxy sind alle Peers Loopback — der
+  // Loopback-Check allein wäre dort keine Grenze. CMS_TRUST_PROXY sperrt den
+  // Testkontext daher zusätzlich (unabhängig von CMS_EDITOR_TEST).
+  const proxied = guards.trustProxy;
   const contexts = new Map(); // launchKey -> ctx (shared for multiplayer)
   const count = () => new Set(contexts.values()).size;
   const remove = ctx => {
@@ -120,7 +125,7 @@ function createEditorTestService({ cmsFile, enabled = process.env.CMS_EDITOR_TES
     if (url.pathname !== '/api/cms/editor-test/party/live') return false;
     const ip = req.socket?.remoteAddress || '';
     const ctx = contextOf(url.searchParams.get('launchKey'));
-    if (!enabled || !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip) || !ctx?.live) {
+    if (!enabled || proxied || !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip) || !ctx?.live) {
       socket.end('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n'); return true;
     }
     ctx.live.upgrade(req, socket, head); return true;
@@ -140,18 +145,21 @@ function createEditorTestService({ cmsFile, enabled = process.env.CMS_EDITOR_TES
   async function handle(req) {
     if (!enabled) return fail(404, 'CMS-Testkontext deaktiviert.');
     const ip = req.socket?.remoteAddress || '';
-    if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip)) return fail(403, 'Nur lokale Testanfragen.');
+    if (proxied || !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip)) return fail(403, 'Nur lokale Testanfragen.');
     const url = new URL(req.url, 'http://localhost'), route = url.pathname.replace('/api/cms/editor-test', '') || '/';
-    if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return fail(403, 'Ungültiger Anfrageursprung.');
+    if (!guards.originOk(req)) return fail(403, 'Ungültiger Anfrageursprung.');
     // Kontext-Erzeugung verlangt die Editor-Kennzeichnung; spielbezogene Routen
     // sind (wie im Spielbetrieb) allein über den Launch-Schlüssel abgesichert.
     if (['/start', '/multiplayer/start'].includes(route) && req.headers['x-gcs-editor-test'] !== '1') return fail(403, 'Testanfrage ohne Kennzeichnung.');
     // GET nur für die Testspiel-Seite; Medien bietet der Testkontext nicht an.
     if (req.method === 'GET') {
       const key = keyOf(url.pathname), ctx = contextOf(key);
-      if (route.startsWith('/page/') && ctx?.project)
+      if (route.startsWith('/page/') && ctx?.project) {
+        const host = String(req.headers.host || '').replace(/[^a-zA-Z0-9.\-:]/g, '');
+        const sources = ctx.project.learningShell ? ` http://${host} https://${host}` : '';
         return { status: 200, html: playPage(key, ctx.project, ctx.launches.get(key)?.partyId),
-          headers: { 'Content-Security-Policy': "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'none'; base-uri 'self'; form-action 'none'", 'Cache-Control': 'no-store' } };
+          headers: { 'Content-Security-Policy': "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" + sources + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:" + sources + "; media-src 'self' data: blob:" + sources + "; font-src 'self' data:; worker-src 'self' blob:; " + (ctx.project.learningShell ? 'frame-src blob:; ' : '') + "connect-src 'none'; base-uri 'self'" + sources + "; form-action 'none'", 'Cache-Control': 'no-store' } };
+      }
       return fail(404, 'Testseite nicht gefunden.');
     }
     // Audio-/TTS-Dienste lesen den Request-Stream selbst — Kontext per Key.
@@ -241,7 +249,7 @@ function createEditorTestService({ cmsFile, enabled = process.env.CMS_EDITOR_TES
     if (route === '/play') {
       const launch = ctx.launches.get(body.launchKey), session = launch && ctx.core.session(launch.token);
       if (!launch || !session) return fail(401, 'Testsitzung abgelaufen.');
-      if (typeof body.action !== 'string' || !['heartbeat', 'end', 'progress', 'pause', 'resume', 'status', 'cards', 'cardNext', 'cardAnswer', 'cardPointSummary'].includes(body.action)) return fail(400, 'Aktion fehlt oder unzulässig.');
+      if (typeof body.action !== 'string' || !['heartbeat', 'end', 'progress', 'pause', 'resume', 'status', 'cards', 'cardNext', 'cardAnswer', 'cardPointSummary', 'mathStart', 'mathState', 'mathHint', 'mathAnswer', 'mathReveal', 'mathNext', 'mathFinish','mathDecks','mathSpeechAnswer','mathTimeout'].includes(body.action)) return fail(400, 'Aktion fehlt oder unzulässig.');
       const result = ctx.play.api(session, body.action, { ...body, playSessionId: launch.playSessionId });
       if (result.status === 200 && result.data.status === 'ended') ctx.launches.delete(body.launchKey);
       return result;

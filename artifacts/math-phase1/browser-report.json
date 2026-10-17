@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "persistence": "actual ProjectPersistenceService.saveProject -> Blob download -> file -> JSON.parse -> standalone runtime",
+  "stage": "stage_math_probe",
+  "wrongFeedback": true,
+  "correctResult": 35,
+  "boundCountAfterTwoClicks": 2,
+  "resetCount": 0,
+  "taskParameterDefaultObserved": "",
+  "browserErrors": [],
+  "productionDataChanged": false
+}

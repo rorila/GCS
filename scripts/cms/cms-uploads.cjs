@@ -32,13 +32,34 @@ function validateHtml(bytes){
  *  deklarativ in stage_server_uploads — TServerUpload.process ruft die Helfer
  *  über den Runtime-Kontext auf. */
 function createUploads(core,admin,store,configFile,stageId){
- const directory=path.join(path.dirname(store.dataPath),'uploads');fs.mkdirSync(directory,{recursive:true});
+ const directory=process.env.CMS_UPLOAD_DIR||path.join(path.dirname(store.dataPath),'uploads');fs.mkdirSync(directory,{recursive:true});
  const config=require('./cms-project.cjs').readWorkflow(configFile,stageId),stage=config.stages[0];
  const nodes=stage.objects.filter(o=>o.className==='TServerUpload');
- if(nodes.length!==2||nodes.some(n=>!Number.isInteger(n.maxBytes)||n.maxBytes<1))throw Error('Upload-Konfiguration fehlt');
+ if(nodes.length<2||nodes.some(n=>!Number.isInteger(n.maxBytes)||n.maxBytes<1))throw Error('Upload-Konfiguration fehlt');
  const commit=(actor,action,change,opts)=>store.commit(core.db,{actor:actor.personId,action,...opts},change);
+ const inFlight=new Set();
+ const beginWrite=name=>{inFlight.add(name);};
+ const endWrite=name=>{inFlight.delete(name);};
+ function cleanupOrphanAvatars({maxAgeMs=60000,now=Date.now()}={}){
+  const referenced=new Set((core.db.people||[]).map(p=>p.avatarImage).filter(v=>typeof v==='string'&&v.startsWith('/avatars/')).map(v=>v.slice(9)));
+  const removed=[];
+  if(!fs.existsSync(directory))return{removed};
+  for(const entry of fs.readdirSync(directory,{withFileTypes:true})){
+   if(!entry.isFile()||!/^[a-f0-9-]{36}\.png$/.test(entry.name))continue;
+   if(inFlight.has(entry.name)||referenced.has(entry.name))continue;
+   const full=path.join(directory,entry.name);
+   try{
+    const stat=fs.statSync(full);
+    if(maxAgeMs>0&&now-stat.mtimeMs<maxAgeMs)continue;
+    fs.unlinkSync(full);removed.push(entry.name);
+   }catch{}
+  }
+  return{removed};
+ }
+ cleanupOrphanAvatars({maxAgeMs:60000});
  return {
   directory,commit,validateGame,validateHtml,unpackGameBundle,isZip,mediaType:n=>MEDIA_MIME[String(n).split('.').pop().toLowerCase()]||'application/octet-stream',
+  inFlight,beginWrite,endWrite,cleanupOrphanAvatars,
   // Größenlimits aus den TServerUpload-Komponenten; hardCap deckelt den Stream
   // am Transport-Rand, das fachliche Limit prüft der Task pro kind.
   maxBytes:Object.fromEntries(nodes.map(n=>[n.kind,n.maxBytes])),

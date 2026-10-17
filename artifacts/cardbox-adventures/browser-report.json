@@ -1,0 +1,53 @@
+[
+  {
+    "game": "Mathe-Rechenballons",
+    "ok": true,
+    "defaultCardbox": true,
+    "multiDeckFilter": true,
+    "boxFilter": true,
+    "textAndSelf": true,
+    "shortRound": true,
+    "sharedLeitner": true,
+    "reloadIdempotent": true,
+    "tabletViewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "ledgerEvents": 2,
+    "browserErrors": []
+  },
+  {
+    "game": "Mathe-Rechenpuzzle",
+    "ok": true,
+    "defaultCardbox": true,
+    "multiDeckFilter": true,
+    "boxFilter": true,
+    "textAndSelf": true,
+    "shortRound": true,
+    "sharedLeitner": true,
+    "reloadIdempotent": true,
+    "tabletViewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "ledgerEvents": 2,
+    "browserErrors": []
+  },
+  {
+    "game": "Mathe-Insel-Flussbruecke",
+    "ok": true,
+    "defaultCardbox": true,
+    "multiDeckFilter": true,
+    "boxFilter": true,
+    "textAndSelf": true,
+    "shortRound": true,
+    "sharedLeitner": true,
+    "reloadIdempotent": true,
+    "tabletViewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "ledgerEvents": 2,
+    "browserErrors": []
+  }
+]

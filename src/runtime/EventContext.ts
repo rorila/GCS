@@ -61,4 +61,4 @@ export function buildEventContext(
  * Reservierte Magic-Variablen-Namen.
  * Dürfen nicht als Benutzer-Variablen angelegt werden.
  */
-export const RESERVED_VARIABLE_NAMES = new Set(['$event', 'self', '$index', '$item']);
+export const RESERVED_VARIABLE_NAMES = new Set(['$event', 'self', '$index', '$item', 'stageEvent']);

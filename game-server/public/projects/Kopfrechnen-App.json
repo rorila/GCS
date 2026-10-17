@@ -320,7 +320,7 @@
      "draggable": false,
      "droppable": false,
      "dragMode": "move",
-     "text": "➡ Nächste Aufgabe",
+     "text": "Erneut laden",
      "icon": "",
      "visible": false,
      "x": 26,
@@ -342,7 +342,7 @@
       "borderRadius": 10
      },
      "events": {
-      "onClick": "Aufgabe_Ziehen"
+      "onClick": "Laden_Wiederholen"
      }
     },
     {
@@ -404,6 +404,25 @@
      "currentInterval": 0,
      "events": {
       "onTimer": "App_Start"
+     }
+    },
+    {
+     "id": "choice_AntwortTimer",
+     "name": "AntwortTimer",
+     "scope": "stage",
+     "className": "TTimer",
+     "isService": true,
+     "isHiddenInRun": true,
+     "x": 1,
+     "y": 1,
+     "width": 4,
+     "height": 2,
+     "interval": 2000,
+     "enabled": false,
+     "maxInterval": 1,
+     "currentInterval": 0,
+     "events": {
+      "onTimer": "Antwortzeit_Vorbei"
      }
     }
    ],
@@ -849,6 +868,72 @@
      "defaultValue": 0,
      "value": 0,
      "objectModel": ""
+    },
+    {
+     "id": "choice_Phase",
+     "name": "Phase",
+     "scope": "stage",
+     "className": "TStringVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": "idle",
+     "defaultValue": "idle",
+     "type": "string"
+    },
+    {
+     "id": "choice_AktuelleAntwort",
+     "name": "AktuelleAntwort",
+     "scope": "stage",
+     "className": "TStringVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": "",
+     "defaultValue": "",
+     "type": "string"
+    },
+    {
+     "id": "choice_Auswahl",
+     "name": "Auswahl",
+     "scope": "stage",
+     "className": "TObjectVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": null,
+     "defaultValue": null,
+     "type": "object"
+    },
+    {
+     "id": "choice_FeedbackFertig",
+     "name": "FeedbackFertig",
+     "scope": "stage",
+     "className": "TBooleanVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": false,
+     "defaultValue": false,
+     "type": "boolean"
+    },
+    {
+     "id": "choice_BuchungFertig",
+     "name": "BuchungFertig",
+     "scope": "stage",
+     "className": "TBooleanVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": false,
+     "defaultValue": false,
+     "type": "boolean"
+    },
+    {
+     "id": "choice_AntwortPruefung",
+     "name": "AntwortPruefung",
+     "scope": "stage",
+     "className": "TObjectVariable",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "value": null,
+     "defaultValue": null,
+     "type": "object"
     }
    ],
    "tasks": [
@@ -858,8 +943,23 @@
      "description": "Erstladung: erste Karte aus dem Karteikasten ordern",
      "actionSequence": [
       {
-       "type": "task",
-       "name": "Aufgabe_Ziehen"
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "==",
+        "value": "idle"
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Start_Auswahl"
+        },
+        {
+         "type": "task",
+         "name": "Aufgabe_Ziehen"
+        }
+       ],
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -873,29 +973,27 @@
      "actionSequence": [
       {
        "type": "condition",
-       "name": "Rundenlimit erreicht?",
        "condition": {
-        "variable": "AufgabenNr",
-        "operator": ">=",
-        "value": "${Aufgaben}",
-        "rightType": "variable"
+        "variable": "Phase",
+        "operator": "==",
+        "value": "next"
        },
        "body": [
         {
-         "type": "task",
-         "name": "Abschluss"
-        }
-       ],
-       "elseBody": [
-        {
          "type": "condition",
-         "name": "Runde läuft?",
          "condition": {
-          "variable": "Busy",
-          "operator": "==",
-          "value": 0
+          "variable": "AufgabenNr",
+          "operator": ">=",
+          "value": "${Aufgaben}",
+          "rightType": "variable"
          },
          "body": [
+          {
+           "type": "task",
+           "name": "Abschluss"
+          }
+         ],
+         "elseBody": [
           {
            "type": "action",
            "name": "Act_Ziehen_Start"
@@ -906,111 +1004,83 @@
           },
           {
            "type": "condition",
-           "name": "Server antwortet?",
            "condition": {
-            "variable": "KartenAntwort.ok",
-            "operator": "!=",
-            "value": true
+            "variable": "Phase",
+            "operator": "==",
+            "value": "loading"
            },
            "body": [
             {
-             "type": "action",
-             "name": "Act_ZiehFehler"
-            }
-           ],
-           "elseBody": [
-            {
              "type": "condition",
-             "name": "Karte gefunden?",
              "condition": {
-              "variable": "KartenAntwort.card",
-              "operator": "truthy",
+              "variable": "KartenAntwort.ok",
+              "operator": "==",
               "value": true
              },
              "body": [
               {
-               "type": "action",
-               "name": "Act_Karte_Objekt"
-              },
-              {
-               "type": "action",
-               "name": "Act_Nr_Plus"
-              },
-              {
-               "type": "action",
-               "name": "Act_Karte_Uebernehmen"
-              },
-              {
-               "type": "action",
-               "name": "Act_Ergebnis"
-              },
-              {
-               "type": "action",
-               "name": "Act_Distraktor1"
-              },
-              {
-               "type": "action",
-               "name": "Act_Distraktor2"
-              },
-              {
-               "type": "action",
-               "name": "Act_Position"
-              },
-              {
                "type": "condition",
-               "name": "Pos 1?",
                "condition": {
-                "variable": "Pos",
-                "operator": "==",
-                "value": 1
+                "variable": "KartenAntwort.card",
+                "operator": "truthy",
+                "value": true
                },
                "body": [
                 {
                  "type": "action",
-                 "name": "Act_VarianteA"
-                }
-               ],
-               "elseBody": [
+                 "name": "Act_Karte_Objekt"
+                },
+                {
+                 "type": "action",
+                 "name": "Act_Auswahl_Erzeugen"
+                },
                 {
                  "type": "condition",
-                 "name": "Pos 2?",
                  "condition": {
-                  "variable": "Pos",
+                  "variable": "Auswahl.valid",
                   "operator": "==",
-                  "value": 2
+                  "value": true
                  },
                  "body": [
                   {
                    "type": "action",
-                   "name": "Act_VarianteB"
+                   "name": "Act_Nr_Plus"
+                  },
+                  {
+                   "type": "action",
+                   "name": "Act_Auswahl_Bereit"
                   }
                  ],
                  "elseBody": [
                   {
                    "type": "action",
-                   "name": "Act_VarianteC"
+                   "name": "Act_Auswahl_Fehler"
                   }
                  ]
                 }
+               ],
+               "elseBody": [
+                {
+                 "type": "task",
+                 "name": "Abschluss"
+                }
                ]
-              },
-              {
-               "type": "action",
-               "name": "Act_Buttons_Bereit"
               }
              ],
              "elseBody": [
               {
-               "type": "task",
-               "name": "Abschluss"
+               "type": "action",
+               "name": "Act_ZiehFehler"
               }
              ]
             }
-           ]
+           ],
+           "elseBody": []
           }
          ]
         }
-       ]
+       ],
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -1024,21 +1094,30 @@
      "actionSequence": [
       {
        "type": "condition",
-       "name": "Runde läuft?",
        "condition": {
-        "variable": "Busy",
+        "variable": "Phase",
         "operator": "==",
-        "value": 0
+        "value": "answering"
        },
        "body": [
         {
+         "type": "action",
+         "name": "Act_Antwort_Sperren"
+        },
+        {
+         "type": "action",
+         "name": "Act_Antwort_Uebernehmen"
+        },
+        {
+         "type": "action",
+         "name": "Act_Antwort_Pruefen"
+        },
+        {
          "type": "condition",
-         "name": "Treffer?",
          "condition": {
-          "variable": "self.matchValue",
+          "variable": "AntwortPruefung.correct",
           "operator": "==",
-          "value": "${Ergebnis}",
-          "rightType": "variable"
+          "value": true
          },
          "body": [
           {
@@ -1053,7 +1132,8 @@
           }
          ]
         }
-       ]
+       ],
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -1063,44 +1143,65 @@
     {
      "id": "kr_task-f8448aeb-9ba4-4867-959b-2be009a997ff",
      "name": "Bewerten_Richtig",
-     "description": "Richtig: Lernfach +1 (Fach 5 → Ablage 6), direkt nächste Aufgabe",
+     "description": "Einmal buchen, richtige Antwort zeigen und nach zwei Sekunden weiter.",
      "actionSequence": [
       {
-       "type": "action",
-       "name": "Act_BewertenR_Start"
-      },
-      {
-       "type": "action",
-       "name": "Act_BewertungR_Server"
-      },
-      {
        "type": "condition",
-       "name": "Gebucht?",
        "condition": {
-        "variable": "BewertungAntwort.ok",
+        "variable": "Phase",
         "operator": "==",
-        "value": true
+        "value": "selected"
        },
        "body": [
         {
          "type": "action",
-         "name": "Act_Richtig_Plus"
+         "name": "Act_BewertenR_Start"
         },
         {
          "type": "action",
-         "name": "Act_BewertetR"
+         "name": "Act_BewertungR_Server"
         },
         {
-         "type": "task",
-         "name": "Aufgabe_Ziehen"
+         "type": "condition",
+         "condition": {
+          "variable": "Phase",
+          "operator": "==",
+          "value": "feedback"
+         },
+         "body": [
+          {
+           "type": "condition",
+           "condition": {
+            "variable": "BewertungAntwort.ok",
+            "operator": "==",
+            "value": true
+           },
+           "body": [
+            {
+             "type": "action",
+             "name": "Act_Richtig_Plus"
+            },
+            {
+             "type": "action",
+             "name": "Act_BewertetR"
+            },
+            {
+             "type": "task",
+             "name": "Weiter_Nach_Antwort"
+            }
+           ],
+           "elseBody": [
+            {
+             "type": "action",
+             "name": "Act_BuchFehlerR"
+            }
+           ]
+          }
+         ],
+         "elseBody": []
         }
        ],
-       "elseBody": [
-        {
-         "type": "action",
-         "name": "Act_BuchFehler"
-        }
-       ]
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -1110,40 +1211,65 @@
     {
      "id": "kr_task-91a0c226-cf1c-4190-92b6-0a982808397c",
      "name": "Bewerten_Falsch",
-     "description": "Falsch: zurück auf Lernfach 1, Lösung zeigen, per Button weiter",
+     "description": "Einmal buchen, richtige Antwort zeigen und nach zwei Sekunden weiter.",
      "actionSequence": [
       {
-       "type": "action",
-       "name": "Act_BewertenF_Start"
-      },
-      {
-       "type": "action",
-       "name": "Act_BewertungF_Server"
-      },
-      {
        "type": "condition",
-       "name": "Gebucht?",
        "condition": {
-        "variable": "BewertungAntwort.ok",
+        "variable": "Phase",
         "operator": "==",
-        "value": true
+        "value": "selected"
        },
        "body": [
         {
          "type": "action",
-         "name": "Act_Falsch_Plus"
+         "name": "Act_BewertenF_Start"
         },
         {
          "type": "action",
-         "name": "Act_BewertetF"
+         "name": "Act_BewertungF_Server"
+        },
+        {
+         "type": "condition",
+         "condition": {
+          "variable": "Phase",
+          "operator": "==",
+          "value": "feedback"
+         },
+         "body": [
+          {
+           "type": "condition",
+           "condition": {
+            "variable": "BewertungAntwort.ok",
+            "operator": "==",
+            "value": true
+           },
+           "body": [
+            {
+             "type": "action",
+             "name": "Act_Falsch_Plus"
+            },
+            {
+             "type": "action",
+             "name": "Act_BewertetF"
+            },
+            {
+             "type": "task",
+             "name": "Weiter_Nach_Antwort"
+            }
+           ],
+           "elseBody": [
+            {
+             "type": "action",
+             "name": "Act_BuchFehlerF"
+            }
+           ]
+          }
+         ],
+         "elseBody": []
         }
        ],
-       "elseBody": [
-        {
-         "type": "action",
-         "name": "Act_BuchFehlerF"
-        }
-       ]
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -1156,16 +1282,27 @@
      "description": "Ergebnis anzeigen, Spielsitzung beenden (Zeitbuchung), Ergebnis ans Hauptspiel zurückmelden",
      "actionSequence": [
       {
-       "type": "action",
-       "name": "Act_Abschluss"
-      },
-      {
-       "type": "action",
-       "name": "Act_Sitzung_Ende"
-      },
-      {
-       "type": "action",
-       "name": "Act_Ergebnis_Rueckmelden"
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "!=",
+        "value": "ended"
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Stop_Abschluss"
+        },
+        {
+         "type": "action",
+         "name": "Act_Sitzung_Ende"
+        },
+        {
+         "type": "action",
+         "name": "Act_Ergebnis_Rueckmelden"
+        }
+       ],
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
@@ -1178,17 +1315,138 @@
      "description": "Manuell beenden: Zeitbuchung abschließen",
      "actionSequence": [
       {
-       "type": "action",
-       "name": "Act_Ende_Server"
-      },
-      {
-       "type": "action",
-       "name": "Act_Beendet"
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "!=",
+        "value": "ended"
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Stop_App_Beenden"
+        },
+        {
+         "type": "action",
+         "name": "Act_Ende_Server"
+        },
+        {
+         "type": "action",
+         "name": "Act_Beendet"
+        }
+       ],
+       "elseBody": []
       }
      ],
      "triggerMode": "local-sync",
      "params": [],
      "scope": "stage"
+    },
+    {
+     "id": "choice_Laden_Wiederholen",
+     "name": "Laden_Wiederholen",
+     "scope": "stage",
+     "actionSequence": [
+      {
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "==",
+        "value": "load-error"
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Laden_Erneut"
+        },
+        {
+         "type": "task",
+         "name": "Aufgabe_Ziehen"
+        }
+       ],
+       "elseBody": []
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": []
+    },
+    {
+     "id": "choice_Antwortzeit_Vorbei",
+     "name": "Antwortzeit_Vorbei",
+     "scope": "stage",
+     "actionSequence": [
+      {
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "==",
+        "value": "feedback"
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Antwortzeit_Ende"
+        },
+        {
+         "type": "task",
+         "name": "Weiter_Nach_Antwort"
+        }
+       ],
+       "elseBody": []
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": []
+    },
+    {
+     "id": "choice_Weiter_Nach_Antwort",
+     "name": "Weiter_Nach_Antwort",
+     "scope": "stage",
+     "actionSequence": [
+      {
+       "type": "condition",
+       "condition": {
+        "variable": "Phase",
+        "operator": "==",
+        "value": "feedback"
+       },
+       "body": [
+        {
+         "type": "condition",
+         "condition": {
+          "variable": "FeedbackFertig",
+          "operator": "==",
+          "value": true
+         },
+         "body": [
+          {
+           "type": "condition",
+           "condition": {
+            "variable": "BuchungFertig",
+            "operator": "==",
+            "value": true
+           },
+           "body": [
+            {
+             "type": "action",
+             "name": "Act_Antwort_Weiter"
+            },
+            {
+             "type": "task",
+             "name": "Aufgabe_Ziehen"
+            }
+           ],
+           "elseBody": []
+          }
+         ],
+         "elseBody": []
+        }
+       ],
+       "elseBody": []
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": []
     }
    ],
    "actions": [
@@ -1197,13 +1455,19 @@
      "name": "Act_Ziehen_Start",
      "type": "property",
      "changes": {
+      "Phase": "loading",
       "Busy": 1,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false,
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false,
       "StatusLabel.text": "Aufgabe wird geladen …",
       "LoesungLabel.text": "",
       "Naechste.visible": false,
-      "BtnAntwortA.visible": false,
-      "BtnAntwortB.visible": false,
-      "BtnAntwortC.visible": false
+      "AntwortTimer.enabled": false,
+      "AktuelleAntwort": ""
      },
      "scope": "stage"
     },
@@ -1213,7 +1477,17 @@
      "type": "http",
      "url": "/api/cms/play",
      "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardNext\",\"subject\":\"${KartenFach}\",\"topic\":\"${KartenThema}\",\"formats\":[\"text\"],\"excludeIds\":\"${GezogeneIds}\"}",
+     "body": {
+      "launchKey": "${CMS_LAUNCH}",
+      "action": "cardNext",
+      "subject": "${KartenFach}",
+      "topic": "${KartenThema}",
+      "formats": [
+       "text"
+      ],
+      "excludeIds": "${GezogeneIds}",
+      "learningPoints": true
+     },
      "resultVariable": "KartenAntwort",
      "scope": "stage",
      "queryOperator": "=="
@@ -1223,10 +1497,10 @@
      "name": "Act_ZiehFehler",
      "type": "property",
      "changes": {
+      "Phase": "load-error",
       "Busy": 0,
-      "FrageLabel.text": "⚠️ Verbindungsproblem",
-      "StatusLabel.text": "${KartenAntwort.message}",
-      "FachLabel.text": ""
+      "StatusLabel.text": "Aufgabe konnte nicht geladen werden. Bitte erneut laden.",
+      "Naechste.visible": true
      },
      "scope": "stage"
     },
@@ -1350,11 +1624,17 @@
      "name": "Act_BewertenR_Start",
      "type": "property",
      "changes": {
+      "Phase": "feedback",
       "Busy": 1,
-      "BtnAntwortA.visible": false,
-      "BtnAntwortB.visible": false,
-      "BtnAntwortC.visible": false,
-      "StatusLabel.text": "✔ Richtig!"
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false,
+      "FeedbackFertig": false,
+      "BuchungFertig": false,
+      "LoesungLabel.text": "Die richtige Antwort ist ${Auswahl.solution}.",
+      "StatusLabel.text": "Lernstand wird gespeichert …",
+      "AntwortTimer.currentInterval": 0,
+      "AntwortTimer.enabled": true
      },
      "scope": "stage"
     },
@@ -1364,7 +1644,14 @@
      "type": "http",
      "url": "/api/cms/play",
      "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":true}",
+     "body": {
+      "launchKey": "${CMS_LAUNCH}",
+      "action": "cardAnswer",
+      "cardId": "${AktuelleKarte.id}",
+      "attemptId": "${AktuelleKarte.attemptId}",
+      "answer": "${AktuelleAntwort}",
+      "correct": true
+     },
      "resultVariable": "BewertungAntwort",
      "scope": "stage",
      "queryOperator": "=="
@@ -1382,8 +1669,9 @@
      "name": "Act_BewertetR",
      "type": "property",
      "changes": {
-      "Busy": 0,
+      "BuchungFertig": true,
       "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+      "StatusLabel.text": "",
       "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
      },
      "scope": "stage"
@@ -1403,10 +1691,17 @@
      "name": "Act_BewertenF_Start",
      "type": "property",
      "changes": {
+      "Phase": "feedback",
       "Busy": 1,
-      "BtnAntwortA.visible": false,
-      "BtnAntwortB.visible": false,
-      "BtnAntwortC.visible": false
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false,
+      "FeedbackFertig": false,
+      "BuchungFertig": false,
+      "LoesungLabel.text": "Die richtige Antwort ist ${Auswahl.solution}.",
+      "StatusLabel.text": "Lernstand wird gespeichert …",
+      "AntwortTimer.currentInterval": 0,
+      "AntwortTimer.enabled": true
      },
      "scope": "stage"
     },
@@ -1416,7 +1711,14 @@
      "type": "http",
      "url": "/api/cms/play",
      "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":false}",
+     "body": {
+      "launchKey": "${CMS_LAUNCH}",
+      "action": "cardAnswer",
+      "cardId": "${AktuelleKarte.id}",
+      "attemptId": "${AktuelleKarte.attemptId}",
+      "answer": "${AktuelleAntwort}",
+      "correct": false
+     },
      "resultVariable": "BewertungAntwort",
      "scope": "stage",
      "queryOperator": "=="
@@ -1434,11 +1736,9 @@
      "name": "Act_BewertetF",
      "type": "property",
      "changes": {
-      "Busy": 0,
+      "BuchungFertig": true,
       "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
-      "LoesungLabel.text": "${AktuelleKarte.question} = ${AktuelleKarte.answers}",
-      "StatusLabel.text": "Fast — schau dir die Lösung an.",
-      "Naechste.visible": true,
+      "StatusLabel.text": "",
       "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
      },
      "scope": "stage"
@@ -1448,8 +1748,10 @@
      "name": "Act_BuchFehlerF",
      "type": "property",
      "changes": {
-      "Busy": 0,
-      "StatusLabel.text": "${BewertungAntwort.message}"
+      "Phase": "save-error",
+      "Busy": 1,
+      "AntwortTimer.enabled": false,
+      "StatusLabel.text": "Lernstand konnte nicht sicher gespeichert werden. Bitte Spiel beenden und Verbindung prüfen."
      },
      "scope": "stage"
     },
@@ -1508,6 +1810,169 @@
       "StatusLabel.text": "Sitzung beendet."
      },
      "scope": "stage"
+    },
+    {
+     "id": "choice_Act_Start_Auswahl",
+     "name": "Act_Start_Auswahl",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "next"
+     }
+    },
+    {
+     "id": "choice_Act_Laden_Erneut",
+     "name": "Act_Laden_Erneut",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "next"
+     }
+    },
+    {
+     "id": "choice_Act_Auswahl_Erzeugen",
+     "name": "Act_Auswahl_Erzeugen",
+     "scope": "stage",
+     "type": "calculate",
+     "formula": "createAnswerChoices(AktuelleKarte)",
+     "resultVariable": "Auswahl"
+    },
+    {
+     "id": "choice_Act_Auswahl_Bereit",
+     "name": "Act_Auswahl_Bereit",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "answering",
+      "Busy": 0,
+      "FrageLabel.text": "${AktuelleKarte.question}",
+      "FachLabel.text": "${AktuelleKarte.subject} · ${AktuelleKarte.topic} · Fach ${AktuelleKarte.box}",
+      "FortschrittLabel.text": "Aufgabe ${AufgabenNr} von ${Aufgaben}",
+      "StatusLabel.text": "Wähle die richtige Antwort.",
+      "BtnAntwortA.text": "${Auswahl.options[0]}",
+      "BtnAntwortA.matchValue": "${Auswahl.options[0]}",
+      "BtnAntwortA.visible": true,
+      "BtnAntwortA.enabled": true,
+      "BtnAntwortB.text": "${Auswahl.options[1]}",
+      "BtnAntwortB.matchValue": "${Auswahl.options[1]}",
+      "BtnAntwortB.visible": true,
+      "BtnAntwortB.enabled": true,
+      "BtnAntwortC.text": "${Auswahl.options[2]}",
+      "BtnAntwortC.matchValue": "${Auswahl.options[2]}",
+      "BtnAntwortC.visible": true,
+      "BtnAntwortC.enabled": true
+     }
+    },
+    {
+     "id": "choice_Act_Auswahl_Fehler",
+     "name": "Act_Auswahl_Fehler",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "load-error",
+      "Busy": 0,
+      "StatusLabel.text": "Für diese Karte fehlen zwei passende falsche Antworten. Bitte im Karteneditor ergänzen.",
+      "Naechste.visible": true
+     }
+    },
+    {
+     "id": "choice_Act_Antwort_Sperren",
+     "name": "Act_Antwort_Sperren",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "selected",
+      "Busy": 1,
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false
+     }
+    },
+    {
+     "id": "choice_Act_Antwort_Uebernehmen",
+     "name": "Act_Antwort_Uebernehmen",
+     "scope": "stage",
+     "type": "calculate",
+     "formula": "String(self.matchValue)",
+     "resultVariable": "AktuelleAntwort"
+    },
+    {
+     "id": "choice_Act_Antwort_Pruefen",
+     "name": "Act_Antwort_Pruefen",
+     "scope": "stage",
+     "type": "calculate",
+     "formula": "checkCardAnswer(AktuelleAntwort, AktuelleKarte.value.answers)",
+     "resultVariable": "AntwortPruefung"
+    },
+    {
+     "id": "choice_Act_BuchFehlerR",
+     "name": "Act_BuchFehlerR",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "save-error",
+      "Busy": 1,
+      "AntwortTimer.enabled": false,
+      "StatusLabel.text": "Lernstand konnte nicht sicher gespeichert werden. Bitte Spiel beenden und Verbindung prüfen."
+     }
+    },
+    {
+     "id": "choice_Act_Antwortzeit_Ende",
+     "name": "Act_Antwortzeit_Ende",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "FeedbackFertig": true,
+      "AntwortTimer.enabled": false
+     }
+    },
+    {
+     "id": "choice_Act_Antwort_Weiter",
+     "name": "Act_Antwort_Weiter",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "next"
+     }
+    },
+    {
+     "id": "choice_Act_Stop_Abschluss",
+     "name": "Act_Stop_Abschluss",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "ended",
+      "Busy": 1,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false,
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false,
+      "AntwortTimer.enabled": false,
+      "Naechste.visible": false,
+      "FrageLabel.text": "🎉 Geschafft!",
+      "LoesungLabel.text": "",
+      "StatusLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}"
+     }
+    },
+    {
+     "id": "choice_Act_Stop_App_Beenden",
+     "name": "Act_Stop_App_Beenden",
+     "scope": "stage",
+     "type": "property",
+     "changes": {
+      "Phase": "ended",
+      "Busy": 1,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false,
+      "BtnAntwortA.enabled": false,
+      "BtnAntwortB.enabled": false,
+      "BtnAntwortC.enabled": false,
+      "AntwortTimer.enabled": false,
+      "Naechste.visible": false
+     }
     }
    ],
    "events": {},

@@ -285,5 +285,6 @@ Object.assign(stage,{generatedBy:'cms-add-parent-server-stage.cjs',
  objects:mergeByName(stage.objects,objects),tasks:mergeByName(stage.tasks,tasks),actions:mergeByName(stage.actions,actions),
  variables:mergeByName(stage.variables,['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe','Export'].map(variable)),
  features:mergeByName(stage.features,[{id:'stage_server_parent_parent-v2',name:'Eltern- und Beobachterzugang',description:'Serverseitige Endpunkte für Elternsicht und Beobachter mit Kind-Räumen und Spielstart.',tags:['CMS','Server'],userStoryIds:[],blueprintTaskNames:tasks.map(t=>t.name)}])});
+if(project.stages.some(s=>s.id==='stage_parent_child'))require('./cms-add-parent-child-profile.cjs').apply(project);
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('stage_server_parent: '+endpoints.length+' Endpunkte umgebaut');

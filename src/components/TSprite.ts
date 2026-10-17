@@ -21,6 +21,8 @@ export class TSprite extends TWindow {
 
     // Image support (optional sprite graphic)
     private _backgroundImage: string = '';
+    /** Increment to retry a failed image without changing its bundle URL. */
+    public imageReloadVersion: number = 0;
     private _objectFit: ImageFit = IMAGE_DEFAULTS.objectFit;
     public sourceWidth: number = 0;
     public sourceHeight: number = 0;
@@ -370,6 +372,8 @@ export class TSprite extends TWindow {
         return [
             ...events,
             'onEnter',
+            'onImageReady',
+            'onImageError',
             'onCollision',
             'onCollisionLeft',
             'onCollisionRight',

@@ -1,0 +1,591 @@
+{
+  "version": 1,
+  "sourceCheckedAt": "2026-10-16",
+  "coverageNote": "Bayern 1–4: Bereichsübersicht und erste Übungsziele; keine vollständige Kompetenzliste.",
+  "states": [
+    {
+      "id": "DE-BY",
+      "name": "Bayern"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "by.gs.math.12.area.1.1",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Zahlen darstellen und vergleichen",
+      "description": "Zahlen bis 100 ordnen, zerlegen und darstellen.",
+      "section": "M1/2 1.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "count-images-v1"
+      ],
+      "kind": "Lehrplanbereich",
+      "gameProjects": [
+        "Mathe-Zaehlen-Turmbau.json"
+      ],
+      "deckNames": [
+        "Anzahlen 1–5",
+        "Anzahlen 5–10"
+      ],
+      "coverageDetail": "Erste Teilübung: Anzahlen 1–10 erfassen und einer Zahl zuordnen. Vergleichen, Zerlegen und Zahlen bis 100 folgen."
+    },
+    {
+      "id": "by.gs.math.12.area.1.2",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Rechnen im Zahlenraum bis 100",
+      "description": "Grundrechenarten und passende Rechenstrategien üben.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.1.3",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Alltagsaufgaben mathematisch lösen",
+      "description": "Situationen in Rechnungen übersetzen und Ergebnisse einordnen.",
+      "section": "M1/2 1.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.2.1",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Lage und Wege beschreiben",
+      "description": "Räumliche Beziehungen erkennen und Wege beschreiben.",
+      "section": "M1/2 2.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.2.2",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Formen und Körper untersuchen",
+      "description": "Geometrische Eigenschaften erkennen und Formen darstellen.",
+      "section": "M1/2 2.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.2.3",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Geometrische Veränderungen untersuchen",
+      "description": "Abbildungen vergleichen und Veränderungen beschreiben.",
+      "section": "M1/2 2.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.2.4",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Geometrische Muster fortsetzen",
+      "description": "Regelmäßigkeiten erkennen und eigene Muster entwickeln.",
+      "section": "M1/2 2.4",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.2.5",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Flächen und Umfänge vergleichen",
+      "description": "Ausdehnungen vergleichen und geeignete Einheiten nutzen.",
+      "section": "M1/2 2.5",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.3.1",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Messen mit passenden Werkzeugen",
+      "description": "Messungen durchführen und Ergebnisse vergleichen.",
+      "section": "M1/2 3.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.3.2",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Größen einschätzen und ordnen",
+      "description": "Einheiten verstehen und Größenbeziehungen beschreiben.",
+      "section": "M1/2 3.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.3.3",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Mit Größen im Alltag rechnen",
+      "description": "Sachaufgaben mit Größen bearbeiten und prüfen.",
+      "section": "M1/2 3.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.4.1",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Daten und Zufall",
+      "title": "Daten sammeln und auswerten",
+      "description": "Informationen ordnen und aus Darstellungen ablesen.",
+      "section": "M1/2 4.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.area.4.2",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Daten und Zufall",
+      "title": "Zufall und Chancen erkunden",
+      "description": "Versuche durchführen und mögliche Ergebnisse vergleichen.",
+      "section": "M1/2 4.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.1.1",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Zahlen darstellen und vergleichen",
+      "description": "Zahlen bis zur Million ordnen, zerlegen und darstellen.",
+      "section": "M3/4 1.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.1.2",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Rechnen im Zahlenraum bis zur Million",
+      "description": "Grundrechenarten und passende Rechenstrategien üben.",
+      "section": "M3/4 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.1.3",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Alltagsaufgaben mathematisch lösen",
+      "description": "Situationen in Rechnungen übersetzen und Ergebnisse einordnen.",
+      "section": "M3/4 1.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.2.1",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Lage und Wege beschreiben",
+      "description": "Räumliche Beziehungen erkennen und Wege beschreiben.",
+      "section": "M3/4 2.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.2.2",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Formen und Körper untersuchen",
+      "description": "Geometrische Eigenschaften erkennen und Formen darstellen.",
+      "section": "M3/4 2.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.2.3",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Geometrische Veränderungen untersuchen",
+      "description": "Abbildungen vergleichen und Veränderungen beschreiben.",
+      "section": "M3/4 2.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.2.4",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Geometrische Muster fortsetzen",
+      "description": "Regelmäßigkeiten erkennen und eigene Muster entwickeln.",
+      "section": "M3/4 2.4",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.2.5",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Raum und Form",
+      "title": "Rauminhalte untersuchen und vergleichen",
+      "description": "Körperinhalte vergleichen und geeignete Einheiten nutzen.",
+      "section": "M3/4 2.5",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.3.1",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Messen mit passenden Werkzeugen",
+      "description": "Messungen durchführen und Ergebnisse vergleichen.",
+      "section": "M3/4 3.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.3.2",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Größen einschätzen und ordnen",
+      "description": "Einheiten verstehen und Größenbeziehungen beschreiben.",
+      "section": "M3/4 3.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.3.3",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Größen und Messen",
+      "title": "Mit Größen im Alltag rechnen",
+      "description": "Sachaufgaben mit Größen bearbeiten und prüfen.",
+      "section": "M3/4 3.3",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.4.1",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Daten und Zufall",
+      "title": "Daten sammeln und auswerten",
+      "description": "Informationen ordnen und aus Darstellungen ablesen.",
+      "section": "M3/4 4.1",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.34.area.4.2",
+      "stateId": "DE-BY",
+      "grades": [
+        3,
+        4
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Daten und Zufall",
+      "title": "Zufall und Chancen erkunden",
+      "description": "Versuche durchführen und mögliche Ergebnisse vergleichen.",
+      "section": "M3/4 4.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/4/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [],
+      "kind": "Lehrplanbereich"
+    },
+    {
+      "id": "by.gs.math.12.addition.bridge-ten.to100",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Addition mit Zehnerübergang bis 100",
+      "description": "Zunächst bis zum Zehner ergänzen, dann weiterrechnen.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "add-to100-cross-ten-v1"
+      ],
+      "kind": "Konkretes Übungsziel"
+    },
+    {
+      "id": "by.gs.math.12.subtraction.bridge-ten.to100",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Subtraktion mit Zehnerübergang bis 100",
+      "description": "Zunächst zum Zehner zurückrechnen, dann den Rest abziehen.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "sub-to100-cross-ten-v1"
+      ],
+      "kind": "Konkretes Übungsziel"
+    },
+    {
+      "id": "by.gs.math.12.addition.no-cross.to100",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Addition ohne Zehnerübergang bis 100",
+      "description": "Einstellige Zahlen addieren, ohne den Zehner zu überschreiten.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "add-to100-no-cross-v1"
+      ],
+      "kind": "Konkretes Übungsziel"
+    },
+    {
+      "id": "by.gs.math.12.subtraction.no-cross.to100",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Subtraktion ohne Zehnerübergang bis 100",
+      "description": "Einstellige Zahlen abziehen, ohne die Zehnergrenze zu unterschreiten.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "sub-to100-no-cross-v1"
+      ],
+      "kind": "Konkretes Übungsziel"
+    },
+    {
+      "id": "by.gs.math.12.multiplication.missing-factor",
+      "stateId": "DE-BY",
+      "grades": [
+        1,
+        2
+      ],
+      "schoolType": "Grundschule",
+      "subject": "Mathematik",
+      "domain": "Zahlen und Operationen",
+      "title": "Kleines Einmaleins: fehlenden Faktor finden",
+      "description": "Die fehlende Zahl in einer Malaufgabe bestimmen. Benötigt freigegebene Stapel.",
+      "section": "M1/2 1.2",
+      "sourceUrl": "https://www.lehrplanplus.bayern.de/fachlehrplan/grundschule/2/mathematik",
+      "reviewStatus": "Pädagogische Freigabe offen",
+      "profileIds": [
+        "multiplication-gap-deck-v1"
+      ],
+      "kind": "Konkretes Übungsziel"
+    }
+  ]
+}

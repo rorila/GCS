@@ -21,6 +21,7 @@ export class TaskRefactoringService {
 
         // 1b. Update stage-specific tasks – nur in den relevanten Stages
         stagesToProcess.forEach(stage => {
+            stage.externalInterface?.inputs.forEach(port => { if (port.task === oldName) port.task = newName; });
             if (stage.tasks) {
                 stage.tasks.forEach(task => {
                     if (task.name === oldName) task.name = newName;
@@ -164,6 +165,12 @@ export class TaskRefactoringService {
         scanObjects(project.variables || [], 'Global Variables');
         if (project.stages) {
             project.stages.forEach(s => {
+                s.externalInterface?.inputs.forEach(port => {
+                    if (port.task === taskName) {
+                        report.totalCount++;
+                        report.locations.push({ type: 'object', name: s.name, details: `Externer Eingang '${port.name}'` });
+                    }
+                });
                 scanObjects(s.objects || [], `Stage "${s.name}" Objects`);
                 scanObjects(s.variables || [], `Stage "${s.name}" Variables`);
             });
@@ -242,6 +249,9 @@ export class TaskRefactoringService {
         }
 
         // 4. Remove from sequences
+        (inStage ? stagesToProcess : project.stages || []).forEach(stage => {
+            stage.externalInterface?.inputs.forEach(port => { if (port.task.toLowerCase() === lowerName) port.task = ''; });
+        });
         const allTasks: any[] = inStage ? [] : [...(project.tasks || [])];
         if (inStage) {
             stagesToProcess.forEach(s => { if (s.tasks) allTasks.push(...s.tasks); });

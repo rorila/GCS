@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "opaqueSandbox": true,
+  "package": "zip-with-relative-assets",
+  "imagesDecoded": true,
+  "exactImageCounts": [
+    4,
+    10,
+    1,
+    2
+  ],
+  "loadedAssetIds": [
+    "fox",
+    "panda",
+    "elephant",
+    "parrot"
+  ],
+  "threeAnswers": true,
+  "automaticSpeech": true,
+  "replay": true,
+  "speechAdapter": "controlled",
+  "mixedTaskLayouts": true,
+  "wrongAnswerKeepsTower": true,
+  "pauseResume": true,
+  "reloadRestoresTower": true,
+  "sharedLeitner": true,
+  "browserErrors": []
+}

@@ -6,6 +6,7 @@ import { MultiplayerManager } from './MultiplayerManager';
 import { TaskConditionEvaluator } from './executor/TaskConditionEvaluator';
 import { TaskLoopHandler } from './executor/TaskLoopHandler';
 import { Logger } from '../utils/Logger';
+import { STAGE_INTERFACE_EXECUTION } from '../model/StageInterface';
 
 const logger = Logger.get('TaskExecutor', 'Runtime_Execution');
 
@@ -246,6 +247,7 @@ export class TaskExecutor {
                     try {
                         await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
                     } catch (err) {
+                        if (vars[STAGE_INTERFACE_EXECUTION as any]) throw err;
                         logger.error(`Error in item of task ${taskName}: ${err}`);
                         DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
                     }

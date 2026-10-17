@@ -99,8 +99,10 @@ async function startLocalServices({ root = path.resolve(__dirname, '../..'), env
   const stop = async () => { await Promise.allSettled(owned.map(service => service.stop())); };
   try {
     const directory = path.join(root, 'game-server/tts');
-    const python = path.join(directory, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
-    const voicesDir = path.join(directory, 'voices');
+    // CMS_TTS_PYTHON / CMS_TTS_VOICES_DIR erlauben den Container-Betrieb, in dem
+    // Venv und Stimmen außerhalb des Repo-Verzeichnisses liegen (/opt/venv).
+    const python = env.CMS_TTS_PYTHON || path.join(directory, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+    const voicesDir = env.CMS_TTS_VOICES_DIR || path.join(directory, 'voices');
     if (!fs.existsSync(python)) throw Error('Die lokale Sprachumgebung in v2 fehlt. Einmalig npm run setup:speech ausfuehren.');
     const voices = JSON.parse(env.TTS_VOICES || JSON.stringify(DEFAULT_VOICES));
     if (!voices || Array.isArray(voices) || !Object.keys(voices).length
@@ -124,11 +126,15 @@ async function startLocalServices({ root = path.resolve(__dirname, '../..'), env
     env.CMS_TTS_URL = `http://127.0.0.1:${piper.port}/`;
     env.TTS_PIPER_URL = env.CMS_TTS_URL.slice(0, -1);
     const whisperDir = path.join(root, 'tools/speech-service');
-    const executable = path.join(whisperDir, 'whisper/Release/whisper-server.exe'), model = path.join(whisperDir, 'models/ggml-small.bin');
+    // Container: Binary/Modell kommen aus dem Image (/opt/whisper), nicht aus
+    // dem Windows-Pfad — CMS_WHISPER_BIN/CMS_WHISPER_MODEL übersteuern beides.
+    const executable = env.CMS_WHISPER_BIN || path.join(whisperDir, 'whisper/Release/whisper-server.exe');
+    const model = env.CMS_WHISPER_MODEL || path.join(whisperDir, 'models/ggml-small.bin');
+    const whisperRunDir = env.CMS_WHISPER_RUN_DIR || path.join(whisperDir, 'run');
     if (!fs.existsSync(executable) || !fs.existsSync(model)) throw Error('Lokaler Whisper-Dienst in v2 fehlt. Siehe scripts/speech/install-speech-service.ps1.');
     const whisper = await ensureLocalService({ name: 'Whisper', preferredPort: localPort(env.CMS_SPEECH_URL || 'http://127.0.0.1:8177/inference', '/inference'),
-      stateFile: path.join(whisperDir, 'run/whisper.json'), identity: JSON.stringify([executable, model]), command: executable, cwd: path.dirname(executable), env, logger, signal,
-      argsForPort: port => ['--host', '127.0.0.1', '--port', String(port), '-m', model, '-l', 'de', '-t', '8', '--no-timestamps'],
+      stateFile: path.join(whisperRunDir, 'whisper.json'), identity: JSON.stringify([executable, model]), command: executable, cwd: path.dirname(executable), env, logger, signal,
+      argsForPort: port => ['--host', '127.0.0.1', '--port', String(port), '-m', model, '-l', 'de', '-t', env.CMS_WHISPER_THREADS || '8', '--no-timestamps'],
       ready: async port => { try { const response = await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(1500) }); await response.arrayBuffer(); return response.ok; } catch { return false; } }
     });
     owned.push(whisper);

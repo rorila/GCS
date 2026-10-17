@@ -1,0 +1,106 @@
+[
+  {
+    "file": "public/images/mathe-insel/cloud1.png",
+    "sourceFile": "PNG/Default/cloud1.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "6b2120c1750118e8a28630f295e63085e3cd8898f8ef1f844a014b540058efe9"
+  },
+  {
+    "file": "public/images/mathe-insel/cloud2.png",
+    "sourceFile": "PNG/Default/cloud2.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "e849528756598ef97106aa7c2332c0a6702edd8f7fb5601a12aa559a8cd465cb"
+  },
+  {
+    "file": "public/images/mathe-insel/cloud4.png",
+    "sourceFile": "PNG/Default/cloud4.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "3c4168be0cc24d442b47dca5ebab4482c132dbcc1295cd1712cf51a1f8d963f5"
+  },
+  {
+    "file": "public/images/mathe-insel/treePine.png",
+    "sourceFile": "PNG/Default/treePine.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "d3e3e6cfa8dd3840d3185d5068a448352379f2c325485544df023cfea837c6ce"
+  },
+  {
+    "file": "public/images/mathe-insel/treeLong.png",
+    "sourceFile": "PNG/Default/treeLong.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "118936f5f36bfcbea695f98dbae197f05a5f185cc2c7d6da14774f55f5f1587f"
+  },
+  {
+    "file": "public/images/mathe-insel/tree.png",
+    "sourceFile": "PNG/Default/tree.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "5f07341535ceacfc88f92e079ca55374f2234c100e5b45b3d0221c9865b2378f"
+  },
+  {
+    "file": "public/images/mathe-insel/treeSmall_green1.png",
+    "sourceFile": "PNG/Default/treeSmall_green1.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "2224591d446aebb602bcc8a338cf5210a8275d74a59bfa29f8c1efd805f9236b"
+  },
+  {
+    "file": "public/images/mathe-insel/bush1.png",
+    "sourceFile": "PNG/Default/bush1.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "f6ceb8dabd62a7c3fea8ed2b911e8e8d0f49cbbd7df437d4111ee0a9b1b4fdc6"
+  },
+  {
+    "file": "public/images/mathe-insel/bush2.png",
+    "sourceFile": "PNG/Default/bush2.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "35c2208432844c0a47928b665af316e9483fdba8135f0411c79774752ec596dc"
+  },
+  {
+    "file": "public/images/mathe-insel/houseSmall1.png",
+    "sourceFile": "PNG/Default/houseSmall1.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "7401bbd995f9c4b219be87873ecbfc92aaf4e041ba3f60b26fefdd6c93b92480"
+  },
+  {
+    "file": "public/images/mathe-insel/sun.png",
+    "sourceFile": "PNG/Default/sun.png",
+    "author": "Kenney",
+    "source": "https://kenney.nl/assets/background-elements-remastered",
+    "license": "CC0-1.0",
+    "sha256": "81a02dcd8bd9f762871649a51a4628999a4a4d20ef101e300c1cac9edc537fff"
+  },
+  {
+    "file": "public/images/mathe-insel/foxi.png",
+    "sourceFile": "Fox/foxi.png",
+    "author": "HDST",
+    "source": "https://opengameart.org/content/fox-animated",
+    "license": "CC0-1.0",
+    "sha256": "2b9e95cfeb850c7587dd1f244bb4162e2448aaeed6917095c409a1ac56e7b3ab"
+  },
+  {
+    "file": "public/images/mathe-insel/foxr.png",
+    "sourceFile": "Fox/foxr.png",
+    "author": "HDST",
+    "source": "https://opengameart.org/content/fox-animated",
+    "license": "CC0-1.0",
+    "sha256": "5628ab23e29945d6fbdc8a39bd1293fd2ba238bbb7e1b4f584a4237d2f7b40ef"
+  }
+]

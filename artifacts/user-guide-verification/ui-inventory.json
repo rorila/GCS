@@ -1,0 +1,34 @@
+{
+  "menus": [
+    "Datei",
+    "Bearbeiten",
+    "Plattform",
+    "Themes",
+    "Stages",
+    "Werkzeuge"
+  ],
+  "toolbox": [
+    "▼Standard12",
+    "▶Media10",
+    "▶Erweitert8",
+    "▶Game12",
+    "▶Variablen10",
+    "▶System10",
+    "▼Daten & Auth3",
+    "▶Dialogs8",
+    "▶Overlays2",
+    "▶Server-Workflow6",
+    "▶Dateien und Upload3"
+  ],
+  "views": [
+    "Stage",
+    "Run",
+    "Run (IFrame)",
+    "JSON",
+    "Flow",
+    "Pascal",
+    "Manager",
+    "User Stories",
+    "Wissensbasis"
+  ]
+}

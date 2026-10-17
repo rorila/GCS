@@ -55,8 +55,8 @@ await check('deckPublish: HouseAdmin veröffentlicht', () => {
   assert.strictEqual(db.cardDecks.find(d => d.id === deckA).published, true);
 });
 
-await check('decks: veröffentlicht, aber nicht zugeordnet → unsichtbar', () => {
-  assert.strictEqual(api(child('child-finn'), 'list', {}).data.items.length, 0);
+await check('decks: veröffentlicht im eigenen Haus → selbst auswählbar', () => {
+  assert.ok(api(child('child-finn'), 'list', {}).data.items.some(d=>d.id===deckA));
 });
 
 await check('deckAssignables: HouseAdmin sieht Hauskinder', () => {
@@ -104,8 +104,8 @@ await check('Nachladen: neue Stapelkarte → nur diese kommt nach', () => {
   assert.strictEqual(boxOf('child-finn').filter(c => c.sourceDeckId === deckA).length, 3);
 });
 
-await check('deckImport: nicht zugeordnetes Kind → 403', () => {
-  assert.strictEqual(api(child('child-lina'), 'import', { deckId: deckA }).status, 403);
+await check('deckImport: anderes Haus → 403', () => {
+  assert.strictEqual(api(child('child-mia'), 'import', { deckId: deckA }).status, 403);
 });
 
 // --- Eltern-Stapel: anlegen, eigenem Kind zuordnen, fremdes Kind gesperrt ---
@@ -127,10 +127,10 @@ await check('deckAssign: Eltern können fremdem Kind nichts zuordnen (403)', () 
 });
 
 await check('decks: Eltern-Stapel erst nach Veröffentlichung sichtbar', () => {
-  assert.strictEqual(api(child('child-emil'), 'list', {}).data.items.length, 0, 'Entwurf unsichtbar');
+  assert.ok(!api(child('child-emil'), 'list', {}).data.items.some(d=>d.id===deckP), 'Entwurf unsichtbar');
   api(account('parent-multi'), 'publish', { deckId: deckP, publish: true });
   const r = api(child('child-emil'), 'list', {});
-  assert.strictEqual(r.data.items.length, 1);
+  assert.ok(r.data.items.some(d=>d.id===deckP));
 });
 
 // --- Kind-Stapel: Thema teilen → Freigabe durch Erwachsene → Haus-Sicht ---

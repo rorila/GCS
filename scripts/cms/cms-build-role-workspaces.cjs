@@ -155,24 +155,369 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
 
 // ── HouseAdmin: Bewohner ───────────────────────────────────────────────────
 {
+ const {AVATAR_PRESET_LIST,EMOJI_GLYPHS,DEFAULT_AVATAR_IMAGE}=require('./cms-core.cjs');
  const s=shell('stage_house_residents','HouseAdmin · Bewohner','Bewohner verwalten',HOUSE_NAV,'stage_house_residents','house');
- const bewohnerTabelle=table('BewohnerTabelle','BewohnerListe',[{field:'name',label:'Bewohner',type:'header',x:0,y:0},{field:'typ',label:'Typ',type:'meta',x:10,y:0},{field:'active',label:'Aktiv',type:'badge',x:14,y:0}],15,9,47,18,'Bewohner_Waehlen');bewohnerTabelle.events={onRowClick:'Bewohner_Waehlen'};
- s.objects.push(list('BewohnerListe','Bewohner des Hauses'),bewohnerTabelle,label('BewohnerFormTitel','Neuen Bewohner anlegen',15,28.5,47,1.5),edit('BewohnerName','Anzeigename',15,30.5,18),edit('BewohnerAvatar','🦊',34,30.5,6),dropdown('BewohnerArt',['child','adult'],41,30.5,10),edit('BewohnerCode','dog,tree,house,elephant',15,34,26),button('BewohnerAnlegen','Anlegen',42,34,9,2.8,'Bewohner_Anlegen'));
- s.actions.push(prop('Act_Bewohner_Merken',{CMSPersonId:'${BewohnerTabelle.selectedKey}',CMSPersonName:'${BewohnerTabelle.selectedRecord.name}',CMSAuswahlActive:'${BewohnerTabelle.selectedRecord.active}','Status.text':'Bewohner wird geöffnet: ${BewohnerTabelle.selectedRecord.name}'}),nav('Act_Bewohner_Oeffnen','stage_house_resident_detail'),http('Act_Bewohner_Anlegen_Server','/api/cms/admin/house-person-create',{houseId:'${CMSHausId}',name:'${BewohnerName.text}',avatar:'${BewohnerAvatar.text}',kind:'${BewohnerArt.selectedValue}',sequenceText:'${BewohnerCode.text}'}),prop('Act_Bewohner_Aktion_Fertig',{Busy:0,'Status.text':'✓ ${Antwort.message}','BewohnerName.text':'','BewohnerCode.text':''}));
- s.tasks.push(task('Bewohner_Waehlen',[A('Act_Bewohner_Merken'),A('Act_Bewohner_Oeffnen')]),task('Bewohner_Anlegen',[A('Act_Bewohner_Anlegen_Server'),C('Bewohner angelegt?','Antwort.ok','==',true,[A('Act_Bewohner_Aktion_Fertig'),T('Bewohner_Laden')],[T('Fehler')])]));
- addLoad(s,{prefix:'Bewohner',url:'/api/cms/admin/house-people',body:{houseId:'${CMSHausId}'},listName:'BewohnerListe',init:'BewohnerInit'});addFeature(s,'residents','Bewohner anlegen und aus der Tabelle zur Detailansicht öffnen',['Bewohner_Laden','Bewohner_Anlegen','Bewohner_Waehlen']);replaceStage(s);
+ s.variables.push(
+  variable('GewaehlteArt','string','child'),
+  variable('GewaehlterPresetId','string','default'),
+  variable('GewaehlterPresetSrc','string',DEFAULT_AVATAR_IMAGE),
+  variable('GewaehlterPresetLabel','string','Standard'),
+  variable('AnlageEigenesBild','boolean',false),
+  variable('AnlageBildGueltig','boolean',true),
+  variable('Pos1Emoji','string','—'),
+  variable('Pos2Emoji','string','—'),
+  variable('Pos3Emoji','string','—'),
+  variable('Pos4Emoji','string','—'),
+  variable('Pos1Id','string',''),
+  variable('Pos2Id','string',''),
+  variable('Pos3Id','string',''),
+  variable('Pos4Id','string',''),
+  variable('SelectedEmojiId','string',''),
+  variable('AnfrageId','string','req-initial-1'),
+  variable('PasswortAnzahl','integer',0),
+  variable('PasswortAktivPos','integer',0),
+  variable('PasswortFolge','string',''),
+  variable('FormularBereit','boolean',false)
+ );
+ const bewohnerTabelle=table('BewohnerTabelle','BewohnerListe',[
+  {field:'avatarImage',type:'image',fallback:'avatar',label:'Avatar',x:0,y:0},
+  {field:'name',label:'Bewohner',type:'header',x:4,y:0},
+  {field:'typ',label:'Typ',type:'meta',x:10,y:0},
+  {field:'active',label:'Aktiv',type:'badge',x:14,y:0}
+ ],15,8.5,47,11.5,'Bewohner_Waehlen');
+ bewohnerTabelle.events={onRowClick:'Bewohner_Waehlen'};
+
+ const svcStyle={backgroundColor:'transparent',borderColor:'transparent',borderWidth:0};
+ const anlagePicker=obj('TFilePicker','AnlageAvatarDatei',7,46,5,2,{isService:true,isHiddenInRun:true,events:{onSelected:'AnlageBild_Bereit',onError:'AnlageBild_Dateifehler'},style:{...svcStyle},accept:'.png,.jpg,.jpeg,.webp',maxBytes:2097152,filename:'',size:0,message:'',previewUrl:''});
+ const anlageUploader=obj('TFileUpload','AnlageAvatarUpload',7,49,5,2,{isService:true,isHiddenInRun:true,events:{onStarted:'AnlageUpload_Status',onProgress:'AnlageUpload_Status',onError:'AnlageUpload_Fehler',onCancel:'AnlageUpload_Abgebrochen',onSuccess:'AnlageUpload_Gespeichert'},style:{...svcStyle},picker:'AnlageAvatarDatei',endpoint:'/api/cms/upload/resident-avatar',progress:0,busy:false,message:'',result:{}});
+
+ const presetRecords=AVATAR_PRESET_LIST.map(p=>({...p}));
+ const standardAvatarListe=obj('TObjectList','StandardAvatarListe',1,5,10,3,{isVariable:true,isHiddenInRun:true,description:'Standardbilder für neue Bewohner',dataSource:'',keyField:'id',recordKey:'id',sourceMode:'records',records:presetRecords,data:presetRecords,selectedIndex:0,selectedKey:'default',selectedRecord:presetRecords[0],fields:[],items:[],columns:[],displayMode:'cards',rowHeight:28,showHeader:false,striped:false,recordData:{}});
+ const standardAvatarGalerie=obj('TTable','StandardAvatarGalerie',16,34.8,21,8.4,{
+  events:{onRowClick:'StandardAvatar_Waehlen'},
+  dataSource:'StandardAvatarListe',keyField:'id',selectedIndex:0,selectedKey:'default',selectedRecord:presetRecords[0],data:[],
+  columns:[
+   {field:'src',type:'image',label:'',x:0.8,y:0.2,width:2.2,height:2.2},
+   {field:'label',type:'meta',label:'',x:0.1,y:2.5,width:3.6,height:0.9,style:{fontSize:11,textAlign:'center'}}
+  ],
+  displayMode:'cards',flippable:false,showHeader:false,striped:false,rowHeight:48,
+  cardConfig:{width:70,height:64,gap:6,padding:6,borderRadius:10},
+  style:{...tableStyle,backgroundColor:'#14313d'}
+ });
+
+ const bewohnerName=edit('BewohnerName','Anzeigename',16,26.1,23,2.1);
+ bewohnerName.events={onChange:'BewohnerName_Geaendert'};
+ const artKindBtn=button('ArtKindBtn','● Kind',40,26.1,10,2.1,'BewohnerArt_Kind_Waehlen',true);
+ const artErwachsenBtn=button('ArtErwachsenBtn','○ Erwachsener',50.5,26.1,10.5,2.1,'BewohnerArt_Erwachsener_Waehlen',false);
+
+ const avatarVorschau=obj('TImage','AvatarVorschau',16,30.6,4.2,3.8,{zIndex:1,style:{...svcStyle,borderRadius:12,backgroundColor:'#1f4a5a'},src:DEFAULT_AVATAR_IMAGE,backgroundImage:DEFAULT_AVATAR_IMAGE,objectFit:'cover',alt:'Avatar-Vorschau',imageOpacity:1,fallbackColor:'#1f4a5a',matchValue:0});
+ const anlageBildEntfernen=button('AnlageBildEntfernen','✕ Entfernen',31.0,32.1,6.2,2.2,'AnlageBild_Entfernen');
+ anlageBildEntfernen.visible=false;
+
+ const posStyle={...buttonStyle,fontSize:15,backgroundColor:'#153543',borderColor:'#3e8e87'};
+ const pos1=obj('TButton','PasswortPos1',40.0,30.6,5.0,2.2,{text:'1: —',events:{onClick:'PasswortPos1_Aktivieren'},style:{...posStyle}});
+ const pos2=obj('TButton','PasswortPos2',45.3,30.6,5.0,2.2,{text:'2: —',events:{onClick:'PasswortPos2_Aktivieren'},style:{...posStyle}});
+ const pos3=obj('TButton','PasswortPos3',50.6,30.6,5.0,2.2,{text:'3: —',events:{onClick:'PasswortPos3_Aktivieren'},style:{...posStyle}});
+ const pos4=obj('TButton','PasswortPos4',55.9,30.6,5.0,2.2,{text:'4: —',events:{onClick:'PasswortPos4_Aktivieren'},style:{...posStyle}});
+
+ const emojiPicker=obj('TEmojiPicker','PasswortEmojiPicker',40,33.1,21,7.2,{
+  emojis:[...EMOJI_GLYPHS],columns:4,itemSize:2,selectedEmoji:'',selectedId:'',requestId:'req-initial',
+  events:{onSelect:'PasswortEmoji_Waehlen'},
+  style:{backgroundColor:'#14313d',borderColor:'#315565',borderWidth:1,borderRadius:10}
+ });
+
+ const bewohnerAnlegen=button('BewohnerAnlegen','Bewohner anlegen',46,44.1,16,2.8,'Bewohner_Anlegen',false);
+
+ s.objects.push(
+  list('BewohnerListe','Bewohner des Hauses'),
+  bewohnerTabelle,
+  anlagePicker,anlageUploader,standardAvatarListe,
+  label('BewohnerFormTitel','Neuen Bewohner anlegen',15,23.2,47,1.3,{style:{...textStyle,fontWeight:'bold'}}),
+  label('KarteBewohner','',15,24.7,47,3.8,{style:detailCardStyle}),
+  label('SektionBewohner','BEWOHNER',16,25.0,14,1.0,{style:detailSectionStyle}),
+  bewohnerName,artKindBtn,artErwachsenBtn,
+  label('KarteAvatar','',15,29.0,23,14.6,{style:detailCardStyle}),
+  label('SektionAvatar','PROFILBILD (AVATAR)',16,29.3,21,1.0,{style:detailSectionStyle}),
+  avatarVorschau,
+  label('AvatarQuelleLabel','Standardbild: Standard',20.8,30.6,16.5,1.3,{style:detailHintStyle}),
+  button('AnlageBildWaehlen','📁 Bild hochladen',20.8,32.1,9.8,2.2,'AnlageBild_Waehlen'),
+  anlageBildEntfernen,
+  standardAvatarGalerie,
+  label('KartePasswort','',39,29.0,23,14.6,{style:detailCardStyle}),
+  label('SektionPasswort','SPIELERPASSWORT (4 EMOJIS)',40,29.3,21,1.0,{style:detailSectionStyle}),
+  pos1,pos2,pos3,pos4,
+  emojiPicker,
+  button('PasswortLetztesEntfernen','⌫ Letztes entfernen',40.0,40.7,11.2,2.3,'Passwort_Letztes_Entfernen'),
+  button('PasswortZuruecksetzen','↺ Zurücksetzen',51.6,40.7,9.4,2.3,'Passwort_Zuruecksetzen'),
+  label('AnlageHinweis','Bitte Name eingeben und 4 Passwort-Emojis wählen.',15,44.3,30,2.2,{style:detailHintStyle}),
+  bewohnerAnlegen
+ );
+
+ s.actions.push(
+  prop('Act_Bewohner_Merken',{CMSPersonId:'${BewohnerTabelle.selectedKey}',CMSPersonName:'${BewohnerTabelle.selectedRecord.name}',CMSAuswahlActive:'${BewohnerTabelle.selectedRecord.active}','Status.text':'Bewohner wird geöffnet: ${BewohnerTabelle.selectedRecord.name}'}),
+  nav('Act_Bewohner_Oeffnen','stage_house_resident_detail'),
+  call('Act_AnfrageId_Erneuern','PasswortEmojiPicker','newRequestId',[]),
+  prop('Act_Art_Kind_Setzen',{GewaehlteArt:'child','ArtKindBtn.text':'● Kind','ArtErwachsenBtn.text':'○ Erwachsener'}),
+  prop('Act_Art_Erwachsener_Setzen',{GewaehlteArt:'adult','ArtKindBtn.text':'○ Kind','ArtErwachsenBtn.text':'● Erwachsener'}),
+  call('Act_AnlageBild_Auswahl_Oeffnen','AnlageAvatarDatei','choose',[]),
+  call('Act_AnlageBild_Datei_Leeren','AnlageAvatarDatei','clear',[]),
+  prop('Act_StandardAvatar_Uebernehmen',{
+   AnlageEigenesBild:false,AnlageBildGueltig:true,'AnlageBildEntfernen.visible':false,
+   GewaehlterPresetId:'${StandardAvatarGalerie.selectedRecord.id}',
+   GewaehlterPresetSrc:'${StandardAvatarGalerie.selectedRecord.src}',
+   GewaehlterPresetLabel:'${StandardAvatarGalerie.selectedRecord.label}',
+   'AvatarVorschau.src':'${StandardAvatarGalerie.selectedRecord.src}',
+   'AvatarVorschau.backgroundImage':'${StandardAvatarGalerie.selectedRecord.src}',
+   'AvatarQuelleLabel.text':'Standardbild: ${StandardAvatarGalerie.selectedRecord.label}'
+  }),
+  prop('Act_AnlageBild_Vorschau_Setzen',{
+   AnlageEigenesBild:true,AnlageBildGueltig:true,'AnlageBildEntfernen.visible':true,
+   'StandardAvatarGalerie.selectedIndex':-1,'StandardAvatarGalerie.selectedKey':'',
+   'AvatarVorschau.src':'${AnlageAvatarDatei.previewUrl}',
+   'AvatarVorschau.backgroundImage':'${AnlageAvatarDatei.previewUrl}',
+   'AvatarQuelleLabel.text':'Eigenes Bild: ${AnlageAvatarDatei.filename}',
+   'Status.text':'Bild ausgewählt: ${AnlageAvatarDatei.filename}'
+  }),
+  prop('Act_AnlageBild_Entfernt_Setzen',{
+   AnlageEigenesBild:false,AnlageBildGueltig:true,'AnlageBildEntfernen.visible':false,
+   'StandardAvatarGalerie.selectedKey':'${GewaehlterPresetId}',
+   'AvatarVorschau.src':'${GewaehlterPresetSrc}',
+   'AvatarVorschau.backgroundImage':'${GewaehlterPresetSrc}',
+   'AvatarQuelleLabel.text':'Standardbild: ${GewaehlterPresetLabel}',
+   'Status.text':'Eigenes Bild entfernt — Standardbild aktiv.'
+  }),
+  prop('Act_AnlageBild_Dateifehler_Setzen',{
+   AnlageEigenesBild:false,AnlageBildGueltig:false,'AnlageBildEntfernen.visible':false,
+   'Status.text':'⚠ ${AnlageAvatarDatei.message}'
+  }),
+  prop('Act_EmojiId_Leer',{SelectedEmojiId:''}),
+  prop('Act_EmojiId_dog',{SelectedEmojiId:'dog'}),
+  prop('Act_EmojiId_cat',{SelectedEmojiId:'cat'}),
+  prop('Act_EmojiId_tree',{SelectedEmojiId:'tree'}),
+  prop('Act_EmojiId_house',{SelectedEmojiId:'house'}),
+  prop('Act_EmojiId_elephant',{SelectedEmojiId:'elephant'}),
+  prop('Act_EmojiId_owl',{SelectedEmojiId:'owl'}),
+  prop('Act_EmojiId_flower',{SelectedEmojiId:'flower'}),
+  prop('Act_EmojiId_pig',{SelectedEmojiId:'pig'}),
+  prop('Act_Pos1_Setzen',{Pos1Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos1Id:'${SelectedEmojiId}',PasswortAnzahl:1,PasswortAktivPos:0}),
+  prop('Act_Pos2_Setzen',{Pos2Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos2Id:'${SelectedEmojiId}',PasswortAnzahl:2,PasswortAktivPos:0}),
+  prop('Act_Pos3_Setzen',{Pos3Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos3Id:'${SelectedEmojiId}',PasswortAnzahl:3,PasswortAktivPos:0}),
+  prop('Act_Pos4_Setzen',{Pos4Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos4Id:'${SelectedEmojiId}',PasswortAnzahl:4,PasswortAktivPos:0}),
+  prop('Act_Pos1_Ersetzen',{Pos1Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos1Id:'${SelectedEmojiId}',PasswortAktivPos:0}),
+  prop('Act_Pos2_Ersetzen',{Pos2Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos2Id:'${SelectedEmojiId}',PasswortAktivPos:0}),
+  prop('Act_Pos3_Ersetzen',{Pos3Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos3Id:'${SelectedEmojiId}',PasswortAktivPos:0}),
+  prop('Act_Pos4_Ersetzen',{Pos4Emoji:'${PasswortEmojiPicker.selectedEmoji}',Pos4Id:'${SelectedEmojiId}',PasswortAktivPos:0}),
+  prop('Act_Passwort_Voll_Hinweis',{'Status.text':'Alle 4 Positionen sind belegt. Klicke eine Position an, um sie zu ersetzen.'}),
+  prop('Act_Pos1_Aktivieren',{PasswortAktivPos:1,'Status.text':'Position 1 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_Pos2_Aktivieren',{PasswortAktivPos:2,'Status.text':'Position 2 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_Pos3_Aktivieren',{PasswortAktivPos:3,'Status.text':'Position 3 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_Pos4_Aktivieren',{PasswortAktivPos:4,'Status.text':'Position 4 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_Pos_Deaktivieren',{PasswortAktivPos:0,'Status.text':'Positionsauswahl aufgehoben.'}),
+  prop('Act_Pos4_Loeschen',{Pos4Emoji:'—',Pos4Id:'',PasswortAnzahl:3,PasswortAktivPos:0}),
+  prop('Act_Pos3_Loeschen',{Pos3Emoji:'—',Pos3Id:'',PasswortAnzahl:2,PasswortAktivPos:0}),
+  prop('Act_Pos2_Loeschen',{Pos2Emoji:'—',Pos2Id:'',PasswortAnzahl:1,PasswortAktivPos:0}),
+  prop('Act_Pos1_Loeschen',{Pos1Emoji:'—',Pos1Id:'',PasswortAnzahl:0,PasswortAktivPos:0}),
+  prop('Act_Passwort_Leeren',{
+   Pos1Emoji:'—',Pos2Emoji:'—',Pos3Emoji:'—',Pos4Emoji:'—',
+   Pos1Id:'',Pos2Id:'',Pos3Id:'',Pos4Id:'',
+   PasswortAnzahl:0,PasswortAktivPos:0,PasswortFolge:'','PasswortEmojiPicker.selectedEmoji':'','PasswortEmojiPicker.selectedId':''
+  }),
+  prop('Act_Passwort_Buttons_Standard',{
+   'PasswortPos1.text':'1: ${Pos1Emoji}',
+   'PasswortPos2.text':'2: ${Pos2Emoji}',
+   'PasswortPos3.text':'3: ${Pos3Emoji}',
+   'PasswortPos4.text':'4: ${Pos4Emoji}',
+   PasswortFolge:'${Pos1Id},${Pos2Id},${Pos3Id},${Pos4Id}'
+  }),
+  prop('Act_Passwort_Markiere1',{'PasswortPos1.text':'1: ${Pos1Emoji} ✎'}),
+  prop('Act_Passwort_Markiere2',{'PasswortPos2.text':'2: ${Pos2Emoji} ✎'}),
+  prop('Act_Passwort_Markiere3',{'PasswortPos3.text':'3: ${Pos3Emoji} ✎'}),
+  prop('Act_Passwort_Markiere4',{'PasswortPos4.text':'4: ${Pos4Emoji} ✎'}),
+  prop('Act_Formular_Freigeben',{FormularBereit:true,'BewohnerAnlegen.enabled':true,'AnlageHinweis.text':'Bereit zum Anlegen.'}),
+  prop('Act_Formular_Sperren',{FormularBereit:false,'BewohnerAnlegen.enabled':false,'AnlageHinweis.text':'Bitte Name, gültiges Bild und 4 Passwort-Emojis wählen.'}),
+  prop('Act_Anlage_Start_Warten',{Busy:1,'BewohnerAnlegen.enabled':false,'Status.text':'Bewohner wird angelegt …'}),
+  http('Act_Bewohner_Anlegen_Server','/api/cms/admin/house-person-create',{
+   houseId:'${CMSHausId}',
+   name:'${BewohnerName.text}',
+   kind:'${GewaehlteArt}',
+   avatarPresetId:'${GewaehlterPresetId}',
+   sequenceText:'${PasswortFolge}',
+   requestId:'${PasswortEmojiPicker.requestId}'
+  }),
+  call('Act_Bewohner_Anlegen_Upload','AnlageAvatarUpload','startResidentCreate',[
+   '${CMSHausId}','${BewohnerName.text}','${GewaehlteArt}','${PasswortFolge}','${PasswortEmojiPicker.requestId}'
+  ]),
+  prop('Act_AnlageUpload_Fortschritt',{'Status.text':'${AnlageAvatarUpload.message} (${AnlageAvatarUpload.progress} %)'}),
+  prop('Act_AnlageUpload_Fehler_Zeigen',{Busy:0,'BewohnerAnlegen.enabled':true,'Status.text':'⚠ ${AnlageAvatarUpload.message}','AnlageHinweis.text':'Eingaben blieben erhalten — erneut versuchen oder korrigieren.'}),
+  prop('Act_AnlageUpload_Abgebrochen_Zeigen',{Busy:0,'BewohnerAnlegen.enabled':true,'Status.text':'Upload abgebrochen.'}),
+  prop('Act_AnlageServer_Fehler_Zeigen',{Busy:0,'BewohnerAnlegen.enabled':true,'Status.text':'⚠ ${Antwort.message}','AnlageHinweis.text':'Eingaben blieben erhalten — erneut versuchen oder korrigieren.'}),
+  prop('Act_Bewohner_Aktion_Fertig',{
+   Busy:0,FormularBereit:false,'BewohnerAnlegen.enabled':false,
+   'Status.text':'✓ ${Antwort.message}',
+   'BewohnerName.text':'',
+   GewaehlteArt:'child','ArtKindBtn.text':'● Kind','ArtErwachsenBtn.text':'○ Erwachsener',
+   AnlageEigenesBild:false,AnlageBildGueltig:true,'AnlageBildEntfernen.visible':false,
+   GewaehlterPresetId:'default',GewaehlterPresetSrc:DEFAULT_AVATAR_IMAGE,GewaehlterPresetLabel:'Standard',
+   'StandardAvatarGalerie.selectedIndex':0,'StandardAvatarGalerie.selectedKey':'default',
+   'AvatarVorschau.src':DEFAULT_AVATAR_IMAGE,'AvatarVorschau.backgroundImage':DEFAULT_AVATAR_IMAGE,
+   'AvatarQuelleLabel.text':'Standardbild: Standard',
+   'AnlageHinweis.text':'Bitte Name eingeben und 4 Passwort-Emojis wählen.'
+  }),
+  prop('Act_Bewohner_Upload_Fertig',{
+   Busy:0,FormularBereit:false,'BewohnerAnlegen.enabled':false,
+   'Status.text':'✓ ${AnlageAvatarUpload.message}',
+   'BewohnerName.text':'',
+   GewaehlteArt:'child','ArtKindBtn.text':'● Kind','ArtErwachsenBtn.text':'○ Erwachsener',
+   AnlageEigenesBild:false,AnlageBildGueltig:true,'AnlageBildEntfernen.visible':false,
+   GewaehlterPresetId:'default',GewaehlterPresetSrc:DEFAULT_AVATAR_IMAGE,GewaehlterPresetLabel:'Standard',
+   'StandardAvatarGalerie.selectedIndex':0,'StandardAvatarGalerie.selectedKey':'default',
+   'AvatarVorschau.src':DEFAULT_AVATAR_IMAGE,'AvatarVorschau.backgroundImage':DEFAULT_AVATAR_IMAGE,
+   'AvatarQuelleLabel.text':'Standardbild: Standard',
+   'AnlageHinweis.text':'Bitte Name eingeben und 4 Passwort-Emojis wählen.'
+  })
+ );
+
+ s.tasks.push(
+  task('Bewohner_Waehlen',[A('Act_Bewohner_Merken'),A('Act_Bewohner_Oeffnen')],'Bewohner in der Detailansicht öffnen'),
+  task('Formular_Pruefen',[
+   C('Nicht beschäftigt?','Busy','==',0,[
+    C('Name eingegeben?','BewohnerName.text','!=','',[
+     C('Art gewählt?','GewaehlteArt','!=','',[
+      C('Bild gültig?','AnlageBildGueltig','==',true,[
+       C('4 Emojis gewählt?','PasswortAnzahl','==',4,[A('Act_Formular_Freigeben')],[A('Act_Formular_Sperren')])
+      ],[A('Act_Formular_Sperren')])
+     ],[A('Act_Formular_Sperren')])
+    ],[A('Act_Formular_Sperren')])
+   ],[])
+  ],'Prüft alle Pflichtangaben und gibt den Anlegen-Button frei'),
+  task('Passwort_Anzeige_Aktualisieren',[
+   A('Act_Passwort_Buttons_Standard'),
+   C('Pos 1 aktiv?','PasswortAktivPos','==',1,[A('Act_Passwort_Markiere1')],[]),
+   C('Pos 2 aktiv?','PasswortAktivPos','==',2,[A('Act_Passwort_Markiere2')],[]),
+   C('Pos 3 aktiv?','PasswortAktivPos','==',3,[A('Act_Passwort_Markiere3')],[]),
+   C('Pos 4 aktiv?','PasswortAktivPos','==',4,[A('Act_Passwort_Markiere4')],[]),
+   T('Formular_Pruefen')
+  ],'Aktualisiert die 4 sichtbaren Passwortpositionen und die Freigabe'),
+  task('BewohnerName_Geaendert',[A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')],'Name geändert'),
+  task('BewohnerArt_Kind_Waehlen',[C('Frei?','Busy','==',0,[A('Act_Art_Kind_Setzen'),A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')],[])],'Kind auswählen'),
+  task('BewohnerArt_Erwachsener_Waehlen',[C('Frei?','Busy','==',0,[A('Act_Art_Erwachsener_Setzen'),A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')],[])],'Erwachsenen auswählen'),
+  task('StandardAvatar_Waehlen',[
+   C('Frei und Eintrag gewählt?','Busy','==',0,[
+    C('Standardbild ausgewählt?','StandardAvatarGalerie.selectedKey','!=','',[
+     A('Act_AnlageBild_Datei_Leeren'),A('Act_StandardAvatar_Uebernehmen'),A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')
+    ],[])
+   ],[])
+  ],'Standardbild aus der Galerie wählen'),
+  task('AnlageBild_Waehlen',[C('Frei?','Busy','==',0,[A('Act_AnlageBild_Auswahl_Oeffnen')],[])],'Eigenes Avatarbild für neuen Bewohner auswählen'),
+  task('AnlageBild_Bereit',[A('Act_AnlageBild_Vorschau_Setzen'),A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')],'Lokale Vorschau des gewählten Bildes anzeigen'),
+  task('AnlageBild_Entfernen',[C('Frei?','Busy','==',0,[A('Act_AnlageBild_Datei_Leeren'),A('Act_AnlageBild_Entfernt_Setzen'),A('Act_AnfrageId_Erneuern'),T('Formular_Pruefen')],[])],'Eigenes Bild entfernen und zum Standardbild zurückkehren'),
+  task('AnlageBild_Dateifehler',[A('Act_AnlageBild_Dateifehler_Setzen'),T('Formular_Pruefen')],'Dateifehler bei der Bildauswahl anzeigen'),
+  task('Emoji_Kennung_Aufloesen',[
+   A('Act_EmojiId_Leer'),
+   C('🐶?','PasswortEmojiPicker.selectedEmoji','==','🐶',[A('Act_EmojiId_dog')],[]),
+   C('🐱?','PasswortEmojiPicker.selectedEmoji','==','🐱',[A('Act_EmojiId_cat')],[]),
+   C('🌳?','PasswortEmojiPicker.selectedEmoji','==','🌳',[A('Act_EmojiId_tree')],[]),
+   C('🏠?','PasswortEmojiPicker.selectedEmoji','==','🏠',[A('Act_EmojiId_house')],[]),
+   C('🐘?','PasswortEmojiPicker.selectedEmoji','==','🐘',[A('Act_EmojiId_elephant')],[]),
+   C('🦉?','PasswortEmojiPicker.selectedEmoji','==','🦉',[A('Act_EmojiId_owl')],[]),
+   C('🌷?','PasswortEmojiPicker.selectedEmoji','==','🌷',[A('Act_EmojiId_flower')],[]),
+   C('🐷?','PasswortEmojiPicker.selectedEmoji','==','🐷',[A('Act_EmojiId_pig')],[])
+  ],'Übersetzt das gewählte Emoji-Symbol in die kanonische CMS-Kennung'),
+  task('PasswortEmoji_Waehlen',[
+   C('Frei?','Busy','==',0,[
+    T('Emoji_Kennung_Aufloesen'),
+    C('Emoji gewählt?','SelectedEmojiId','!=','',[
+     C('Pos 1 zum Ersetzen aktiv?','PasswortAktivPos','==',1,[A('Act_Pos1_Ersetzen')],[
+      C('Pos 2 zum Ersetzen aktiv?','PasswortAktivPos','==',2,[A('Act_Pos2_Ersetzen')],[
+       C('Pos 3 zum Ersetzen aktiv?','PasswortAktivPos','==',3,[A('Act_Pos3_Ersetzen')],[
+        C('Pos 4 zum Ersetzen aktiv?','PasswortAktivPos','==',4,[A('Act_Pos4_Ersetzen')],[
+         C('Pos 1 frei?','Pos1Id','==','',[A('Act_Pos1_Setzen')],[
+          C('Pos 2 frei?','Pos2Id','==','',[A('Act_Pos2_Setzen')],[
+           C('Pos 3 frei?','Pos3Id','==','',[A('Act_Pos3_Setzen')],[
+            C('Pos 4 frei?','Pos4Id','==','',[A('Act_Pos4_Setzen')],[A('Act_Passwort_Voll_Hinweis')])
+           ])
+          ])
+         ])
+        ])
+       ])
+      ])
+     ]),
+     A('Act_AnfrageId_Erneuern'),
+     T('Passwort_Anzeige_Aktualisieren')
+    ],[])
+   ],[])
+  ],'Füllt die nächste freie Passwortposition oder ersetzt die aktivierte Position'),
+  task('PasswortPos1_Aktivieren',[C('Frei und Pos 1 belegt?','Busy','==',0,[C('Pos 1 belegt?','Pos1Id','!=','',[C('Bereits aktiv?','PasswortAktivPos','==',1,[A('Act_Pos_Deaktivieren')],[A('Act_Pos1_Aktivieren')]),T('Passwort_Anzeige_Aktualisieren')],[])],[])],'Position 1 zum Ersetzen aktivieren'),
+  task('PasswortPos2_Aktivieren',[C('Frei und Pos 2 belegt?','Busy','==',0,[C('Pos 2 belegt?','Pos2Id','!=','',[C('Bereits aktiv?','PasswortAktivPos','==',2,[A('Act_Pos_Deaktivieren')],[A('Act_Pos2_Aktivieren')]),T('Passwort_Anzeige_Aktualisieren')],[])],[])],'Position 2 zum Ersetzen aktivieren'),
+  task('PasswortPos3_Aktivieren',[C('Frei und Pos 3 belegt?','Busy','==',0,[C('Pos 3 belegt?','Pos3Id','!=','',[C('Bereits aktiv?','PasswortAktivPos','==',3,[A('Act_Pos_Deaktivieren')],[A('Act_Pos3_Aktivieren')]),T('Passwort_Anzeige_Aktualisieren')],[])],[])],'Position 3 zum Ersetzen aktivieren'),
+  task('PasswortPos4_Aktivieren',[C('Frei und Pos 4 belegt?','Busy','==',0,[C('Pos 4 belegt?','Pos4Id','!=','',[C('Bereits aktiv?','PasswortAktivPos','==',4,[A('Act_Pos_Deaktivieren')],[A('Act_Pos4_Aktivieren')]),T('Passwort_Anzeige_Aktualisieren')],[])],[])],'Position 4 zum Ersetzen aktivieren'),
+  task('Passwort_Letztes_Entfernen',[
+   C('Frei?','Busy','==',0,[
+    C('Pos 4 belegt?','Pos4Id','!=','',[A('Act_Pos4_Loeschen')],[
+     C('Pos 3 belegt?','Pos3Id','!=','',[A('Act_Pos3_Loeschen')],[
+      C('Pos 2 belegt?','Pos2Id','!=','',[A('Act_Pos2_Loeschen')],[
+       C('Pos 1 belegt?','Pos1Id','!=','',[A('Act_Pos1_Loeschen')],[])
+      ])
+     ])
+    ]),
+    A('Act_AnfrageId_Erneuern'),
+    T('Passwort_Anzeige_Aktualisieren')
+   ],[])
+  ],'Letztes Passwort-Emoji entfernen'),
+  task('Passwort_Zuruecksetzen',[C('Frei?','Busy','==',0,[A('Act_Passwort_Leeren'),A('Act_AnfrageId_Erneuern'),T('Passwort_Anzeige_Aktualisieren')],[])],'Gesamte Emoji-Folge zurücksetzen'),
+  task('AnlageUpload_Status',[A('Act_AnlageUpload_Fortschritt')],'Fortschritt beim gemeinsamen Bild- und Bewohner-Upload anzeigen'),
+  task('AnlageUpload_Fehler',[A('Act_AnlageUpload_Fehler_Zeigen')],'Uploadfehler anzeigen — Eingaben und AnfrageId bleiben erhalten'),
+  task('AnlageUpload_Abgebrochen',[A('Act_AnlageUpload_Abgebrochen_Zeigen')],'Abgebrochenen Upload anzeigen'),
+  task('AnlageUpload_Gespeichert',[
+   A('Act_AnlageBild_Datei_Leeren'),A('Act_Passwort_Leeren'),A('Act_Passwort_Buttons_Standard'),
+   A('Act_Bewohner_Upload_Fertig'),A('Act_AnfrageId_Erneuern'),T('Bewohner_Laden')
+  ],'Nach erfolgreichem Eigenbild-Upload Formular zurücksetzen und Bewohnerliste neu laden'),
+  task('Bewohner_Anlegen',[
+   C('Nicht beschäftigt?','Busy','==',0,[
+    T('Formular_Pruefen'),
+    C('Formular vollständig?','FormularBereit','==',true,[
+     A('Act_Anlage_Start_Warten'),
+     C('Eigenes Bild hochgeladen?','AnlageEigenesBild','==',true,[
+      A('Act_Bewohner_Anlegen_Upload')
+     ],[
+      A('Act_Bewohner_Anlegen_Server'),
+      C('Bewohner angelegt?','Antwort.ok','==',true,[
+       A('Act_Passwort_Leeren'),A('Act_Passwort_Buttons_Standard'),
+       A('Act_Bewohner_Aktion_Fertig'),A('Act_AnfrageId_Erneuern'),T('Bewohner_Laden')
+      ],[A('Act_AnlageServer_Fehler_Zeigen')])
+     ])
+    ],[A('Act_Formular_Sperren')])
+   ],[])
+  ],'Bewohner mit Standardbild oder eigenem Avatarbild und 4-Emoji-Passwort anlegen')
+ );
+ addLoad(s,{prefix:'Bewohner',url:'/api/cms/admin/house-people',body:{houseId:'${CMSHausId}'},listName:'BewohnerListe',init:'BewohnerInit'});
+ addFeature(s,'residents','Bewohner mit Avatar-Bild und visuellem 4-Emoji-Passwort anlegen und aus der Tabelle zur Detailansicht öffnen',[
+  'Bewohner_Laden','Bewohner_Anlegen','Bewohner_Waehlen','StandardAvatar_Waehlen','AnlageBild_Waehlen','AnlageBild_Entfernen','PasswortEmoji_Waehlen','Passwort_Letztes_Entfernen','Passwort_Zuruecksetzen'
+ ]);
+ replaceStage(s);
 }
 
 // ── HouseAdmin: Bewohner-Detail ─────────────────────────────────────────────
 {
  const s=shell('stage_house_resident_detail','HouseAdmin · Bewohner bearbeiten','Bewohner bearbeiten',HOUSE_NAV,'stage_house_residents','house');
- s.variables.push(variable('BewohnerDetail'),variable('AktionsModus','string',''),variable('AktuellerAvatar','string',''),variable('NeuerAvatar','string',''),variable('ErgebnisText','string',''));
+ s.variables.push(variable('BewohnerDetail'),variable('AktionsModus','string',''),variable('AktuellerAvatar','string',''),variable('NeuerAvatar','string',''),variable('ErgebnisText','string',''),
+  variable('CodePos1Emoji','string','—'),variable('CodePos2Emoji','string','—'),variable('CodePos3Emoji','string','—'),variable('CodePos4Emoji','string','—'),
+  variable('CodePos1Id','string',''),variable('CodePos2Id','string',''),variable('CodePos3Id','string',''),variable('CodePos4Id','string',''),
+  variable('CodeAnzahl','integer',0),variable('CodeAktivPos','integer',0),variable('CodeFolge','string',''),variable('SelectedCodeEmojiId','string',''));
  const confirm=button('Confirm','Bestätigen',42,9,10,2.8,'BewohnerBestaetigen',true);confirm.visible=false;
  const cancel=button('Abbrechen','Abbrechen',53,9,9,2.8,'BewohnerAbbrechen');cancel.visible=false;
+ const {EMOJI_GLYPHS}=require('./cms-core.cjs');
+ const codePosStyle={...buttonStyle,fontSize:15,backgroundColor:'#153543',borderColor:'#3e8e87'};
+ const codePos1=obj('TButton','CodePos1',16.0,34.4,5.0,2.2,{text:'1: —',events:{onClick:'CodePos1_Aktivieren'},style:{...codePosStyle}});
+ const codePos2=obj('TButton','CodePos2',21.3,34.4,5.0,2.2,{text:'2: —',events:{onClick:'CodePos2_Aktivieren'},style:{...codePosStyle}});
+ const codePos3=obj('TButton','CodePos3',26.6,34.4,5.0,2.2,{text:'3: —',events:{onClick:'CodePos3_Aktivieren'},style:{...codePosStyle}});
+ const codePos4=obj('TButton','CodePos4',31.9,34.4,5.0,2.2,{text:'4: —',events:{onClick:'CodePos4_Aktivieren'},style:{...codePosStyle}});
+ const codePicker=obj('TEmojiPicker','CodeEmojiPicker',16,36.9,21,7.2,{emojis:[...EMOJI_GLYPHS],columns:4,itemSize:2,selectedEmoji:'',selectedId:'',events:{onSelect:'CodeEmoji_Waehlen'},style:{backgroundColor:'#14313d',borderColor:'#315565',borderWidth:1,borderRadius:10}});
+ const codeSpeichern=button('CodeSpeichern','Emoji-Code speichern',38.5,37.2,22.5,2.8,'BewohnerCode_Speichern');codeSpeichern.enabled=false;
  s.objects.push(button('Back','← Zurück',15,9,10,2.8,'BewohnerZurueck'),confirm,cancel,
   label('KarteProfil','',15,12,47,8.7,{style:detailCardStyle}),label('SektionProfil','PROFIL',16,12.5,30,1.2,{style:detailSectionStyle}),label('AvatarAnzeige','👤',16,14.3,4.2,3.8,{style:detailAvatarStyle}),dropdown('AvatarWahl',['Avatar beibehalten','🧑','👩','👨','🦉','🦊','🐻','🐼','🦁','🐯','🌟','🚀','🎨','📚'],22,14.7,10),edit('ProfilName','Anzeigename',33,14.7,18),dropdown('ProfilArt',['child','adult'],22,17.6,10),button('ProfilSpeichern','Profil speichern',52,14.7,9,2.8,'BewohnerProfil_Speichern'),
   label('KarteMitgliedschaft','',15,22,47,6.7,{style:detailCardStyle}),label('SektionMitgliedschaft','HAUSMITGLIEDSCHAFT',16,22.5,30,1.2,{style:detailSectionStyle}),label('MitgliedStatus','—',16,24.2,28,2,{style:detailValueStyle}),label('MitgliedHinweis','Die Mitgliedschaft gilt nur für das ausgewählte Haus.',16,26.1,28,1.8,{style:detailHintStyle}),button('MitgliedButton','Ändern',48,24.3,13,2.8,'BewohnerMitgliedschaft_Vormerken'),
-  label('KarteCode','',15,29.8,47,10,{style:detailCardStyle}),label('SektionCode','EMOJI-ANMELDUNG',16,30.3,30,1.2,{style:detailSectionStyle}),label('CodeStatus','—',16,32,28,2,{style:detailValueStyle}),edit('CodeEingabe','dog,tree,house,elephant',16,34.4,28),button('CodeSpeichern','Emoji-Code speichern',46,34.4,15,2.8,'BewohnerCode_Speichern'),label('CodeHinweis','Der bestehende Code wird aus Sicherheitsgründen nicht angezeigt.',16,37.3,43,1.4,{style:detailHintStyle}),
+  label('KarteCode','',15,29.8,47,16.8,{style:detailCardStyle}),label('SektionCode','EMOJI-ANMELDUNG',16,30.3,30,1.2,{style:detailSectionStyle}),label('CodeStatus','—',16,32,28,2,{style:detailValueStyle}),codePos1,codePos2,codePos3,codePos4,codePicker,button('CodeLetztesEntfernen','⌫ Letztes entfernen',38.5,34.4,11.2,2.3,'Code_Letztes_Entfernen'),button('CodeZuruecksetzen','↺ Zurücksetzen',50.1,34.4,10.9,2.3,'Code_Zuruecksetzen'),codeSpeichern,label('CodeHinweis','Der bestehende Code wird nicht angezeigt — wähle 4 Emojis für den neuen Code.',38.5,40.5,22.5,3.2,{style:detailHintStyle}),
   timer('BewohnerDetail_Init'));
  s.actions.push(
   nav('Act_Bewohnerliste_Zurueck','stage_house_residents'),
@@ -199,9 +544,37 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
   prop('Act_Avatar_Beibehalten',{NeuerAvatar:'${AktuellerAvatar}'}),
   prop('Act_Avatar_Neu',{NeuerAvatar:'${AvatarWahl.selectedValue}'}),
   http('Act_Profil_Server','/api/cms/admin/house-person-update',{houseId:'${CMSHausId}',personId:'${CMSPersonId}',name:'${ProfilName.text}',avatar:'${NeuerAvatar}',kind:'${ProfilArt.selectedValue}'}),
-  prop('Act_Code_Warten',{Busy:1,'Status.text':'Emoji-Code wird gespeichert …'}),
-  http('Act_Code_Server','/api/cms/admin/house-person-code',{houseId:'${CMSHausId}',personId:'${CMSPersonId}',sequenceText:'${CodeEingabe.text}'}),
-  prop('Act_Code_Gespeichert',{ErgebnisText:'${Antwort.message}','CodeEingabe.text':''}));
+  prop('Act_Code_Warten',{Busy:1,'CodeSpeichern.enabled':false,'Status.text':'Emoji-Code wird gespeichert …'}),
+  http('Act_Code_Server','/api/cms/admin/house-person-code',{houseId:'${CMSHausId}',personId:'${CMSPersonId}',sequenceText:'${CodeFolge}'}),
+  prop('Act_Code_Gespeichert',{ErgebnisText:'${Antwort.message}'}),
+  prop('Act_CodeEmojiId_Leer',{SelectedCodeEmojiId:''}),
+  prop('Act_CodeEmojiId_dog',{SelectedCodeEmojiId:'dog'}),prop('Act_CodeEmojiId_cat',{SelectedCodeEmojiId:'cat'}),prop('Act_CodeEmojiId_tree',{SelectedCodeEmojiId:'tree'}),prop('Act_CodeEmojiId_house',{SelectedCodeEmojiId:'house'}),prop('Act_CodeEmojiId_elephant',{SelectedCodeEmojiId:'elephant'}),prop('Act_CodeEmojiId_owl',{SelectedCodeEmojiId:'owl'}),prop('Act_CodeEmojiId_flower',{SelectedCodeEmojiId:'flower'}),prop('Act_CodeEmojiId_pig',{SelectedCodeEmojiId:'pig'}),
+  prop('Act_CodePos1_Setzen',{CodePos1Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos1Id:'${SelectedCodeEmojiId}',CodeAnzahl:1,CodeAktivPos:0}),
+  prop('Act_CodePos2_Setzen',{CodePos2Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos2Id:'${SelectedCodeEmojiId}',CodeAnzahl:2,CodeAktivPos:0}),
+  prop('Act_CodePos3_Setzen',{CodePos3Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos3Id:'${SelectedCodeEmojiId}',CodeAnzahl:3,CodeAktivPos:0}),
+  prop('Act_CodePos4_Setzen',{CodePos4Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos4Id:'${SelectedCodeEmojiId}',CodeAnzahl:4,CodeAktivPos:0}),
+  prop('Act_CodePos1_Ersetzen',{CodePos1Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos1Id:'${SelectedCodeEmojiId}',CodeAktivPos:0}),
+  prop('Act_CodePos2_Ersetzen',{CodePos2Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos2Id:'${SelectedCodeEmojiId}',CodeAktivPos:0}),
+  prop('Act_CodePos3_Ersetzen',{CodePos3Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos3Id:'${SelectedCodeEmojiId}',CodeAktivPos:0}),
+  prop('Act_CodePos4_Ersetzen',{CodePos4Emoji:'${CodeEmojiPicker.selectedEmoji}',CodePos4Id:'${SelectedCodeEmojiId}',CodeAktivPos:0}),
+  prop('Act_Code_Voll_Hinweis',{'Status.text':'Alle 4 Positionen sind belegt. Klicke eine Position an, um sie zu ersetzen.'}),
+  prop('Act_CodePos1_Aktivieren',{CodeAktivPos:1,'Status.text':'Position 1 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_CodePos2_Aktivieren',{CodeAktivPos:2,'Status.text':'Position 2 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_CodePos3_Aktivieren',{CodeAktivPos:3,'Status.text':'Position 3 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_CodePos4_Aktivieren',{CodeAktivPos:4,'Status.text':'Position 4 zum Ersetzen gewählt — jetzt ein Emoji anklicken.'}),
+  prop('Act_CodePos_Deaktivieren',{CodeAktivPos:0,'Status.text':'Positionsauswahl aufgehoben.'}),
+  prop('Act_CodePos4_Loeschen',{CodePos4Emoji:'—',CodePos4Id:'',CodeAnzahl:3,CodeAktivPos:0}),
+  prop('Act_CodePos3_Loeschen',{CodePos3Emoji:'—',CodePos3Id:'',CodeAnzahl:2,CodeAktivPos:0}),
+  prop('Act_CodePos2_Loeschen',{CodePos2Emoji:'—',CodePos2Id:'',CodeAnzahl:1,CodeAktivPos:0}),
+  prop('Act_CodePos1_Loeschen',{CodePos1Emoji:'—',CodePos1Id:'',CodeAnzahl:0,CodeAktivPos:0}),
+  prop('Act_Code_Leeren',{CodePos1Emoji:'—',CodePos2Emoji:'—',CodePos3Emoji:'—',CodePos4Emoji:'—',CodePos1Id:'',CodePos2Id:'',CodePos3Id:'',CodePos4Id:'',CodeAnzahl:0,CodeAktivPos:0,CodeFolge:'','CodeEmojiPicker.selectedEmoji':'','CodeEmojiPicker.selectedId':''}),
+  prop('Act_Code_Buttons_Standard',{'CodePos1.text':'1: ${CodePos1Emoji}','CodePos2.text':'2: ${CodePos2Emoji}','CodePos3.text':'3: ${CodePos3Emoji}','CodePos4.text':'4: ${CodePos4Emoji}',CodeFolge:'${CodePos1Id},${CodePos2Id},${CodePos3Id},${CodePos4Id}'}),
+  prop('Act_Code_Markiere1',{'CodePos1.text':'1: ${CodePos1Emoji} ✎'}),
+  prop('Act_Code_Markiere2',{'CodePos2.text':'2: ${CodePos2Emoji} ✎'}),
+  prop('Act_Code_Markiere3',{'CodePos3.text':'3: ${CodePos3Emoji} ✎'}),
+  prop('Act_Code_Markiere4',{'CodePos4.text':'4: ${CodePos4Emoji} ✎'}),
+  prop('Act_CodeSpeichern_Freigeben',{'CodeSpeichern.enabled':true,'CodeHinweis.text':'Neuer Code bereit — mit „Emoji-Code speichern“ übernehmen.'}),
+  prop('Act_CodeSpeichern_Sperren',{'CodeSpeichern.enabled':false,'CodeHinweis.text':'Der bestehende Code wird nicht angezeigt — wähle 4 Emojis für den neuen Code.'}));
  s.tasks.push(
   task('BewohnerDetail_Init',[A('Act_Kontext_Anzeigen'),C('Bewohner gewählt?','CMSPersonId','!=','',[T('BewohnerDetail_Laden')],[A('Act_Bewohnerliste_Zurueck')])],'Bewohner laden'),
   task('BewohnerDetail_Laden',[A('Act_Detail_Warten'),A('Act_Detail_Server'),C('Bewohner geladen?','BewohnerDetail.ok','==',true,[A('Act_Detail_Anzeigen'),C('Hausmitgliedschaft aktiv?','BewohnerDetail.person.houseActive','==',true,[A('Act_Mitglied_Aktiv_Anzeigen')],[A('Act_Mitglied_Inaktiv_Anzeigen')]),C('Emoji-Code gesetzt?','BewohnerDetail.person.hasCode','==',true,[A('Act_Code_Gesetzt_Anzeigen')],[A('Act_Code_Fehlt_Anzeigen')])],[A('Act_Detail_Fehler')])],'Bewohnerdetail vom Server lesen'),
@@ -210,8 +583,50 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
   task('BewohnerMitgliedschaft_Vormerken',[C('Hausmitgliedschaft aktivieren?','ZielAktiv','==',true,[A('Act_Mitglied_Aktivieren_Vormerken')],[A('Act_Mitglied_Entfernen_Vormerken')]),A('Act_Bestaetigung_Zeigen')],'Hausmitgliedschaft vormerken'),
   task('BewohnerBestaetigen',[A('Act_Bestaetigen_Warten'),C('Hausmitgliedschaft ändern?','AktionsModus','==','membership',[C('Mitgliedschaft aktivieren?','ZielAktiv','==',true,[A('Act_Mitglied_Aktivieren_Server')],[A('Act_Mitglied_Entfernen_Server')])],[A('Act_Aktion_Fehler')]),C('Änderung gespeichert?','Antwort.ok','==',true,[A('Act_Ergebnis_Merken'),T('BewohnerDetail_Laden'),A('Act_Ergebnis_Zeigen')],[A('Act_Bestaetigung_Fehler')])],'Vorgemerkte Änderung bestätigen'),
   task('BewohnerAbbrechen',[A('Act_Aktion_Abbrechen')],'Vorgemerkte Änderung abbrechen'),
-  task('BewohnerCode_Speichern',[A('Act_Code_Warten'),A('Act_Code_Server'),C('Emoji-Code gespeichert?','Antwort.ok','==',true,[A('Act_Code_Gespeichert'),T('BewohnerDetail_Laden'),A('Act_Ergebnis_Zeigen')],[T('Fehler')])],'Emoji-Code speichern'));
- addFeature(s,'resident-detail','Bewohnerprofil, Hausmitgliedschaft und Emoji-Code bearbeiten',['BewohnerDetail_Init','BewohnerDetail_Laden','BewohnerProfil_Speichern','BewohnerMitgliedschaft_Vormerken','BewohnerBestaetigen','BewohnerAbbrechen','BewohnerCode_Speichern']);replaceStage(s);
+  task('CodeEmoji_Kennung_Aufloesen',[
+   A('Act_CodeEmojiId_Leer'),
+   C('🐶?','CodeEmojiPicker.selectedEmoji','==','🐶',[A('Act_CodeEmojiId_dog')],[]),
+   C('🐱?','CodeEmojiPicker.selectedEmoji','==','🐱',[A('Act_CodeEmojiId_cat')],[]),
+   C('🌳?','CodeEmojiPicker.selectedEmoji','==','🌳',[A('Act_CodeEmojiId_tree')],[]),
+   C('🏠?','CodeEmojiPicker.selectedEmoji','==','🏠',[A('Act_CodeEmojiId_house')],[]),
+   C('🐘?','CodeEmojiPicker.selectedEmoji','==','🐘',[A('Act_CodeEmojiId_elephant')],[]),
+   C('🦉?','CodeEmojiPicker.selectedEmoji','==','🦉',[A('Act_CodeEmojiId_owl')],[]),
+   C('🌷?','CodeEmojiPicker.selectedEmoji','==','🌷',[A('Act_CodeEmojiId_flower')],[]),
+   C('🐷?','CodeEmojiPicker.selectedEmoji','==','🐷',[A('Act_CodeEmojiId_pig')],[])
+  ],'Übersetzt das gewählte Emoji-Symbol in die kanonische CMS-Kennung'),
+  task('CodeEmoji_Waehlen',[
+   C('Frei?','Busy','==',0,[
+    T('CodeEmoji_Kennung_Aufloesen'),
+    C('Emoji gewählt?','SelectedCodeEmojiId','!=','',[
+     C('Pos 1 zum Ersetzen aktiv?','CodeAktivPos','==',1,[A('Act_CodePos1_Ersetzen')],[
+      C('Pos 2 zum Ersetzen aktiv?','CodeAktivPos','==',2,[A('Act_CodePos2_Ersetzen')],[
+       C('Pos 3 zum Ersetzen aktiv?','CodeAktivPos','==',3,[A('Act_CodePos3_Ersetzen')],[
+        C('Pos 4 zum Ersetzen aktiv?','CodeAktivPos','==',4,[A('Act_CodePos4_Ersetzen')],[
+         C('Pos 1 frei?','CodePos1Id','==','',[A('Act_CodePos1_Setzen')],[
+          C('Pos 2 frei?','CodePos2Id','==','',[A('Act_CodePos2_Setzen')],[
+           C('Pos 3 frei?','CodePos3Id','==','',[A('Act_CodePos3_Setzen')],[
+            C('Pos 4 frei?','CodePos4Id','==','',[A('Act_CodePos4_Setzen')],[A('Act_Code_Voll_Hinweis')])
+           ])
+          ])
+         ])
+        ])
+       ])
+      ])
+     ]),
+     T('Code_Anzeige_Aktualisieren')
+    ],[])
+   ],[])
+  ],'Füllt die nächste freie Codeposition oder ersetzt die aktivierte Position'),
+  task('CodePos1_Aktivieren',[C('Frei und Pos 1 belegt?','Busy','==',0,[C('Pos 1 belegt?','CodePos1Id','!=','',[C('Bereits aktiv?','CodeAktivPos','==',1,[A('Act_CodePos_Deaktivieren')],[A('Act_CodePos1_Aktivieren')]),T('Code_Anzeige_Aktualisieren')],[])],[])],'Position 1 zum Ersetzen aktivieren'),
+  task('CodePos2_Aktivieren',[C('Frei und Pos 2 belegt?','Busy','==',0,[C('Pos 2 belegt?','CodePos2Id','!=','',[C('Bereits aktiv?','CodeAktivPos','==',2,[A('Act_CodePos_Deaktivieren')],[A('Act_CodePos2_Aktivieren')]),T('Code_Anzeige_Aktualisieren')],[])],[])],'Position 2 zum Ersetzen aktivieren'),
+  task('CodePos3_Aktivieren',[C('Frei und Pos 3 belegt?','Busy','==',0,[C('Pos 3 belegt?','CodePos3Id','!=','',[C('Bereits aktiv?','CodeAktivPos','==',3,[A('Act_CodePos_Deaktivieren')],[A('Act_CodePos3_Aktivieren')]),T('Code_Anzeige_Aktualisieren')],[])],[])],'Position 3 zum Ersetzen aktivieren'),
+  task('CodePos4_Aktivieren',[C('Frei und Pos 4 belegt?','Busy','==',0,[C('Pos 4 belegt?','CodePos4Id','!=','',[C('Bereits aktiv?','CodeAktivPos','==',4,[A('Act_CodePos_Deaktivieren')],[A('Act_CodePos4_Aktivieren')]),T('Code_Anzeige_Aktualisieren')],[])],[])],'Position 4 zum Ersetzen aktivieren'),
+  task('Code_Letztes_Entfernen',[C('Frei?','Busy','==',0,[C('Pos 4 belegt?','CodePos4Id','!=','',[A('Act_CodePos4_Loeschen')],[C('Pos 3 belegt?','CodePos3Id','!=','',[A('Act_CodePos3_Loeschen')],[C('Pos 2 belegt?','CodePos2Id','!=','',[A('Act_CodePos2_Loeschen')],[C('Pos 1 belegt?','CodePos1Id','!=','',[A('Act_CodePos1_Loeschen')],[])])])]),T('Code_Anzeige_Aktualisieren')],[])],'Letztes Code-Emoji entfernen'),
+  task('Code_Zuruecksetzen',[C('Frei?','Busy','==',0,[A('Act_Code_Leeren'),T('Code_Anzeige_Aktualisieren')],[])],'Gesamte Emoji-Folge zurücksetzen'),
+  task('Code_Anzeige_Aktualisieren',[A('Act_Code_Buttons_Standard'),C('Pos 1 aktiv?','CodeAktivPos','==',1,[A('Act_Code_Markiere1')],[]),C('Pos 2 aktiv?','CodeAktivPos','==',2,[A('Act_Code_Markiere2')],[]),C('Pos 3 aktiv?','CodeAktivPos','==',3,[A('Act_Code_Markiere3')],[]),C('Pos 4 aktiv?','CodeAktivPos','==',4,[A('Act_Code_Markiere4')],[]),T('Code_Pruefen')],'Aktualisiert die 4 sichtbaren Codepositionen und die Freigabe'),
+  task('Code_Pruefen',[C('Nicht beschäftigt?','Busy','==',0,[C('4 Emojis gewählt?','CodeAnzahl','==',4,[A('Act_CodeSpeichern_Freigeben')],[A('Act_CodeSpeichern_Sperren')])],[A('Act_CodeSpeichern_Sperren')])],'Prüft, ob ein vollständiger neuer Emoji-Code vorliegt'),
+  task('BewohnerCode_Speichern',[C('Frei?','Busy','==',0,[C('4 Emojis gewählt?','CodeAnzahl','==',4,[A('Act_Code_Warten'),A('Act_Code_Server'),C('Emoji-Code gespeichert?','Antwort.ok','==',true,[A('Act_Code_Gespeichert'),A('Act_Code_Leeren'),T('BewohnerDetail_Laden'),A('Act_Ergebnis_Zeigen'),T('Code_Anzeige_Aktualisieren')],[T('Fehler'),T('Code_Pruefen')])],[A('Act_CodeSpeichern_Sperren')])],[])],'Emoji-Code speichern'));
+ addFeature(s,'resident-detail','Bewohnerprofil, Hausmitgliedschaft und Emoji-Code bearbeiten',['BewohnerDetail_Init','BewohnerDetail_Laden','BewohnerProfil_Speichern','BewohnerMitgliedschaft_Vormerken','BewohnerBestaetigen','BewohnerAbbrechen','CodeEmoji_Waehlen','Code_Letztes_Entfernen','Code_Zuruecksetzen','BewohnerCode_Speichern']);replaceStage(s);
 }
 
 // ── HouseAdmin: Familien ───────────────────────────────────────────────────
@@ -369,5 +784,6 @@ for(const s of project.stages.filter(s=>roleStageIds.has(s.id)))for(const f of s
 // Keine Platzhalterreferenz darf im Projekt verbleiben.
 const raw=JSON.stringify(project);
 if(raw.includes('__wird_ersetzt__'))throw Error('Interner Platzhalter blieb im Projekt');
+require('./cms-learning-catalog-ui.cjs').apply(project);
 fs.writeFileSync(file,JSON.stringify(project,null,2)+'\n');
 console.log('HouseAdmin- und RaumAdmin-Arbeitsbereiche in getrennte Stages umgebaut.');

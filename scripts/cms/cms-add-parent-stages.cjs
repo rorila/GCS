@@ -126,7 +126,7 @@ parent.objects.push(
   button('NeuLaden', '↻ Aktualisieren', 38, 4, 12, 2, 'Sperre_KinderLaden'),
   objList('Kinder', 'Bestätigt zugeordnete Kinder; Datenquelle der KinderTabelle.'),
   Object.assign(table('KinderTabelle', 4, 7, 28, 12, 'Kinder', [
-    { field: 'avatar', label: '', x: 0.5, y: 0.7, width: 3, height: 3, style: { fontSize: 28, textAlign: 'center' } },
+    { field: 'avatarImage', type: 'image', label: '', x: 0.5, y: 0.7, width: 3, height: 3 },
     { field: 'name', label: 'Kind', type: 'header', x: 4, y: 1, width: 6.5, height: 2, style: { fontSize: 16 } },
     { field: 'spiel', label: 'Spiel', type: 'meta', x: 4, y: 3, width: 6.5, height: 1.2 },
     { field: 'heute', label: 'Heute', type: 'meta', x: 4, y: 4.15, width: 6.5, height: 1.2 },
@@ -1328,6 +1328,9 @@ applyCmsTheme(project);
 cleanRetiredProperties(project);
 
 if (project.stages.some(s => s.id === 'stage_card_points')) require('./cms-add-card-points.cjs').apply(project);
+require('./cms-split-parent-overview.cjs').apply(project);
+require('./cms-add-parent-child-profile.cjs').apply(project);
+require('./cms-learning-catalog-ui.cjs').apply(project);
 fs.writeFileSync(FILE + '.tmp', JSON.stringify(project, null, 2));
 fs.renameSync(FILE + '.tmp', FILE);
 console.log('Stages eingefügt: stage_server_parent, stage_server_play, stage_parent (+ stage_child_activity/rooms/budget), stage_observer');

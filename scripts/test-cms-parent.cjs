@@ -120,6 +120,22 @@ await check('my-children: bestätigte und ausstehende Zuordnungen sind untersche
   assert.strictEqual(r.data.items.find(i => i.id === 'child-mia').pendingApproval, true);
 });
 
+await check('my-children: liefert das eigene Avatarbild und den Standardavatar bei fehlendem Bild', () => {
+  const child = db.people.find(p => p.id === 'child-lina');
+  const other = db.people.find(p => p.id === 'child-mia');
+  const original = child.avatarImage, otherOriginal = other.avatarImage;
+  try {
+    child.avatarImage = '/avatars/lina-test.webp';
+    delete other.avatarImage;
+    const r = api(linaSession, 'my-children');
+    assert.strictEqual(r.data.items.find(i => i.id === child.id).avatarImage, '/avatars/lina-test.webp');
+    assert.strictEqual(r.data.items.find(i => i.id === other.id).avatarImage, '/images/default-avatar.svg');
+  } finally {
+    if (original === undefined) delete child.avatarImage; else child.avatarImage = original;
+    if (otherOriginal === undefined) delete other.avatarImage; else other.avatarImage = otherOriginal;
+  }
+});
+
 await check('child-activity: eigenes Kind liefert Spielzeit und aktuelles Spiel', () => {
   const r = api(linaSession, 'child-activity', { childId: 'child-lina' });
   assert.strictEqual(r.status, 200);

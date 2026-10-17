@@ -9,6 +9,7 @@ function validWav(bytes) {
     && bytes.toString('ascii', 36, 40) === 'data' && bytes.readUInt32LE(40) === bytes.length - 44 && bytes.length % 2 === 0;
 }
 function createSpeechService({ core, launches, endpoint = process.env.CMS_SPEECH_URL || '', fetchImpl = fetch }) {
+  const guards = require('./cms-http-guard.cjs').createHttpGuards();
   let upstream;
   if (endpoint) {
     upstream = new URL(endpoint);
@@ -24,7 +25,7 @@ function createSpeechService({ core, launches, endpoint = process.env.CMS_SPEECH
       && ps.gameId === launch.gameId && core.can(session, 'play', { game, areaId: launch.areaId }) ? session.personId : null;
   }
   async function handle(req) {
-    if (req.headers.origin !== `http://${req.headers.host}`) return fail(403, 'Ungültiger Anfrageursprung.');
+    if (!guards.originOk(req)) return fail(403, 'Ungültiger Anfrageursprung.');
     const key = req.headers['x-gcs-launch'], person = authorized(key);
     if (!person) return fail(403, 'Keine aktive Spielberechtigung.');
     if (!upstream) return fail(503, 'Lokaler Spracherkennungsdienst ist nicht eingerichtet.');

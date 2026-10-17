@@ -1,0 +1,796 @@
+{
+  "result": {
+    "samples": [
+      {
+        "ms": 17,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 30,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix(1, 0, 0, 1, 0, 0)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 47,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.999996, 0, -0.00266419, 4.51869e-09, 0, 1, 0, 0, 0.00266419, 0, 0.999996, -1.69607e-06, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 63,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.999948, 0, -0.0101691, 6.58348e-08, 0, 1, 0, 0, 0.0101691, 0, 0.999948, -6.47365e-06, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 83,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.999752, 0, -0.0222603, 3.15483e-07, 0, 1, 0, 0, 0.0222603, 0, 0.999752, -1.4169e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 100,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.99925, 0, -0.0387135, 9.54361e-07, 0, 1, 0, 0, 0.0387135, 0, 0.99925, -2.46334e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 113,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.998285, 0, -0.0585407, 2.18295e-06, 0, 1, 0, 0, 0.0585407, 0, 0.998285, -3.72256e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 131,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.996624, 0, -0.0820972, 4.29562e-06, 0, 1, 0, 0, 0.0820972, 0, 0.996624, -5.2147e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 147,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.994072, 0, -0.10872, 7.53983e-06, 0, 1, 0, 0, 0.10872, 0, 0.994072, -6.89395e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 164,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.99034, 0, -0.13866, 1.22796e-05, 0, 1, 0, 0, 0.13866, 0, 0.99034, -8.77037e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 181,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.985243, 0, -0.171159, 1.87423e-05, 0, 1, 0, 0, 0.171159, 0, 0.985243, -0.000107887, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 197,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.978522, 0, -0.206141, 2.7248e-05, 0, 1, 0, 0, 0.206141, 0, 0.978522, -0.000129342, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 214,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.969878, 0, -0.24359, 3.81585e-05, 0, 1, 0, 0, 0.24359, 0, 0.969878, -0.000151932, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 231,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.958892, 0, -0.283771, 5.19785e-05, 0, 1, 0, 0, 0.283771, 0, 0.958892, -0.000175641, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 247,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.946311, 0, -0.323257, 6.77403e-05, 0, 1, 0, 0, 0.323257, 0, 0.946311, -0.000198305, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 263,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.930854, 0, -0.365392, 8.70109e-05, 0, 1, 0, 0, 0.365392, 0, 0.930854, -0.000221664, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 280,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.912432, 0, -0.409229, 0.000109839, 0, 1, 0, 0, 0.409229, 0, 0.912432, -0.000244901, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 299,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.89129, 0, -0.453433, 0.000135849, 0, 1, 0, 0, 0.453433, 0, 0.89129, -0.000267032, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 314,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.866739, 0, -0.498762, 0.000165801, 0, 1, 0, 0, 0.498762, 0, 0.866739, -0.000288125, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 331,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.838674, 0, -0.544634, 0.000199697, 0, 1, 0, 0, 0.544634, 0, 0.838674, -0.000307511, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 347,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.808467, 0, -0.588542, 0.000235767, 0, 1, 0, 0, 0.588542, 0, 0.808467, -0.000323868, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 364,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.773609, 0, -0.633664, 0.000276847, 0, 1, 0, 0, 0.633664, 0, 0.773609, -0.000337989, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 381,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.735062, 0, -0.678, 0.00032158, 0, 1, 0, 0, 0.678, 0, 0.735062, -0.000348644, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 398,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.693548, 0, -0.72041, 0.000368917, 0, 1, 0, 0, 0.72041, 0, 0.693548, -0.000355161, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 414,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.647808, 0, -0.761804, 0.000420037, 0, 1, 0, 0, 0.761804, 0, 0.647808, -0.000357183, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 431,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.5977, 0, -0.80172, 0.000474748, 0, 1, 0, 0, 0.80172, 0, 0.5977, -0.000353936, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 449,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.544107, 0, -0.839016, 0.000531715, 0, 1, 0, 0, 0.839016, 0, 0.544107, -0.000344821, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 464,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.487507, 0, -0.873119, 0.000590065, 0, 1, 0, 0, 0.873119, 0, 0.487507, -0.000329463, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 481,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.426255, 0, -0.904603, 0.000651012, 0, 1, 0, 0, 0.904603, 0, 0.426255, -0.000306761, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 497,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.365003, 0, -0.931006, 0.000709553, 0, 1, 0, 0, 0.931006, 0, 0.365003, -0.000278182, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 519,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.297834, 0, -0.954618, 0.000770827, 0, 1, 0, 0, 0.954618, 0, 0.297834, -0.000240493, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 531,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.226663, 0, -0.973973, 0.000832199, 0, 1, 0, 0, 0.973973, 0, 0.226663, -0.000193669, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 547,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.153791, 0, -0.988103, 0.000890976, 0, 1, 0, 0, 0.988103, 0, 0.153791, -0.000138674, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 564,
+        "inline": "perspective(1000px) rotateY(90deg)",
+        "computed": "matrix3d(0.0776238, 0, -0.996983, 0.000947665, 0, 1, 0, 0, 0.996983, 0, 0.0776238, -7.3784e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-in",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 584,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0, 0, 1, -0.001, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 597,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0, 0, 1, -0.001, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 614,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.0779863, 0, 0.996954, -0.000996954, 0, 1, 0, 0, -0.996954, 0, 0.0779863, -7.79863e-05, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 630,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.15414, 0, 0.988049, -0.000988049, 0, 1, 0, 0, -0.988049, 0, 0.15414, -0.00015414, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 647,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.226999, 0, 0.973895, -0.000973895, 0, 1, 0, 0, -0.973895, 0, 0.226999, -0.000226999, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 663,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.29692, 0, 0.954902, -0.000954902, 0, 1, 0, 0, -0.954902, 0, 0.29692, -0.00029692, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 680,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.364132, 0, 0.931347, -0.000931347, 0, 1, 0, 0, -0.931347, 0, 0.364132, -0.000364132, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 697,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.429153, 0, 0.903232, -0.000903232, 0, 1, 0, 0, -0.903232, 0, 0.429153, -0.000429153, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 713,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.488484, 0, 0.872573, -0.000872573, 0, 1, 0, 0, -0.872573, 0, 0.488484, -0.000488484, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 730,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.545684, 0, 0.837991, -0.000837991, 0, 1, 0, 0, -0.837991, 0, 0.545684, -0.000545684, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 747,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.599477, 0, 0.800392, -0.000800392, 0, 1, 0, 0, -0.800392, 0, 0.599477, -0.000599477, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 764,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.6486, 0, 0.761129, -0.000761129, 0, 1, 0, 0, -0.761129, 0, 0.6486, -0.0006486, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 780,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.693491, 0, 0.720466, -0.000720466, 0, 1, 0, 0, -0.720466, 0, 0.693491, -0.000693491, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 797,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.73549, 0, 0.677536, -0.000677536, 0, 1, 0, 0, -0.677536, 0, 0.73549, -0.00073549, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 814,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.774215, 0, 0.632922, -0.000632922, 0, 1, 0, 0, -0.632922, 0, 0.774215, -0.000774215, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 830,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.80862, 0, 0.588331, -0.000588331, 0, 1, 0, 0, -0.588331, 0, 0.80862, -0.00080862, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 847,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.839515, 0, 0.543336, -0.000543336, 0, 1, 0, 0, -0.543336, 0, 0.839515, -0.000839515, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 863,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.86686, 0, 0.498551, -0.000498551, 0, 1, 0, 0, -0.498551, 0, 0.86686, -0.00086686, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 880,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.891533, 0, 0.452955, -0.000452955, 0, 1, 0, 0, -0.452955, 0, 0.891533, -0.000891533, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 898,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.913232, 0, 0.40744, -0.00040744, 0, 1, 0, 0, -0.40744, 0, 0.913232, -0.000913232, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 914,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.931235, 0, 0.364419, -0.000364419, 0, 1, 0, 0, -0.364419, 0, 0.931235, -0.000931235, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 930,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.946463, 0, 0.322812, -0.000322812, 0, 1, 0, 0, -0.322812, 0, 0.946463, -0.000946463, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 947,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.959514, 0, 0.281661, -0.000281661, 0, 1, 0, 0, -0.281661, 0, 0.959514, -0.000959514, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 964,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.969981, 0, 0.243183, -0.000243183, 0, 1, 0, 0, -0.243183, 0, 0.969981, -0.000969981, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 981,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.978739, 0, 0.205108, -0.000205108, 0, 1, 0, 0, -0.205108, 0, 0.978739, -0.000978739, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 997,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.985376, 0, 0.170395, -0.000170395, 0, 1, 0, 0, -0.170395, 0, 0.985376, -0.000985376, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1014,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.990464, 0, 0.137769, -0.000137769, 0, 1, 0, 0, -0.137769, 0, 0.990464, -0.000990464, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1031,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.994105, 0, 0.108419, -0.000108419, 0, 1, 0, 0, -0.108419, 0, 0.994105, -0.000994105, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1048,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.996696, 0, 0.0812263, -8.12263e-05, 0, 1, 0, 0, -0.0812263, 0, 0.996696, -0.000996696, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1064,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.998283, 0, 0.0585695, -5.85695e-05, 0, 1, 0, 0, -0.0585695, 0, 0.998283, -0.000998283, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1080,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.999254, 0, 0.0386283, -3.86283e-05, 0, 1, 0, 0, -0.0386283, 0, 0.999254, -0.000999254, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1097,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.999754, 0, 0.0221939, -2.21939e-05, 0, 1, 0, 0, -0.0221939, 0, 0.999754, -0.000999754, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1114,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.999948, 0, 0.0102416, -1.02416e-05, 0, 1, 0, 0, -0.0102416, 0, 0.999948, -0.000999948, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1130,
+        "inline": "perspective(1000px) rotateY(0deg)",
+        "computed": "matrix3d(0.999997, 0, 0.00263985, -2.63985e-06, 0, 1, 0, 0, -0.00263985, 0, 0.999997, -0.000999997, 0, 0, 0, 1)",
+        "transition": "transform 550ms ease-out",
+        "connected": true,
+        "same": true,
+        "active": true
+      },
+      {
+        "ms": 1147,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1163,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1180,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1197,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1214,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1231,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1247,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1264,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1281,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1298,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1314,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1331,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1347,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1364,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1381,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1398,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1415,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1431,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1447,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1464,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1481,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      },
+      {
+        "ms": 1497,
+        "inline": "",
+        "computed": "none",
+        "transition": "",
+        "connected": true,
+        "same": true
+      }
+    ],
+    "phase": "feedback"
+  },
+  "warnings": []
+}

@@ -4,11 +4,13 @@ import WebSocket from 'ws';
 import { Room } from './Room';
 
 // Platform directories - ONLY uploaded games, no demos dependency
+// Produktion (Fly-Volume /data): die drei persistenten Pfade lassen sich per
+// Env auf das gemountete Volume umbiegen; statische Assets bleiben im Image.
 export const PUBLIC_DIR = path.join(__dirname, '../public');
 export const ROOT_PUBLIC_DIR = path.join(__dirname, '../../public');
-export const UPLOADED_GAMES_DIR = path.join(__dirname, '../../uploaded_games');
-export const RUNTIMES_DIR = path.join(__dirname, '../runtimes');
-export const DATA_DIR = path.join(__dirname, '../data');
+export const UPLOADED_GAMES_DIR = path.resolve(process.env.GCS_UPLOADED_GAMES_DIR || path.join(__dirname, '../../uploaded_games'));
+export const RUNTIMES_DIR = path.resolve(process.env.GCS_RUNTIMES_DIR || path.join(__dirname, '../runtimes'));
+export const DATA_DIR = path.resolve(process.env.GCS_DATA_DIR || path.join(__dirname, '../data'));
 export const DB_PATH = path.join(DATA_DIR, 'db.json');
 
 export const BUILDER_URL = process.env.BUILDER_URL || 'http://localhost:5173';

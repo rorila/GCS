@@ -7,7 +7,7 @@ const perf = require('./cms-performance.cjs');
 const sponsor = require('./cms-sponsor.cjs').createSponsor(null);
 const fail = (status, message) => ({ ok: false, status, message });
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
-const credentials = file => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+const {readCredentials:credentials,credentialTransaction}=require('./cms-credentials.cjs');
 const permission = ctx => isSuper(ctx.core.db, ctx.session) ? null : fail(403, 'Nur die aktive SuperAdmin-Rolle darf Sponsoren verwalten.');
 const adult = (db, id) => db.people.find(p => p.id === id && p.kind === 'adult' && !p.anonymizedAt);
 const commit = (ctx, action, fn) => ctx.commit(ctx.session, action, 'root', fn);
@@ -90,22 +90,15 @@ function enrollSponsor(core, file, ticket, username, password, commitFn) {
   const entries = credentials(file);
   if (entries.some(c => c.personId === p.id || c.username.toLowerCase() === username.toLowerCase())) return fail(409, 'Zugang besteht bereits oder Benutzername ist vergeben.');
   const salt = crypto.randomBytes(16).toString('hex');
-  const original = fs.existsSync(file) ? fs.readFileSync(file) : null;
-  const write = data => { fs.writeFileSync(file + '.tmp', data, { mode: 0o600 }); fs.renameSync(file + '.tmp', file); };
-  write(JSON.stringify([...entries, { personId: p.id, username, salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') }], null, 2));
-  try {
-    const result = commitFn({ personId: p.id }, 'sponsor-enrolled', 'root', next => {
+  const updated = [...entries, { personId: p.id, username, salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') }];
+  const result = credentialTransaction(file, updated, () => commitFn({ personId: p.id }, 'sponsor-enrolled', 'root', next => {
       const person = next.people.find(x => x.id === p.id); delete person.sponsorSetupPending;
       let role = next.roles.find(r => r.personId === p.id && r.areaId === 'root' && r.role === 'sponsor');
       if (!role) { role = { personId: p.id, areaId: 'root', role: 'sponsor' }; next.roles.push(role); }
       role.active = true; next.invites = next.invites.filter(i => !(i.personId === p.id && i.purpose === 'sponsor-setup'));
       return { ok: true, message: 'Sponsorzugang eingerichtet. Bitte mit deinem neuen Zugang anmelden.' };
-    });
-    if (result?.ok === false) throw Error(result.message);
-    return { ok: true, message: 'Sponsorzugang eingerichtet. Bitte anmelden.', personId: p.id };
-  } catch (e) {
-    if (original) write(original); else fs.rmSync(file, { force: true });
-    throw e;
-  }
+  }));
+  if (result?.ok === false) return result;
+  return { ok: true, message: 'Sponsorzugang eingerichtet. Bitte anmelden.', personId: p.id };
 }
 module.exports = { listSponsors, setSponsor, inviteSponsor, revokeSponsorInvite, enrollSponsor };

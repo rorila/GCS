@@ -634,6 +634,60 @@ async function main() {
             }
         });
 
+        await timer.measure('Karteikasten-Abenteuer', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --test scripts/test-cardbox-adventures.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Karteikasten-Abenteuer: Auswahl, Leitner und sichere Wiederholung', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Karteikasten-Abenteuer: Auswahl, Leitner und sichere Wiederholung', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('Bildpfade in Spielpaketen', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --import tsx --test tests/image_source.test.ts`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Bildpfade: ZIP, relative Referenzen und eingebettete Bilder', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Bildpfade: ZIP, relative Referenzen und eingebettete Bilder', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('Externe Stage-Schnittstellen', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --import tsx --test tests/stage_interface.test.ts`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Stage-Eingänge, Ausgänge und Task-Refactoring', passed: true, type: 'Runtime Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Stage-Eingänge, Ausgänge und Task-Refactoring', passed: false, type: 'Runtime Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('Eigenständiger Aufgabenbereich', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --test scripts/test-task-area.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Aufgabenbereich: Events, Leitner, Wiederholung und SQLite', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Aufgabenbereich: Events, Leitner, Wiederholung und SQLite', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('Bilder zählen und Turmbau', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --test scripts/test-counting-tower.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Bilder zählen: Karten, Aufgabenlayout und unabhängige Spielwelt', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Bilder zählen: Karten, Aufgabenlayout und unabhängige Spielwelt', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('Lernzielkatalog', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --test scripts/test-learning-catalog.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Lernzielkatalog: Filter, Erweiterbarkeit und Berechtigungen', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Lernzielkatalog: Filter, Erweiterbarkeit und Berechtigungen', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
         await timer.measure('CMS UI-Integritaet', () => {
             try {
                 const output = execSync(`"${process.execPath}" --test scripts/test-cms-ui-integrity.cjs`, { encoding: 'utf-8', stdio: 'pipe' });

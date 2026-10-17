@@ -41,6 +41,28 @@ const SPONSOR_UNION = {
 // damit viele Store-Instanzen (Tests) keine Listener-Warnung erzeugen.
 const LOCKS = new Set();
 let lockHookInstalled = false;
+const { spawnSync } = require('node:child_process');
+// A PID alone is not an identity: the OS can reuse it after exit/reboot.
+function processStartedAt(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return null;
+  try {
+    const windows = process.platform === 'win32';
+    const result = windows
+      ? spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+        '$ErrorActionPreference="Stop"; [DateTimeOffset]::new((Get-Process -Id ' + pid + ').StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()'],
+        { encoding: 'utf8', windowsHide: true, timeout: 5000 })
+      : spawnSync('ps', ['-p', String(pid), '-o', 'lstart='],
+        { encoding: 'utf8', timeout: 5000, env: { ...process.env, LC_ALL: 'C' } });
+    if (result.error || result.status !== 0) return null;
+    const started = windows ? Number(result.stdout.trim()) : Date.parse(result.stdout.trim());
+    return Number.isFinite(started) && started > 0 ? started : null;
+  } catch { return null; }
+}
+let ownStartedAt;
+function currentProcessStartedAt() {
+  if (ownStartedAt === undefined) ownStartedAt = processStartedAt(process.pid);
+  return ownStartedAt;
+}
 function releaseLock(lockPath) {
   try {
     if (!fs.existsSync(lockPath)) return;
@@ -55,7 +77,7 @@ function acquireLock(dataPath, force) {
   const lockPath = dataPath + '.lock';
   const claim = () => {
     const fd = fs.openSync(lockPath, 'wx');
-    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, at: new Date().toISOString() }));
+    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, at: new Date().toISOString(), processStartedAt: currentProcessStartedAt() }));
     fs.closeSync(fd);
     LOCKS.add(lockPath);
     if (!lockHookInstalled) {
@@ -72,11 +94,25 @@ function acquireLock(dataPath, force) {
     if (e.code === 'ENOENT') return claim();
     throw Error('CMS-Sperrdatei kann nicht sicher geprüft werden: ' + lockPath);
   }
-  let alive = false;
-  if (stale?.pid && stale.pid !== process.pid) { try { process.kill(stale.pid, 0); alive = true; } catch (e) { alive = e.code !== 'ESRCH'; } }
-  if (alive && !force) throw Error('CMS-Datenbasis ist bereits geöffnet (PID ' + stale.pid + '). Zweite Writer-Instanz verweigert.');
-  if (stale?.pid === process.pid) { LOCKS.add(lockPath); return lockPath; }
   if (!Number.isInteger(stale?.pid) || stale.pid <= 0) throw Error('Ungültige CMS-Sperrdatei: ' + lockPath);
+  let alive = false;
+  try { process.kill(stale.pid, 0); alive = true; } catch (e) { alive = e.code !== 'ESRCH'; }
+  if (alive) {
+    const started = stale.pid === process.pid ? currentProcessStartedAt() : processStartedAt(stale.pid);
+    if (started !== null) {
+      if (Number.isFinite(stale.processStartedAt) && stale.processStartedAt > 0) {
+        alive = started === stale.processStartedAt;
+      } else {
+        // Legacy locks: a process created after the lock cannot own it.
+        // ps on POSIX has second precision, so allow a one-second margin.
+        const claimed = Date.parse(stale.at);
+        if (Number.isFinite(claimed) && started > claimed + 1000) alive = false;
+      }
+    }
+    // If identity cannot be read, retain the lock conservatively.
+  }
+  if (alive && stale.pid === process.pid) { LOCKS.add(lockPath); return lockPath; }
+  if (alive && !force) throw Error('CMS-Datenbasis ist bereits geöffnet (PID ' + stale.pid + '). Zweite Writer-Instanz verweigert.');
   // Reclaim only the file that was inspected; a competing writer must win
   // through the exclusive create below, never by overwriting its lock.
   if (fs.readFileSync(lockPath, 'utf8') !== lockContents) throw Error('CMS-Sperrdatei wurde während des Starts geändert. Bitte erneut starten.');
@@ -329,4 +365,4 @@ function createJsonStore({ dataPath, backupDir, keepBackups = KEEP_BACKUPS, logP
   return { dataPath, backupDir, deletionsPath, logPath, opsPath, load, save, commit, snapshot, listBackups, restore, readDeletions, addDeletion, applyDeletions, readAudit };
 }
 
-module.exports = { createJsonStore, atomicWrite };
+module.exports = { createJsonStore, atomicWrite, acquireLock, releaseLock, OPS_KEYS };

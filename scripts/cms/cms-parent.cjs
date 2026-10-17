@@ -8,9 +8,7 @@ const fs = require('node:fs'), path = require('node:path'), crypto = require('no
 const CMS_FILE = path.join(__dirname, '../../game-server/public/projects/GCS-CMS.json');
 const fail = (status, message) => ({ status, data: { ok: false, message } });
 
-function readCredentials(credentialPath) {
-  try { return JSON.parse(fs.readFileSync(credentialPath, 'utf8')); } catch { return []; }
-}
+const {readCredentials,credentialTransaction}=require('./cms-credentials.cjs');
 
 // Jede Person mit Zugangsdaten kann sich anmelden — Verwaltungsrechte werden
 // separat über can() geprüft, nicht über die Anmeldung.
@@ -30,7 +28,7 @@ function createParent(core, credentialPath, store, cmsFile, stageName, opts = {}
   let launches = opts.launches || null;
 
   async function login(req, body) {
-    const key = req.socket.remoteAddress, now = Date.now();
+    const key = req.clientIp || req.socket.remoteAddress, now = Date.now();
     let rate = attempts.get(key); if (!rate || now - rate.at > 60000) { rate = { at: now, n: 0 }; attempts.set(key, rate); }
     if (++rate.n > 10) return { error: 'Zu viele Versuche. Bitte eine Minute warten.' };
     const c = await verifyCredentials(credentialPath, body.username, body.password);
@@ -84,16 +82,14 @@ function enrollParent(core, credentialPath, ticket, username, password, commit) 
   if (entries.some(c => c.personId === invite.personId || c.username === username)) return failMsg('Zugang besteht bereits oder Benutzername ist vergeben.');
   const salt = crypto.randomBytes(16).toString('hex');
   entries.push({ personId: invite.personId, username, salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') });
-  fs.writeFileSync(credentialPath + '.tmp', JSON.stringify(entries, null, 2), { mode: 0o600 });
-  fs.renameSync(credentialPath + '.tmp', credentialPath);
-  commit({ personId: invite.personId }, 'parent-enrolled', invite.houseId, next => {
+  credentialTransaction(credentialPath, entries, () => commit({ personId: invite.personId }, 'parent-enrolled', invite.houseId, next => {
     const inv = next.invites.find(i => i.hash === hash);
     inv.usedAt = new Date().toISOString();
     const g = next.guardians.find(g => g.guardianId === invite.personId && g.childId === invite.childId && g.status === 'pending');
     // Vier-Augen-Prinzip: die Zuordnung bleibt ausstehend, bis ein zweiter
     // Verantwortlicher bestätigt — der Aussteller der Einladung zählt nicht.
     if (g && !g.issuer) g.issuer = invite.issuer;
-  });
+  }));
   const confirmed = core.db.guardians.some(g => g.guardianId === invite.personId && g.childId === invite.childId && g.status === 'confirmed');
   return { ok: true, message: confirmed ? 'Zugang eingerichtet. Jetzt als Elternteil anmelden.' : 'Zugang eingerichtet. Deine Kinderzuordnung wartet noch auf die Bestätigung durch einen zweiten Verantwortlichen.' };
 }
@@ -111,13 +107,11 @@ function enrollObserver(core, credentialPath, ticket, username, password, commit
   if (entries.some(c => c.personId === invite.personId || c.username === username)) return failMsg('Zugang besteht bereits oder Benutzername ist vergeben.');
   const salt = crypto.randomBytes(16).toString('hex');
   entries.push({ personId: invite.personId, username, salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') });
-  fs.writeFileSync(credentialPath + '.tmp', JSON.stringify(entries, null, 2), { mode: 0o600 });
-  fs.renameSync(credentialPath + '.tmp', credentialPath);
-  commit({ personId: invite.personId }, 'observer-enrolled', invite.houseId, next => {
+  credentialTransaction(credentialPath, entries, () => commit({ personId: invite.personId }, 'observer-enrolled', invite.houseId, next => {
     next.invites.find(i => i.hash === hash).usedAt = new Date().toISOString();
     if (!next.roles.some(r => r.personId === invite.personId && r.areaId === invite.areaId && r.role === 'observer'))
       next.roles.push({ personId: invite.personId, areaId: invite.areaId, role: 'observer', active: true });
-  });
+  }));
   return { ok: true, message: 'Beobachterzugang eingerichtet. Jetzt anmelden.' };
 }
 

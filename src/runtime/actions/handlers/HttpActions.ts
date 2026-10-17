@@ -6,6 +6,7 @@ import { serviceRegistry } from '../../../services/ServiceRegistry';
 import { DebugLogService } from '../../../services/DebugLogService';
 import { ActionApiHandler } from '../../../components/actions/ActionApiHandler';
 import { Logger } from '../../../utils/Logger';
+import { gameServerHttp } from '../../../utils/ServerUrl';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 const dataLogger = Logger.get('Action', 'DataStore_Sync');
@@ -343,7 +344,7 @@ export function registerHttpActions() {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch(gameServerHttp('/api/auth/login'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin: pin })

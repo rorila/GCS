@@ -10,6 +10,11 @@ import { Logger } from '../utils/Logger';
 export class ActionExecutor {
     private static logger = Logger.get('ActionExecutor', 'Runtime_Execution');
     private taskExecutor: any;
+    private stageInterface?: import('./StageInterfaceService').StageInterfaceService;
+
+    public setStageInterface(service: import('./StageInterfaceService').StageInterfaceService): void {
+        this.stageInterface = service;
+    }
 
     constructor(
         private objects: any[],
@@ -75,6 +80,7 @@ export class ActionExecutor {
             const handler = actionRegistry.getHandler(action.type);
             if (handler) {
                 return await handler(action, {
+                    stageInterface: this.stageInterface,
                     vars,
                     contextVars: globalVars,
                     objects: this.objects,

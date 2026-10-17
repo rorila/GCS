@@ -116,3 +116,12 @@ game-server/data/tts-cache/
 /game-server/tts/run/
 /game-server/data/tts-editor-cache/
 /.codex-work/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite.lock
+*.sqlite.import-*
+/cms-backups/
+
+# Generiertes Doku-Paket (jederzeit neu erzeugbar)
+docs-inventar-phase1.zip

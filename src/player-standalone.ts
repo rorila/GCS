@@ -17,9 +17,12 @@ import { installTauriFSAdapter } from './utils/TauriFSAdapter';
 import { PerfOverlay } from './utils/PerfOverlay';
 import { ViewportDiagnose } from './utils/ViewportDiagnose';
 import { ImageMetaCache } from './runtime/ImageMetaCache';
+import { normalizeImageSource } from './utils/ImageSource';
 import { applyTouchHardening } from './runtime/TouchHardening';
 import { LOADING_SVG } from './loading-overlay-svg';
 import { RUNTIME_VERSION } from './utils/RuntimeVersion';
+import { LearningShellPlayer } from './player/LearningShellPlayer';
+const learningRuntimeUrl = typeof document !== 'undefined' ? ((document.currentScript as HTMLScriptElement | null)?.src || new URL('/runtime-standalone.js', document.baseURI).href) : '';
 installTauriFSAdapter();
 
 // PERF: Im ausgelieferten Spiel ist Logging per Default aus. console.*-Aufrufe in den
@@ -98,6 +101,7 @@ function decompressProject(data: string): GameProject | null {
  * - Dynamic Lobby (if no game/room selected)
  */
 class UniversalPlayer implements StageHost {
+    private learningShell?: LearningShellPlayer;
     private disposeCmsHost?: () => void;
     public runtime: GameRuntime | null = null;
     public element: HTMLElement; // From StageHost
@@ -181,7 +185,9 @@ class UniversalPlayer implements StageHost {
         const cmsParty = embeddedProject?.stages?.some((stage: any) =>
             stage.variables?.some((variable: any) => variable.name === 'CMS_LAUNCH' && variable.value));
         // 2. Connect to the room server for ordinary platform games.
-        if (!cmsParty) try {
+        const cmsHosted = !!embeddedProject?.learningShell || (window as any).__gcsCmsHost === true || (window as any).__gcsCmsLiveBridge === true ||
+            embeddedProject?.stages?.some((stage: any) => stage.id === 'stage_server_player');
+        if (!cmsParty && !cmsHosted) try {
             await network.connect();
             logger.info('[UniversalPlayer] Connected to game server');
         } catch (e) {
@@ -425,10 +431,7 @@ class UniversalPlayer implements StageHost {
     }
 
     private normalizeImageUrl(raw: string): string {
-        if (!raw) return '';
-        if (raw.startsWith('http') || raw.startsWith('/') || raw.startsWith('.') || raw.startsWith('data:')) return raw;
-        if (raw.startsWith('images/') || raw.startsWith('assets/')) return './' + raw;
-        return `./images/${raw}`;
+        return normalizeImageSource(raw);
     }
 
     private preloadOneImage(url: string): Promise<void> {
@@ -455,6 +458,7 @@ class UniversalPlayer implements StageHost {
         this.showLoadingOverlay();
 
         this.disposeCmsHost?.();
+        this.learningShell?.dispose(); this.learningShell = undefined;
 
         // 1. Stop previous runtime if any
         if (this.runtime) {
@@ -469,6 +473,13 @@ class UniversalPlayer implements StageHost {
             (project as any).activeStageId ||
             (project.stage as any)?.id ||
             project.stages?.[0]?.id;
+
+        if (project.learningShell?.shellStageId === startStageId) {
+            this.runtime = null;
+            this.element.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;transform:none;overflow:hidden';
+            this.learningShell = new LearningShellPlayer(this.element, learningRuntimeUrl);
+            this.learningShell.mount(project); this.hideLoadingOverlay(); return;
+        }
 
         // 1b. Preload images to avoid decode jank on first use
         await this.preloadImages(project);
@@ -616,6 +627,7 @@ class UniversalPlayer implements StageHost {
     }
 
     private setupScaling() {
+        if (this.learningShell) return;
         if (!this.currentProject) return;
 
         // Use active stage grid from runtime if available, else fallback to project default
@@ -640,6 +652,8 @@ class UniversalPlayer implements StageHost {
 
         this.element.style.width = `${stageWidth}px`;
         this.element.style.height = `${stageHeight}px`;
+        // Center scaling around the stage center, including hosts with top-left CSS defaults.
+        this.element.style.transformOrigin = 'center center';
         this.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
         this.element.style.left = '50%';
         this.element.style.top = '50%';

@@ -1,0 +1,84 @@
+# Fly.io-Bereitstellung: GCS-CMS + Game-Server + Sprachdienste in einem
+# Container, eine aktive Machine, ein persistentes Volume unter /data.
+#
+# Bewusstes Eininstanzmodell: KEIN Rolling-/Blue-Green-Deployment mit zwei
+# aktiven Machines — der CMS ist der einzige autoritative Writer.
+#
+# Vor dem ersten Deploy:
+#   fly volumes create gcs_data --size 10 --region fra
+#   fly secrets set JWT_SECRET=… CMS_BACKUP_ENCRYPTION_KEY=…
+#   PUBLIC_ORIGIN unten auf die echte Domain setzen.
+# Migration: auf einer kontrollierten Machine mit gemountetem Volume
+#   node scripts/cms/cms-database.cjs import --source … --target /data/cms/cms.sqlite
+# (nicht in release_command — dort ist das Volume nicht verfügbar).
+
+app = '<fly-app>'
+primary_region = 'fra'
+kill_signal = 'SIGTERM'
+kill_timeout = 30
+
+[deploy]
+  strategy = 'immediate'
+
+[build]
+  dockerfile = 'deploy/fly/Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PUBLIC_ORIGIN = 'https://<fly-app>.fly.dev'
+
+  # CMS: SQLite als einziger Speicher, kein JSON-Fallback nach Cutover.
+  CMS_STORAGE = 'sqlite'
+  CMS_SQLITE_PATH = '/data/cms/cms.sqlite'
+  CMS_UPLOAD_DIR = '/data/cms/uploads'
+  CMS_PORT = '8081'
+  CMS_SERVICES_MANAGED = '1'
+  CMS_TRUST_PROXY = '1'
+  CMS_EDITOR_TEST = 'off'
+  CMS_TTS_URL = 'http://127.0.0.1:5000/'
+  CMS_SPEECH_URL = 'http://127.0.0.1:8177/inference'
+  CMS_TTS_CACHE_DIR = '/data/cache/tts-cms'
+  CMS_BACKUP_INTERVAL_MIN = '10'
+  CMS_BACKUP_REQUIRE_EXTERNAL = '1'
+  CMS_BACKUP_STAGING_DIR = '/data/backup-staging'
+
+  # Game-Server: nur Loopback, öffentlich geht alles über nginx :8000.
+  PORT = '8080'
+  GCS_HOST = '127.0.0.1'
+  GCS_EDITOR_APIS = 'off'
+  GCS_DATA_DIR = '/data/game-server'
+  GCS_UPLOADED_GAMES_DIR = '/data/uploaded-games'
+  GCS_RUNTIMES_DIR = '/data/runtimes'
+  TTS_CACHE_DIR = '/data/cache/tts-editor'
+
+  # Sprachdienste im Image
+  CMS_TTS_PYTHON = '/opt/venv/bin/python'
+  CMS_TTS_VOICES_DIR = '/opt/models/voices'
+  CMS_WHISPER_BIN = '/opt/whisper/whisper-server'
+  CMS_WHISPER_MODEL = '/opt/models/ggml-small.bin'
+  CMS_WHISPER_THREADS = '4'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  # Eininstanzmodell: keine Autoskalierung, keine schlafenden Machines.
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [[http_service.checks]]
+    grace_period = '60s'
+    interval = '30s'
+    method = 'GET'
+    timeout = '5s'
+    path = '/health/ready'
+
+[[mounts]]
+  source = 'gcs_data'
+  destination = '/data'
+
+[[vm]]
+  # Ausgangswert für Staging; endgültige Größe folgt dem Lastprofil.
+  size = 'shared-cpu-2x'
+  memory = '4gb'

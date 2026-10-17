@@ -1,0 +1,448 @@
+{
+  "version": "1.0",
+  "name": "Mathe-Schnittstellenprobe",
+  "operations": [
+    {
+      "method": "createStage",
+      "params": [
+        "stage_math_probe",
+        "Mathematik · Schnittstellenprobe",
+        "standard",
+        {
+          "grid": {
+            "cols": 64,
+            "rows": 40,
+            "cellSize": 18,
+            "visible": false,
+            "backgroundColor": "#0c1b26"
+          },
+          "startAnimation": "none"
+        }
+      ]
+    },
+    {
+      "method": "addVariable",
+      "params": [
+        "MathProbeCount",
+        "integer",
+        0,
+        "global"
+      ]
+    },
+    {
+      "method": "addVariable",
+      "params": [
+        "MathProbeResult",
+        "integer",
+        0,
+        "global"
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeTitle",
+          "name": "ProbeTitle",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 2,
+          "width": 56,
+          "height": 3,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Mathematik · Technischer Schnittstellentest"
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeQuestion",
+          "name": "ProbeQuestion",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 14,
+          "y": 8,
+          "width": 36,
+          "height": 4,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "27 + 8 = ?"
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeWrongA",
+          "name": "ProbeWrongA",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 6,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 34"
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeCorrect",
+          "name": "ProbeCorrect",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 24,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 35"
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeWrongB",
+          "name": "ProbeWrongB",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 42,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 25"
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeFeedback",
+          "name": "ProbeFeedback",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 24,
+          "width": 56,
+          "height": 4,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Wähle eine Antwort."
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeCount",
+          "name": "ProbeCount",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 30,
+          "width": 56,
+          "height": 2,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": ""
+        }
+      ]
+    },
+    {
+      "method": "addObject",
+      "params": [
+        "stage_math_probe",
+        {
+          "id": "math_probe_ProbeReset",
+          "name": "ProbeReset",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 22,
+          "y": 34,
+          "width": 20,
+          "height": 3,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Zurücksetzen"
+        }
+      ]
+    },
+    {
+      "method": "bindVariable",
+      "params": [
+        "stage_math_probe",
+        "ProbeCount",
+        "text",
+        "${MathProbeCount}"
+      ]
+    },
+    {
+      "method": "setProperty",
+      "params": [
+        "stage_math_probe",
+        "ProbeQuestion",
+        "style.fontSize",
+        40
+      ]
+    },
+    {
+      "method": "createTask",
+      "params": [
+        "stage_math_probe",
+        "MathProbe_Count"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_Count",
+        "calculate",
+        "MathProbe_CountPlus",
+        {
+          "formula": "MathProbeCount + 1",
+          "resultVariable": "MathProbeCount"
+        }
+      ]
+    },
+    {
+      "method": "createTask",
+      "params": [
+        "stage_math_probe",
+        "MathProbe_Right"
+      ]
+    },
+    {
+      "method": "addTaskCall",
+      "params": [
+        "MathProbe_Right",
+        "MathProbe_Count"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_Right",
+        "calculate",
+        "MathProbe_Calculate",
+        {
+          "formula": "27 + 8",
+          "resultVariable": "MathProbeResult"
+        }
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_Right",
+        "property",
+        "MathProbe_ShowRight",
+        {
+          "changes": {
+            "ProbeFeedback.text": "Richtig: 27 + 8 = ${MathProbeResult}."
+          }
+        }
+      ]
+    },
+    {
+      "method": "createTask",
+      "params": [
+        "stage_math_probe",
+        "MathProbe_Wrong"
+      ]
+    },
+    {
+      "method": "addTaskCall",
+      "params": [
+        "MathProbe_Wrong",
+        "MathProbe_Count"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_Wrong",
+        "property",
+        "MathProbe_ShowHint",
+        {
+          "changes": {
+            "ProbeFeedback.text": "Tipp: 27 + 3 = 30. Danach fehlen noch 5."
+          }
+        }
+      ]
+    },
+    {
+      "method": "createTask",
+      "params": [
+        "stage_math_probe",
+        "MathProbe_Reset"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_Reset",
+        "property",
+        "MathProbe_Clear",
+        {
+          "changes": {
+            "MathProbeCount": 0,
+            "MathProbeResult": 0,
+            "ProbeFeedback.text": "Wähle eine Antwort."
+          }
+        }
+      ]
+    },
+    {
+      "method": "createTask",
+      "params": [
+        "stage_math_probe",
+        "MathProbe_EventParam"
+      ]
+    },
+    {
+      "method": "addTaskParam",
+      "params": [
+        "MathProbe_EventParam",
+        "probeText",
+        "string",
+        "Parameter-Standardwert"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "MathProbe_EventParam",
+        "property",
+        "MathProbe_ShowParam",
+        {
+          "changes": {
+            "ProbeFeedback.text": "${probeText}"
+          }
+        }
+      ]
+    },
+    {
+      "method": "connectEvent",
+      "params": [
+        "stage_math_probe",
+        "ProbeCorrect",
+        "onClick",
+        "MathProbe_Right"
+      ]
+    },
+    {
+      "method": "connectEvent",
+      "params": [
+        "stage_math_probe",
+        "ProbeWrongA",
+        "onClick",
+        "MathProbe_Wrong"
+      ]
+    },
+    {
+      "method": "connectEvent",
+      "params": [
+        "stage_math_probe",
+        "ProbeWrongB",
+        "onClick",
+        "MathProbe_Wrong"
+      ]
+    },
+    {
+      "method": "connectEvent",
+      "params": [
+        "stage_math_probe",
+        "ProbeReset",
+        "onClick",
+        "MathProbe_Reset"
+      ]
+    }
+  ]
+}

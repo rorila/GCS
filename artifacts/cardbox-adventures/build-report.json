@@ -1,0 +1,37 @@
+[
+  {
+    "game": "Mathe-Rechenballons",
+    "zipValid": true,
+    "projectMatches": true,
+    "leitner": true,
+    "media": 0,
+    "integrity": []
+  },
+  {
+    "game": "Mathe-Rechenpuzzle",
+    "zipValid": true,
+    "projectMatches": true,
+    "leitner": true,
+    "media": 0,
+    "integrity": [
+      {
+        "stage": "stage_math_play",
+        "level": "warnung",
+        "message": "Action Puzzle_ReturnToTray: Property-Ziel fehlt: self.x"
+      },
+      {
+        "stage": "stage_math_play",
+        "level": "warnung",
+        "message": "Action Puzzle_ReturnToTray: Property-Ziel fehlt: self.y"
+      }
+    ]
+  },
+  {
+    "game": "Mathe-Insel-Flussbruecke",
+    "zipValid": true,
+    "projectMatches": true,
+    "leitner": true,
+    "media": 14,
+    "integrity": []
+  }
+]

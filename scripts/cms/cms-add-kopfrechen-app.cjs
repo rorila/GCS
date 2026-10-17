@@ -2,7 +2,7 @@
 // spielbare Kopfrechen-App, die den persönlichen Karteikasten andockt.
 // Quiz-Mechanik (cardNext/cardAnswer via /api/cms/play) + Kopfrechen-UI:
 //   3 Antwort-Buttons, Distraktoren aus der Karten-Antwort berechnet
-//   (Ergebnis+1, Ergebnis±…), Richtig = sofort weiter, Falsch = Lösung zeigen.
+//   optionale falsche Antworten, gemischte Reihenfolge, Lösung zwei Sekunden zeigen.
 // KartenFach/KartenThema = „Art der Karten" (z. B. Mathe / 1x7), leer = alle.
 // Die Ziehregel liegt deklarativ in stage_server_play des CMS-Projekts.
 // Idempotent. Aufruf: node scripts/cms/cms-add-kopfrechen-app.cjs
@@ -158,6 +158,8 @@ const project = {
   tasks: [],
   actions: [],
 };
+
+require('./cms-quiz-choice.cjs').configureMathChoices(project);
 
 // Referenzprüfung
 const actionNames = new Set(actions.map(a => a.name));

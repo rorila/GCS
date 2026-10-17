@@ -163,6 +163,7 @@ for(const name of ['Act_Spiele_Veroeffentlichen_Anfragen','Act_Spiele_Zurueckzie
 {const up=finalDetail.actions.find(a=>a.name==='Act_Spiel_Datei_Uebertragen');if(up&&up.params)up.params=['${SpielTitel.text}','${SpielBeschreibung.text}','','${CMSGameId}','${UploadModus}'];
  const neo=finalDetail.actions.find(a=>a.name==='Act_Neuen_Entwurf_Auswaehlen');if(neo)neo.changes.UploadModus='';
  for(const an of ['Act_SpielDetail_DateiFehlt','Act_SpielDetail_Entwurf','Act_SpielDetail_Veroeffentlicht','Act_SpielDetail_Gesperrt']){const a=finalDetail.actions.find(x=>x.name===an);if(a)Object.assign(a.changes,{UploadModus:'','SpeichernBtn.visible':true,'LoeschenBtn.visible':true,'LoeschenBestaetigen.visible':false,'VersionBtn.visible':an!=='Act_SpielDetail_DateiFehlt'});}}
+require('./cms-super-game-houses.cjs').apply(project);
 if(finalLibrary.generatedBy===BUILDER&&finalDetail.generatedBy===BUILDER){finalLibrary.generatedHash=digest(finalLibrary);finalDetail.generatedHash=digest(finalDetail);}
 if(process.argv.includes('--apply')){
  fs.writeFileSync(file,JSON.stringify(project,null,2)+'\n');

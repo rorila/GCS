@@ -15,6 +15,14 @@ export class TFileUpload extends TWindow implements IRuntimeComponent {
   catch(error){if(this.stopped)return;this.message=String((error as Error).message);this.busy=false;this.emit(controller.signal.aborted?'onCancel':'onError')}
   finally{this.busy=false}
  }
+ public async startResidentCreate(houseId='',name='',kind='child',sequenceText='',requestId=''){
+  if(this.busy)return;const file=this.objects.find(o=>o.name===this.picker)?.getFile?.();if(!file){this.message='Zuerst eine Datei auswählen.';this.emit('onError');return}
+  this.busy=true;this.progress=0;this.result={};const controller=new AbortController();this.cancelOperation=()=>controller.abort();this.message='Bewohner und Bild werden übertragen.';this.emit('onStarted');
+  const metadata:Record<string,string>={houseId,name,kind,sequenceText};if(requestId)metadata.requestId=requestId;
+  try{const result=await browserUploadAdapter.send(this.endpoint,file,metadata,'',value=>{if(!this.stopped){this.progress=value;this.emit('onProgress')}},controller.signal);if(this.stopped)return;this.result=result;this.message=result.message;this.busy=false;this.emit('onSuccess')}
+  catch(error){if(this.stopped)return;this.message=String((error as Error).message);this.busy=false;this.emit(controller.signal.aborted?'onCancel':'onError')}
+  finally{this.busy=false}
+ }
  public cancel(){this.cancelOperation?.()}
  public onRuntimeStop(){this.stopped=true;this.cancel()}
  public getEvents(){return ['onStarted','onProgress','onSuccess','onError','onCancel']}

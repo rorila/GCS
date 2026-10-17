@@ -667,7 +667,7 @@ export class StageObjectRenderer {
                 (el as any)._bgPathLogged = true;
             }
             let src = bgImg;
-            if (!bgImg.startsWith('http') && !bgImg.startsWith('/') && !bgImg.startsWith('.') && !bgImg.startsWith('data:')) {
+            if (!bgImg.startsWith('http') && !bgImg.startsWith('/') && !bgImg.startsWith('.') && !bgImg.startsWith('data:') && !bgImg.startsWith('blob:')) {
                 if (bgImg.startsWith('images/') || bgImg.startsWith('audio/') || bgImg.startsWith('video/') || bgImg.startsWith('assets/')) {
                     src = './' + bgImg;
                 } else {
@@ -679,7 +679,7 @@ export class StageObjectRenderer {
                 src = '.' + src;
             }
 
-            if (!src.startsWith('data:')) {
+            if (!src.startsWith('data:') && !src.startsWith('blob:')) {
                 const parts = src.split('/');
                 const lastPart = parts.pop() || '';
                 src = [...parts, encodeURIComponent(lastPart)].join('/');
@@ -736,6 +736,7 @@ export class StageObjectRenderer {
         else if (className === 'TCheckbox') InputRenderer.renderCheckbox(ctx, el, obj, isNew);
         else if (className === 'TNumberInput') InputRenderer.renderNumberInput(ctx, el, obj, isNew);
         else if (className === 'TEdit' || className === 'TTextInput') InputRenderer.renderTextInput(ctx, el, obj, isNew);
+        else if (className === 'TMemo') InputRenderer.renderMemo(ctx, el, obj, isNew);
         else if (className === 'TGameCard') TextObjectRenderer.renderGameCard(ctx, el, obj, isNew);
         else if (className === 'TCard') TextObjectRenderer.renderCard(ctx, el, obj);
         else if (className === 'TButton') TextObjectRenderer.renderButton(ctx, el, obj, isNew);

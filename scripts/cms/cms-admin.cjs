@@ -1,5 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {areaActive}=require('./cms-core.cjs');
+const {readCredentials}=require('./cms-credentials.cjs');
 const {enroll}=require('./cms-super.cjs');
 const CMS_FILE=path.join(__dirname,'../../game-server/public/projects/GCS-CMS.json');
 // CMS-Datenspeicher: eigene Domäne, daher kein GameProject-IStorageAdapter.
@@ -8,7 +9,7 @@ const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 function createAdmin(core,dataPath,{store,cmsFile}={}){
  store=store||require('./cms-store.cjs').createJsonStore({dataPath});
  let _rt;const rt=()=>_rt??(_rt=require('./cms-runtime.cjs').loadRuntime(cmsFile||CMS_FILE));
- const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json'),sessions=new Map(),attempts=new Map();
+ const credentialPath=store.credentials||path.join(path.dirname(dataPath),'cms-admin-auth.json'),sessions=new Map(),attempts=new Map();
  function readSession(req){const token=(req.headers.cookie||'').split('; ').find(s=>s.startsWith('cms_admin='))?.slice(10),s=sessions.get(token);if(!s||s.expires<Date.now()||!core.db.people.some(p=>p.id===s.personId&&p.active&&(p.authVersion||0)===(s.authVersion||0))){sessions.delete(token);return null;}return s;}
  const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
  const fail=(status,message)=>({status,data:{ok:false,message}}),ok=data=>({status:200,data:{ok:true,...data}});
@@ -22,7 +23,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  // Synchron: scryptSync ist hier etabliert (enroll); das Versuchslimit
  // (10/min je Quelle) deckelt die CPU-Last des Single-Threaded-Servers.
  function verify(remoteAddress,body,emit=()=>{}){const key=remoteAddress||'local',now=Date.now();let rate=attempts.get(key);if(!rate||now-rate.at>60000){rate={at:now,n:0};attempts.set(key,rate);}emit('Versuchslimit prüfen',{allowed:rate.n<10});if(++rate.n>10)return {error:'Zu viele Versuche. Bitte eine Minute warten.'};
-  let entries=[];if(fs.existsSync(credentialPath))entries=JSON.parse(fs.readFileSync(credentialPath,'utf8'));const c=entries.find(c=>c.username===body.username),salt=c?.salt||'00000000000000000000000000000000';
+  const entries=readCredentials(credentialPath),c=entries.find(c=>c.username===body.username),salt=c?.salt||'00000000000000000000000000000000';
   const hash=crypto.scryptSync(String(body.password||''),salt,64);
   const valid=!!c&&crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))&&core.db.people.some(p=>p.id===c.personId&&p.active);emit('Passwort und Person prüfen',{valid:!!valid});if(!valid)return {error:'Anmeldung nicht möglich.'};
   // Kontexte der Person (E01): Verwaltung, Eltern (bestätigte Zuordnung), Beobachtung, Sponsor.
@@ -57,7 +58,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  // Modul-Adapter: der Anmeldeablauf liegt als Task in stage_server_admin_login;
  // die Antwortdaten enthalten die Tokens als Transportfelder für den Aufrufer.
  function login(req,body){const ep=rt().find('/api/cms/admin-login','POST');if(!ep)return{error:'Anmeldeendpunkt fehlt.'};
-  const r=rt().run(ep,{session:null,body,core,admin:self,commit,credentialPath,remoteAddress:req.socket?.remoteAddress},{strict:true}),d=r.data||{};
+  const r=rt().run(ep,{session:null,body,core,admin:self,commit,credentialPath,remoteAddress:req.clientIp||req.socket?.remoteAddress},{strict:true}),d=r.data||{};
   if(d.adminToken)return{token:d.adminToken,accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||['admin'],super:!!d.super,house:!!d.house,roles:d.roles||[]};
   if(d.accountToken)return{accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||[]};
   return{error:d.message||'Anmeldung nicht möglich.'};

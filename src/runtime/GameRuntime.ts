@@ -21,6 +21,9 @@ import { RuntimeEventService } from './services/RuntimeEventService';
 import { RuntimeReactiveService } from './services/RuntimeReactiveService';
 import { RuntimeTimerService } from './services/RuntimeTimerService';
 import { RuntimeObjectService } from './services/RuntimeObjectService';
+import { StageInterfaceService } from './StageInterfaceService';
+import type { StageSignal, StageOutput } from '../model/StageInterface';
+import { STAGE_INTERFACE_EXECUTION } from '../model/StageInterface';
 
 export interface RuntimeOptions {
     multiplayerManager?: any;
@@ -36,6 +39,18 @@ export interface RuntimeOptions {
 }
 
 export class GameRuntime implements IVariableHost {
+    public readonly stageInterface = new StageInterfaceService({
+        stage: () => this.stage,
+        hasTask: name => [this.stage, ...(this.project.stages || []).filter((s: any) => s.type === 'blueprint'), this.project]
+            .some(scope => scope?.tasks?.some((task: any) => task.name === name)),
+        runTask: async (name, signal) => {
+            if (!this.taskExecutor) throw Error('Task-Laufzeit ist nicht bereit.');
+            await this.taskExecutor.execute(name, { ...this.getObjectNameMap(), [STAGE_INTERFACE_EXECUTION]: true, stageEvent: signal, eventData: signal }, this.contextVars, this.stage);
+        }
+    });
+
+    public receiveStageEvent(signal: StageSignal) { return this.stageInterface.receive(signal); }
+    public onStageOutput(listener: (event: StageOutput) => void) { return this.stageInterface.subscribe(listener); }
     public reactiveRuntime: ReactiveRuntime;
     public actionExecutor: ActionExecutor;
     public taskExecutor: TaskExecutor | null = null;
@@ -192,6 +207,7 @@ export class GameRuntime implements IVariableHost {
             this.actionExecutor.setTaskExecutor(this.taskExecutor);
         }
 
+        this.actionExecutor.setStageInterface(this.stageInterface);
         this.lifecycleService.init(this);
         this.stageService.initStageController(this);
         if (activeStage && options.onStageSwitch) options.onStageSwitch(activeStage.id);
@@ -200,6 +216,7 @@ public updateRuntimeData(project: any) {
     return this.stageService.updateRuntimeData(this, project);
 }
 public stop() {
+    this.stageInterface.dispose();
     this.lifecycleService.stop(this);
 }
 public start() {

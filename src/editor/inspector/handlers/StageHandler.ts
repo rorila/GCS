@@ -106,6 +106,9 @@ export class StageHandler implements IInspectorHandler {
             ]
         });
 
+        sections.push({ id: 'external-interface', label: 'Externe Schnittstelle', icon: '🔌', properties: [
+            { name: 'editStageInterface', label: 'Eingänge, Ausgänge & Test', type: 'button', action: 'editStageInterface', serializable: false }
+        ] });
         return sections;
     }
 

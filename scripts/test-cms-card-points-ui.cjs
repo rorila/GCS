@@ -14,7 +14,7 @@ async function main(){
   db.sponsorships.push({id:'browser-card-round',childId:'child-finn',sponsorId:'sponsor-fritz',status:'active',revision:1,requiredGuardianIds:['parent-multi'],periodStart:new Date(Date.now()-60000).toISOString(),periodEnd:null,pauseIntervals:[]});
   const agreement=sponsor.proposeAgreement(db,{actorId:'sponsor-fritz',sponsorshipId:'browser-card-round',terms:{rewardMode:'cardRounds',metricKeys:['cards.promotions','cards.resets'],pointsTarget:1,rewardText:'Ein Ausflug'}});
   assert.equal(agreement.ok,true);assert.equal(sponsor.consentAgreement(db,{actorId:'parent-multi',agreementId:agreement.agreementId,version:agreement.version,approve:true}).ok,true);
-  db.flashcards=[{id:'browser-card',childId:'child-finn',subject:'Mathe',topic:'Test',question:'2+2?',answers:['4'],answerFormat:'text',box:5,active:true,status:'active',createdBy:'parent-multi',createdAt:now,updatedAt:now}];
+  db.flashcards=[{id:'browser-card',childId:'child-finn',subject:'Mathe',topic:'Test',question:'Wie viele Füchse siehst du?',answers:['4'],wrongAnswers:['3','5'],taskType:'count-images',presentation:{version:1,assetId:'fox',count:4,layoutSeed:1},answerFormat:'text',box:5,active:true,status:'active',createdBy:'parent-multi',createdAt:now,updatedAt:now}];
   db.playSessions.push({id:'browser-play',childId:'child-finn',gameId:'game-math',areaId:'room-sun-play',status:'active',startedAt:now,lastHeartbeatAt:now,endedAt:null,minutes:0});
   const dataPath=path.join(dir,'data.json');fs.writeFileSync(dataPath,JSON.stringify(db));cms=createServer({dataPath});await new Promise(r=>cms.server.listen(0,'127.0.0.1',r));
   const origin='http://127.0.0.1:'+cms.server.address().port,token=cms.core.issueSession('child-finn','profile');
@@ -59,6 +59,8 @@ async function main(){
   await page.keyboard.press('Escape');assert.equal(await points.getAttribute('aria-expanded'),'false');
   const ending=page.waitForResponse(r=>r.url()===origin+'/api/cms/play'&&r.request().postDataJSON()?.action==='end');
   await obj('Tastatur').click();
+  await page.waitForFunction(()=>window.player.runtime.getObjects().filter(o=>o.name.startsWith('QuizCount_')&&o.visible).length===4);
+  await page.screenshot({path:path.join(__dirname,'../artifacts/counting-game/Karteikasten-Quiz-Bilder.png')});
   await page.getByPlaceholder('Deine Antwort …').fill('4');
   const response=page.waitForResponse(async r=>r.url()===origin+'/api/cms/play'&&r.request().postDataJSON()?.action==='cardAnswer');
   await obj('Pruefen').click();const answer=await (await response).json();assert.equal(answer.ok,true);assert.equal(answer.box,6);assert.equal(answer.pointsDelta,1);
@@ -85,7 +87,7 @@ async function main(){
   await browser.addCookies([{name:'cms_account',value:cms.core.issueSession('parent-multi','account'),url:origin}]);
   await page.goto(origin+'/parent');await page.getByText('Finn',{exact:true}).filter({visible:true}).click();
   const click=async(stage,name)=>page.locator('[data-id="'+project.stages.find(s=>s.id===stage).objects.find(o=>o.name===name).id+'"]').click();
-  await click('stage_parent','KindKarteikasten');await click('stage_child_cards','ElternLernpunkte');
+  await click('stage_parent_child','KindKarteikasten');await click('stage_child_cards','ElternLernpunkte');
   await page.getByText('Lernpunkte: 1 · Abgeschlossen: 1 · +1 Aufstieg · kein Abzug',{exact:true}).waitFor();
   await page.locator('td').filter({hasText:'Mathe'}).waitFor();
   await click('stage_parent_card_points','Konsequent');

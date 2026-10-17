@@ -9,7 +9,7 @@ export class BrowserUploadAdapter implements IUploadAdapter {
   input.onchange=()=>finish(input.files?.[0]||null);input.addEventListener('cancel',()=>finish(null));input.click();return ()=>{done=true;input.remove()};
  }
  send(endpoint:string,file:File,metadata:Record<string,string>,token:string,progress:(value:number)=>void,signal:AbortSignal):Promise<any>{
-  const url=new URL(endpoint,location.href);if(url.origin!==location.origin||!['/api/cms/upload/game','/api/cms/upload/avatar'].includes(url.pathname))return Promise.reject(Error('Kein gültiger CMS-Upload-Endpunkt.'));
+  const url=new URL(endpoint,location.href);if(url.origin!==location.origin||!['/api/cms/upload/game','/api/cms/upload/avatar','/api/cms/upload/resident-avatar'].includes(url.pathname))return Promise.reject(Error('Kein gültiger CMS-Upload-Endpunkt.'));
   const log=DebugLogService.getInstance(),id=crypto.randomUUID();const event=(phase:string,data:any)=>{if(log.isEnabled())log.log('Action',phase,{data:{type:'http_trace',traceId:id,phase,...redactDebug(data)}})};
   event('CLIENT · Request',{method:'POST',url:url.href,body:{filename:file.name,size:file.size,...metadata},note:'Binärinhalt nicht protokolliert'});
   return new Promise((resolve,reject)=>{

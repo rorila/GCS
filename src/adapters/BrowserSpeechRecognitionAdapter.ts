@@ -1,4 +1,5 @@
 import type { ISpeechRecognitionAdapter, SpeechOptions } from '../ports/ISpeechRecognitionAdapter';
+import { sendCmsFrameMessage, onCmsFrameMessage } from './CmsFrameTransport';
 
 export class BrowserSpeechRecognitionAdapter implements ISpeechRecognitionAdapter {
     private clientId = '';
@@ -6,7 +7,7 @@ export class BrowserSpeechRecognitionAdapter implements ISpeechRecognitionAdapte
     private pending?: { id: string; reject: (error: Error) => void; cleanup: () => void };
 
     private send(operation: string, extra: Record<string, unknown> = {}): void {
-        window.parent.postMessage({ type: 'gcs-speech', clientId: this.clientId, launchKey: this.launchKey, operation, ...extra }, new URL(document.baseURI).origin);
+        sendCmsFrameMessage({ type: 'gcs-speech', clientId: this.clientId, launchKey: this.launchKey, operation, ...extra });
     }
     private request(operation: string, launchKey: string, options?: SpeechOptions): Promise<any> {
         this.cancel();
@@ -16,18 +17,16 @@ export class BrowserSpeechRecognitionAdapter implements ISpeechRecognitionAdapte
         this.clientId ||= crypto.randomUUID();
         const id = crypto.randomUUID();
         return new Promise((resolve, reject) => {
-            const listener = (event: MessageEvent) => {
-                if (event.source !== window.parent || event.origin !== new URL(document.baseURI).origin) return;
-                const data = event.data;
+            const listener = (data: any) => {
                 if (data?.type !== 'gcs-speech-result' || data.id !== id || data.clientId !== this.clientId) return;
                 cleanup();
                 if (data.ok) resolve({ text: typeof data.text === 'string' ? data.text : '' });
                 else reject(new Error(typeof data.message === 'string' ? data.message : 'Spracherkennung fehlgeschlagen.'));
             };
-            const cleanup = () => { window.clearTimeout(timer); window.removeEventListener('message', listener); if (this.pending?.id === id) this.pending = undefined; };
+            const cleanup = () => { window.clearTimeout(timer); unsubscribe(); if (this.pending?.id === id) this.pending = undefined; };
             const timer = window.setTimeout(() => { this.send('cancel'); cleanup(); reject(new Error('Spracherkennung antwortet nicht.')); }, operation === 'prepare' ? 90000 : 45000);
             this.pending = { id, reject, cleanup };
-            window.addEventListener('message', listener);
+            const unsubscribe = onCmsFrameMessage(listener);
             this.send(operation, { id, options });
         });
     }

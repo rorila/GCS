@@ -1,5 +1,5 @@
 const crypto=require('node:crypto'),fs=require('node:fs'),path=require('node:path');
-const {areaActive,canonEmojiSeq,avatarGlyph,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf,houseOfPerson}=require('./cms-core.cjs');
+const {areaActive,canonEmojiSeq,avatarGlyph,EMOJI_IDS,DEFAULT_AVATAR_IMAGE,AVATAR_PRESET_LIST,AVATAR_PRESETS,resolveAvatarPreset,childrenOf,guardiansOf,within,houseOf,houseOfPerson}=require('./cms-core.cjs');
 const {isSuper}=require('./cms-super.cjs');
 const {createPrivacy}=require('./cms-privacy.cjs');
 
@@ -73,8 +73,8 @@ const readModes=project=>{
 // Hand-seeds, vor dieser Erweiterung hochgeladene Spiele).
 const modesOf=game=>game&&Array.isArray(game.modes)&&game.modes.length?game.modes:[game&&game.multiplayer?'party':'solo'];
 
-const readCredentials=ctx=>{try{return fs.existsSync(ctx.credentialPath)?JSON.parse(fs.readFileSync(ctx.credentialPath,'utf8')):[];}catch(e){return[];}};
-const DEFAULT_AVATAR='/images/default-avatar.svg';
+const readCredentials=ctx=>require('./cms-credentials.cjs').readCredentials(ctx.credentialPath);
+const DEFAULT_AVATAR=DEFAULT_AVATAR_IMAGE;
 const EMOJI_SEGMENTER=new Intl.Segmenter('de',{granularity:'grapheme'});
 const emojiInputItems=raw=>{
  if(Array.isArray(raw))return raw;
@@ -82,6 +82,61 @@ const emojiInputItems=raw=>{
  const text=raw.trim();
  if(!text)return[];
  return /[,;\s]/.test(text)?text.split(/[,;\s]+/).filter(Boolean):[...EMOJI_SEGMENTER.segment(text)].map(part=>part.segment);
+};
+const parseRequestId=raw=>{
+ if(raw===undefined||raw===null||raw==='')return{ok:true,value:''};
+ if(typeof raw==='string'&&/^[a-zA-Z0-9._:-]{1,80}$/.test(raw.trim()))return{ok:true,value:raw.trim()};
+ return{ok:false,status:400,message:'Ungültige Anfragekennung.'};
+};
+const findResidentByRequest=(db,actorId,houseId,requestId)=>{
+ if(!db||!actorId||!houseId||!requestId)return null;
+ return(db.people||[]).find(p=>p.createdBy===actorId&&p.createdHouseId===houseId&&p.createdRequestId===requestId)||null;
+};
+const residentFingerprint=(name,kind,sequence)=>crypto.createHash('sha256').update(JSON.stringify({name:String(name||'').trim(),kind:kind||'child',sequence:canonEmojiSeq(sequence)})).digest('hex');
+const commitHouseResidentRecord=(ctx,spec)=>{
+ const{name,avatar='🙂',avatarImage=DEFAULT_AVATAR,kind='child',sequence,houseId,requestId='',action='house-resident-create'}=spec;
+ const actorId=ctx.session?.personId||'';
+ const fp=residentFingerprint(name,kind,sequence);
+ const existing=findResidentByRequest(ctx.core.db,actorId,houseId,requestId);
+ if(existing){
+  if(existing.createdFingerprint&&existing.createdFingerprint!==fp)return{ok:false,status:409,message:'Anfragekennung wurde bereits für eine andere Bewohneranlage verwendet.'};
+  return{ok:true,id:existing.id,name:existing.name,avatarImage:existing.avatarImage||DEFAULT_AVATAR,idempotent:true};
+ }
+ const id='person-'+crypto.randomUUID();
+ const runCommit=ctx.commit?change=>ctx.commit(ctx.session,action,houseId,change):change=>ctx.uploads.commit(ctx.session,action,change,{areaId:houseId});
+ runCommit(next=>{
+  const person={id,name,avatar:avatar||'🙂',avatarImage:avatarImage||DEFAULT_AVATAR,kind:kind||'child',active:true};
+  if(requestId&&actorId){person.createdBy=actorId;person.createdHouseId=houseId;person.createdRequestId=requestId;person.createdFingerprint=fp;}
+  next.people.push(person);
+  next.memberships.push({personId:id,areaId:houseId,active:true});
+  next.roles.push({personId:id,areaId:houseId,role:'player',active:true});
+  next.codes.push({personId:id,areaId:houseId,sequence});
+ });
+ return{ok:true,id,name,avatarImage:avatarImage||DEFAULT_AVATAR,idempotent:false};
+};
+const validateResidentCreateSpec=(ctx,input={})=>{
+ const houseId=typeof input.houseId==='string'?input.houseId.trim():'';
+ const house=(ctx.core.db.areas||[]).find(a=>a.id===houseId&&a.type==='house'&&areaActive(ctx.core.db,a.id));
+ if(!house||!ctx.core.can(ctx.session,'manageArea',{areaId:houseId}))return{ok:false,status:403,message:'Keine Berechtigung für dieses Haus.'};
+ const reqCheck=parseRequestId(input.requestId);
+ if(!reqCheck.ok)return reqCheck;
+ const rawName=input.name;
+ if(typeof rawName!=='string'||!rawName.trim()||rawName.trim().length>60||/[\x00-\x1f<>]/.test(rawName))return{ok:false,status:400,message:'Anzeigename angeben (max. 60 Zeichen).'};
+ const name=rawName.trim();
+ const rawKind=input.kind===undefined||input.kind===null||input.kind===''?'child':input.kind;
+ if(!['child','adult'].includes(rawKind))return{ok:false,status:400,message:'kind ist keine gültige Auswahl.'};
+ const rawSeq=typeof input.sequenceText==='string'&&input.sequenceText.trim()?input.sequenceText:input.sequence;
+ const sequence=canonEmojiSeq(emojiInputItems(rawSeq));
+ if(!Array.isArray(sequence)||sequence.length!==4||!sequence.every(e=>EMOJI_IDS.includes(e)))return{ok:false,status:400,message:'Vier gültige Emoji-IDs erforderlich.'};
+ const existing=findResidentByRequest(ctx.core.db,ctx.session?.personId,houseId,reqCheck.value);
+ if(existing){
+  const fp=residentFingerprint(name,rawKind,sequence);
+  if(existing.createdFingerprint&&existing.createdFingerprint!==fp)return{ok:false,status:409,message:'Anfragekennung wurde bereits für eine andere Bewohneranlage verwendet.'};
+  return{ok:true,existing,houseId,requestId:reqCheck.value};
+ }
+ const wanted=JSON.stringify(sequence);
+ if((ctx.core.db.codes||[]).some(c=>JSON.stringify(canonEmojiSeq(c.sequence))===wanted))return{ok:false,status:409,message:'Diese Emoji-Folge ist bereits vergeben.'};
+ return{ok:true,houseId,name,kind:rawKind,sequence,requestId:reqCheck.value};
 };
 
 // Prozesslokale Versuchszähler für TServerAuthenticate.throttle (DoS-Schutz).
@@ -128,7 +183,8 @@ function expireInvitations(ctx){
 }
 
 // Karteikasten-DTO: Karten werden flach für Listen/Quiz ausgeliefert.
-const cardDto=(db,c)=>{const by=db.people.find(p=>p.id===c.createdBy);return{id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,answerFormat:c.answerFormat,box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};};
+const cardDeckContext=(db,c)=>{const deck=(db.cardDecks||[]).find(d=>d.id===(c.sourceDeckId||c.deckId));return{deckName:deck?.name||c.topic||'Mein Karteikasten',deckSubject:deck?.subject||c.subject||'',deckOwnerName:db.people.find(p=>p.id===(deck?.ownerId||c.createdBy))?.name||''};};
+const cardDto=(db,c)=>{const by=db.people.find(p=>p.id===c.createdBy);return{...cardDeckContext(db,c),id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,wrongAnswers:c.wrongAnswers||[],answerFormat:c.answerFormat,...require('./cms-task-presentation.cjs').content(c),box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};};
 
 // Endstand-Lernpunkte fuer Sitzungs-Abschlussantworten (end/heartbeat/
 // bereits beendet). Der Launch-Schluessel wird nach dem bestaetigten Ende
@@ -254,7 +310,31 @@ const methods={
  },
  // Platzhalter-Komponente: Stage-definierte Endpunkte/TServerParentAccount
  // brauchen keine eigenen Methoden, da ihre Events auf Tasks verweisen.
- TServerParentAccount:{},
+ TServerParentAccount:{
+  childProfile(ctx){
+   const child=parentEditableChild(ctx);if(child.error)return child.error;
+   const p=child.person,db=ctx.core.db;
+   return{ok:true,person:{id:p.id,name:p.name,avatar:p.avatar,avatarImage:p.avatarImage||DEFAULT_AVATAR_IMAGE,hasCode:db.codes.some(c=>c.personId===p.id)},message:'Profil und Emoji-Anmeldung des eigenen Kindes bearbeiten.'};
+  },
+  updateChildProfile(ctx){
+   const child=parentEditableChild(ctx);if(child.error)return child.error;
+   if(Object.keys(ctx.body||{}).some(k=>!['childId','name'].includes(k)))return{ok:false,status:400,message:'Eltern können hier nur den Anzeigenamen ändern.'};
+   const name=methods.TServerValidate.text(ctx,null,['name',{max:60}]);if(!name.ok)return name;
+   ctx.commit(ctx.session,'parent-child-profile-update',null,next=>{next.people.find(p=>p.id===child.person.id).name=name.value;});
+   return{ok:true,message:'Profil gespeichert.'};
+  },
+  setChildCode(ctx){
+   const child=parentEditableChild(ctx);if(child.error)return child.error;
+   if(Object.keys(ctx.body||{}).some(k=>!['childId','sequence','sequenceText'].includes(k)))return{ok:false,status:400,message:'Nur das Emoji-Passwort des Kindes kann geändert werden.'};
+   const sequence=methods.TServerValidate.emojiSeq(ctx,null,['sequence']);if(!sequence.ok)return sequence;
+   const db=ctx.core.db,id=child.person.id;
+   if(db.codes.some(c=>c.personId!==id&&JSON.stringify(canonEmojiSeq(c.sequence))===JSON.stringify(sequence.value)))return{ok:false,status:409,message:'Diese Emoji-Folge ist bereits vergeben.'};
+   const areaId=db.codes.find(c=>c.personId===id)?.areaId||houseOfPerson(db,id);
+   if(!areaId||!areaActive(db,areaId))return{ok:false,status:409,message:'Dem Kind fehlt eine aktive Hauszuordnung.'};
+   methods.TServerStore.setEmojiCode(ctx,null,[{personId:id,areaId,sequence:sequence.value,audit:{action:'parent-child-emoji-change',areaId}}]);
+   return{ok:true,message:'Emoji-Code gespeichert.'};
+  }
+ },
  TServerResponse:{
   // send({feld:expr, merge:objVar}) — 'merge' breitet ein Ergebnisobjekt (z. B. Kind-Karte) in die Antwort aus.
   send(ctx,_component,params){const p=params?.[0]||{},merge=p.merge&&typeof p.merge==='object'?p.merge:{};const rest={...p};delete rest.merge;ctx.result={status:200,data:{ok:true,...merge,...rest}};},
@@ -265,6 +345,27 @@ const methods={
    const value=ctx.body?.[params?.[0]||'avatar'];
    const ok=typeof value==='string'&&value.length<=32&&[...new Intl.Segmenter('de',{granularity:'grapheme'}).segment(value)].length===1&&/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(value)&&!/[^\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u200d\ufe0f\u{e0020}-\u{e007f}]/u.test(value);
    return ok?{ok:true,value}:{ok:false,status:400,message:'Bitte ein einzelnes Avatar-Symbol wählen.'};
+  },
+  // Bewohneranlage: löst avatarPresetId streng über den Serverkatalog auf;
+  // direkte Dateipfade im JSON-Body werden abgewiesen. Ohne Angabe gilt der
+  // neutrale Standardavatar; für Altbestand bleibt ein einzelnes Emoji möglich.
+  residentAvatar(ctx){
+   const b=ctx.body||{};
+   if(b.avatarImage!==undefined&&b.avatarImage!==null&&b.avatarImage!=='')return{ok:false,status:400,message:'Direkte Bildpfade sind nicht erlaubt.'};
+   if(b.avatarPresetId!==undefined&&b.avatarPresetId!==null&&b.avatarPresetId!==''){
+    const src=resolveAvatarPreset(b.avatarPresetId);
+    if(!src)return{ok:false,status:400,message:'Bitte ein gültiges Standardbild wählen.'};
+    return{ok:true,value:'🙂',avatarImage:src,presetId:b.avatarPresetId};
+   }
+   if(b.avatar!==undefined&&b.avatar!==null&&b.avatar!==''){
+    const value=b.avatar;
+    const ok=typeof value==='string'&&value.length<=32&&[...new Intl.Segmenter('de',{granularity:'grapheme'}).segment(value)].length===1&&/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(value)&&!/[^\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u200d\ufe0f\u{e0020}-\u{e007f}]/u.test(value);
+    return ok?{ok:true,value,avatarImage:DEFAULT_AVATAR,presetId:'default'}:{ok:false,status:400,message:'Bitte ein einzelnes Avatar-Symbol wählen.'};
+   }
+   return{ok:true,value:'🙂',avatarImage:DEFAULT_AVATAR,presetId:'default'};
+  },
+  requestId(ctx,_component,params){
+   return parseRequestId(ctx.body?.[params?.[0]||'requestId']);
   },
   // Freitextregel wie im Legacy-Handler: getrimmt, 1–60 Zeichen, keine Steuer-/HTML-Zeichen.
   text(ctx,_component,params){
@@ -394,8 +495,12 @@ const methods={
   codeTaken(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
    const sequence=exprOf(ctx,spec.sequence,scope),exclude=exprOf(ctx,spec.excludePersonId,scope);
+   const reqId=exprOf(ctx,spec.requestId,scope)||ctx.body?.requestId||'';
+   const houseId=exprOf(ctx,spec.houseId,scope)||ctx.body?.houseId||'';
+   const idempotentPerson=findResidentByRequest(ctx.core.db,ctx.session?.personId,houseId,typeof reqId==='string'?reqId.trim():'');
+   const effectiveExclude=exclude||idempotentPerson?.id;
    const wanted=JSON.stringify(sequence);
-   return ctx.core.db.codes.some(c=>c.personId!==exclude&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);
+   return ctx.core.db.codes.some(c=>c.personId!==effectiveExclude&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);
   },
   // Gespeicherte Raumsicherung (roomBackups ist eine Map, keine Liste).
   backup(ctx,_component,params){
@@ -489,7 +594,13 @@ const methods={
   // Freigegebene Spiele eines Raums für die Sitzung (can 'play' je Spiel).
   gamesFor(ctx,_component,params){
    const areaId=exprOf(ctx,params?.[0],{});
-   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})&&modesOf(g).includes('solo')).map(g=>({id:g.id,title:g.title,avatar:g.avatar,multiplayer:!!g.multiplayer,modes:modesOf(g)}));
+   const includeParty=exprOf(ctx,params?.[1],{})===true;
+   const gameEmoji=g=>{
+    if(g.avatar&&g.avatar!=='🎮')return g.avatar;
+    const match=[[/tetris/i,'🧩'],[/snake/i,'🐍'],[/breakout/i,'🧱'],[/ufo|shooter/i,'🛸'],[/zahlen/i,'🔢'],[/ping.?pong/i,'🏓'],[/madn/i,'🎲'],[/memory/i,'🧠'],[/kopfrechnen/i,'🧮'],[/kartei|quiz/i,'🃏']].find(([pattern])=>pattern.test(g.title||''));
+    return match?.[1]||(g.multiplayer?'🎲':'🎮');
+   };
+   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})&&(includeParty||modesOf(g).includes('solo'))).map(g=>({id:g.id,title:g.title,avatar:gameEmoji(g),multiplayer:!!g.multiplayer,modes:modesOf(g),solo:modesOf(g).includes('solo'),modeLabel:modesOf(g).includes('solo')?'Einzelspieler':'Mehrspieler'}));
    return{items,message:items.length?'🎮 Wähle ein Spiel':'🌱 Hier kommen bald Spiele dazu'};
   },
   // 4er-Slot-Paginierung: {items,page,fields,itemFields?,message?}
@@ -524,6 +635,22 @@ const methods={
    const page=Math.max(0,Math.min(Number(ctx.body?.page)||0,Math.max(0,Math.ceil(items.length/4)-1))),labels={draft:'Entwurf',published:'Veröffentlicht',blocked:'Gesperrt'},out={message:'Eigene Spiele · Entwurf oder veröffentlicht',page,pages:Math.ceil(items.length/4)};
    for(let i=0;i<4;i++){const g=items[page*4+i];out['slot'+i]=g?{id:g.id,label:g.title+' · '+(labels[g.status]||g.status),published:g.status==='published',visible:true}:{id:'',label:'',published:false,visible:false};}
    return out;
+  }
+ },
+ // --- SQL-Werkzeug: lesender Rohzugriff auf den SQLite-Bestand (nur via
+ // requireRole('superAdmin')-Task erreichbar; Schutz zusätzlich in der
+ // ReadOnly-Verbindung des Stores) ---
+ TServerSql:{
+  query(ctx,_component,params){
+   const spec=params?.[0]||{},sql=exprOf(ctx,spec.sql??'$body.sql',{});
+   if(typeof sql!=='string'||!sql.trim())return{ok:false,status:400,message:'SQL-Anweisung fehlt.'};
+   if(sql.length>8000)return{ok:false,status:400,message:'Anweisung zu lang (max. 8000 Zeichen).'};
+   if(typeof ctx.store?.sqlQuery!=='function')return{ok:false,status:503,message:'Das SQL-Werkzeug benötigt CMS_STORAGE=sqlite.'};
+   try{
+    const result=ctx.store.sqlQuery(sql);
+    ctx.emit?.('SQL-Abfrage',{rowCount:result.rowCount,totalRows:result.totalRows,truncated:result.truncated});
+    return{ok:true,...result,message:result.truncated?result.rowCount+' von '+result.totalRows+' Zeilen (Limit 500)':result.rowCount+' Zeilen'};
+   }catch(error){return{ok:false,status:400,message:error.message};}
   }
  },
  TServerStore:{
@@ -707,15 +834,10 @@ const methods={
   // Domänenoperation: Hausbewohner ohne erzwungene Raumzuordnung anlegen.
   createHouseResident(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
-   const name=exprOf(ctx,spec.name,scope),avatar=exprOf(ctx,spec.avatar,scope),sequence=exprOf(ctx,spec.sequence,scope),houseId=exprOf(ctx,spec.houseId,scope),kind=exprOf(ctx,spec.kind,scope)||'child';
-   const id='person-'+crypto.randomUUID(),audit=spec.audit||{};
-   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'house-resident-create',houseId,next=>{
-    next.people.push({id,name,avatar,kind,active:true});
-    next.memberships.push({personId:id,areaId:houseId,active:true});
-    next.roles.push({personId:id,areaId:houseId,role:'player',active:true});
-    next.codes.push({personId:id,areaId:houseId,sequence});
-   });
-   return{ok:true,id,name};
+   const name=exprOf(ctx,spec.name,scope),avatar=exprOf(ctx,spec.avatar,scope)||'🙂',avatarImage=exprOf(ctx,spec.avatarImage,scope)||DEFAULT_AVATAR,sequence=exprOf(ctx,spec.sequence,scope),houseId=exprOf(ctx,spec.houseId,scope),kind=exprOf(ctx,spec.kind,scope)||'child';
+   const requestId=exprOf(ctx,spec.requestId,scope)||(typeof ctx.body?.requestId==='string'?ctx.body.requestId.trim():'');
+   const audit=spec.audit||{};
+   return commitHouseResidentRecord(ctx,{name,avatar,avatarImage,kind,sequence,houseId,requestId,action:exprOf(ctx,audit.action,scope)||'house-resident-create'});
   },
   // Aktivieren/Deaktivieren einer Hausmitgliedschaft. Beim Austritt werden
   // Raumzuordnungen und Raumrollen dieses Hauses entzogen; andere Häuser bleiben unberührt.
@@ -971,8 +1093,20 @@ const methods={
   // Der eigentliche Sitzungsbeginn läuft über den play-Adapter (ctx.play),
   // damit Budget- und Einzelsitzungsregeln identisch greifen.
   launchGame(ctx){
-   const started=ctx.play.api(ctx.session,'start',ctx.body||{});
-   if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   const b=ctx.body||{},db=ctx.core.db,game=db.games.find(g=>g.id===b.gameId);
+   // A math page pauses on pagehide. Reopening it must retain that round,
+   // rather than attempting a second session and returning conflict.
+   const math=game&&(game.mathEnabled===true||String(game.file||'').split(/[\\/]/).pop()==='Mathe-Rechenballons.json');
+   const previous=math&&!game.multiplayer&&db.playSessions.find(p=>p.childId===ctx.session.personId&&p.gameId===b.gameId&&p.areaId===b.areaId&&['active','paused','disconnected'].includes(p.status));
+   let started;
+   if(previous){
+    if(!ctx.core.can(ctx.session,'play',{game,areaId:b.areaId}))return{ok:false,status:403,message:'Spiel oder Raum ist nicht mehr freigegeben.'};
+    const resumed=previous.status==='active'?{status:200,data:{ok:true}}:ctx.play.api(ctx.session,'resume',{playSessionId:previous.id});
+    if(!resumed.data.ok)return{...resumed.data,ok:false,status:resumed.status};
+    started={status:200,data:{ok:true,playSessionId:previous.id,resumed:true}};
+    removeLaunchesFor(ctx,[previous.id]);
+   }else started=ctx.play.api(ctx.session,'start',b);
+   if(!started.data.ok)return{...started.data,ok:false,status:started.status};
    for(const [key,l]of ctx.launches)if(!ctx.core.session(l.token))ctx.launches.delete(key);
    const key=crypto.randomBytes(24).toString('hex');
    ctx.launches.set(key,{token:ctx.body.token,gameId:ctx.body.gameId,areaId:ctx.body.areaId,playSessionId:started.data.playSessionId});
@@ -1454,7 +1588,7 @@ const methods={
  TServerCards:{
   dto(ctx,_component,params){
    const c=params?.[0]||{},db=ctx.core.db,by=db.people.find(p=>p.id===c.createdBy);
-   return{id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,answerFormat:c.answerFormat,box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};
+   return{...cardDeckContext(db,c),id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,wrongAnswers:c.wrongAnswers||[],answerFormat:c.answerFormat,...require('./cms-task-presentation.cjs').content(c),box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};
   },
   // Gefilterte Liste + dynamische Fach-/Themenvorschläge aus dem Kasten.
   list(ctx,component,params){
@@ -1482,7 +1616,7 @@ const methods={
    if(!ctx.core.can(s,'manageCards',{childId:card.childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
    const editable=card.createdBy===s.personId||card.box===6||ctx.core.can(s,'viewChild',{childId:card.childId});
    if(!editable)return{ok:false,status:403,message:'Nur selbst angelegte Karten können geändert werden.'};
-   return{ok:true,card:{...cardDto(db,card),answersText:(card.answers||[]).join('; ')}};
+   return{ok:true,card:{...cardDto(db,card),answersText:(card.answers||[]).join('; '),wrongAnswersText:(card.wrongAnswers||[]).join('; ')}};
   },
   // Anlegen oder Aktualisieren. Kind: nur eigener Kasten + selbst angelegte
   // Karten; Eltern: alle Karten zugeordneter Kinder. Inhaltsänderung an
@@ -1495,9 +1629,15 @@ const methods={
    const question=norm(exprOf(ctx,spec.question,{})),subject=norm(exprOf(ctx,spec.subject,{})),topic=norm(exprOf(ctx,spec.topic,{}));
    const answersRaw=exprOf(ctx,spec.answers,{});
    const answers=(Array.isArray(answersRaw)?answersRaw:String(answersRaw||'').split(/\r?\n|;|\|/)).map(a=>norm(a)).filter(Boolean);
+   const wrongRaw=exprOf(ctx,spec.wrongAnswers,{});
+   const oldCard=cardId&&db.flashcards.find(c=>c.id===cardId&&c.childId===childId);
+   const wrongAnswers=[...new Set((wrongRaw===undefined?(oldCard?.wrongAnswers||[]):Array.isArray(wrongRaw)?wrongRaw:String(wrongRaw||'').split(/\r?\n|;|\|/)).map(norm).filter(Boolean))];
+   if(wrongAnswers.length>20||wrongAnswers.some(a=>a.length>500))return{ok:false,status:400,message:'Maximal 20 falsche Antworten mit je 500 Zeichen angeben.'};
+   if(wrongAnswers.some(a=>require('./cms-spoken-number.cjs').checkCardAnswer(a,answers).correct))return{ok:false,status:400,message:'Eine falsche Antwort darf keine richtige Antwort sein.'};
    const answerFormat=['text','self'].includes(exprOf(ctx,spec.answerFormat,{}))?exprOf(ctx,spec.answerFormat,{}):'text';
    if(!question||!subject)return{ok:false,status:400,message:'Frage und Schulfach sind Pflicht.'};
    if(answerFormat==='text'&&!answers.length)return{ok:false,status:400,message:'Mindestens eine akzeptierte Antwort angeben.'};
+   if(oldCard?.taskType){try{require('./cms-task-presentation.cjs').content({...oldCard,answers,wrongAnswers,answerFormat});}catch(e){return{ok:false,status:400,message:e.message};}}
    if(cardId){
     const card=db.flashcards.find(c=>c.id===cardId&&c.childId===childId&&c.active);
     if(!card)return{ok:false,status:404,message:'Karte nicht gefunden.'};
@@ -1506,7 +1646,7 @@ const methods={
     const contentChanged=card.question!==question||JSON.stringify(card.answers)!==JSON.stringify(answers)||card.answerFormat!==answerFormat;
     ctx.commit(s,'card-update',childId,next=>{
      const c=next.flashcards.find(x=>x.id===cardId);
-     c.question=question;c.subject=subject;c.topic=topic;c.answers=answers;c.answerFormat=answerFormat;
+     c.question=question;c.subject=subject;c.topic=topic;c.answers=answers;c.wrongAnswers=wrongAnswers;c.answerFormat=answerFormat;
      if(contentChanged)c.box=1;
      c.updatedAt=new Date().toISOString();
     });
@@ -1514,7 +1654,7 @@ const methods={
    }
    const cardId2='card-'+crypto.randomUUID(),now=new Date().toISOString();
    ctx.commit(s,'card-create',childId,next=>{
-    next.flashcards.push({id:cardId2,childId,subject,topic,question,answers,answerFormat,box:1,status:'active',createdBy:s.personId,createdAt:now,updatedAt:now,lastReviewedAt:null,active:true});
+    next.flashcards.push({id:cardId2,childId,subject,topic,question,answers,wrongAnswers,answerFormat,box:1,status:'active',createdBy:s.personId,createdAt:now,updatedAt:now,lastReviewedAt:null,active:true});
    });
    return{ok:true,cardId:cardId2,message:'Karte angelegt (Fach 1).'};
   },
@@ -1591,6 +1731,42 @@ const methods={
   // fachlich prüfen, Datei schreiben, Zuordnung committen.
   process(ctx,component){
    const up=ctx.upload||{},bytes=up.bytes||Buffer.alloc(0);
+   if(component.kind==='resident-avatar'){
+    // Gemeinsame Bewohneranlage mit eigenem Bild:
+    // 1. Berechtigung + Idempotenz (requestId) + Fachdaten + Passwort-Duplikat prüfen
+    const check=validateResidentCreateSpec(ctx,up.meta||{});
+    if(!check.ok)return{ok:false,status:check.status||400,message:check.message};
+    if(check.existing)return{ok:true,id:check.existing.id,name:check.existing.name,avatarImage:check.existing.avatarImage||DEFAULT_AVATAR,message:'Hausbewohner angelegt: '+check.existing.name,idempotent:true};
+    // 2. Dateigröße und Bildinhalt prüfen
+    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
+    if(!sniffImage(bytes)||!up.png){
+     ctx.emit('Dateiprüfung abgelehnt',{kind:component.kind});
+     return{ok:false,status:400,message:component.failureMessage+' '+(up.error||'PNG, JPEG oder WebP erforderlich.')};
+    }
+    ctx.emit('Dateiinhalt geprüft',{kind:component.kind,bytes:bytes.length});
+    // 3. Bilddatei mit eindeutigem Namen schreiben (inFlight schützt vor Bereinigung)
+    const filename=crypto.randomUUID()+'.png',f=path.join(ctx.uploads.directory,filename);
+    ctx.uploads.beginWrite?.(filename);
+    try{
+     fs.writeFileSync(f,up.png,{flag:'wx'});
+     // 4. Bewohner, Mitgliedschaft, Rolle, Passwort und Bildzuordnung in einem Commit speichern
+     try{
+      const created=commitHouseResidentRecord(ctx,{
+       name:check.name,avatar:'🙂',avatarImage:'/avatars/'+filename,
+       kind:check.kind,sequence:check.sequence,houseId:check.houseId,
+       requestId:check.requestId,action:'house-resident-create'
+      });
+      ctx.emit('Datei und Bewohneranlage gespeichert',{kind:component.kind,ownerId:ctx.session?.personId,id:created.id,houseId:check.houseId});
+      return{ok:true,id:created.id,name:created.name,avatarImage:created.avatarImage,message:'Hausbewohner angelegt: '+created.name};
+     }catch(e){
+      // 5. Bei fehlgeschlagenem Commit die neu geschriebene Datei entfernen
+      try{if(fs.existsSync(f))fs.unlinkSync(f);}catch{}
+      throw e;
+     }
+    }finally{
+     ctx.uploads.endWrite?.(filename);
+    }
+   }
    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
    // Fremd-Avatar: personId aus den Upload-Metadaten (wie gameId beim
    // Spiel-Upload). Ohne personId bleibt es beim eigenen Profilbild.
@@ -1605,7 +1781,7 @@ const methods={
      ctx.emit('Fremd-Avatar angefordert',{ownerId:ctx.session?.personId,targetId:targetPerson.id});
     }
    }
-   let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null,modes=null;
+   let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null,modes=null,mathEnabled=false;
    try{
     if(component.kind==='game'){
      const meta=up.meta||{},title=typeof meta.title==='string'?meta.title.trim():'';
@@ -1628,9 +1804,9 @@ const methods={
      const kind=bundle?bundle.kind:(/^\s*</.test(bytes.toString('utf8').slice(0,256))?'html':'json');
      const entry=bundle?bundle.entry:bytes;
      if(kind==='html'){ctx.uploads.validateHtml(entry);content=entry;}
-     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);multiplayer=readMultiplayer(project);modes=readModes(project);}
+     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);multiplayer=readMultiplayer(project);modes=readModes(project);mathEnabled=project.meta?.mathLearning===true;}
      filename='game-'+crypto.randomUUID()+(kind==='html'?'.html':'.json');
-     if(record){record.file=filename;if(multiplayer)record.multiplayer=multiplayer;record.modes=modes;}
+     if(record){record.file=filename;if(multiplayer)record.multiplayer=multiplayer;record.modes=modes;record.mathEnabled=mathEnabled;}
     }else{
      if(!sniffImage(bytes))throw Error('PNG, JPEG oder WebP erforderlich.');
      if(!up.png)throw Error(up.error||'Bild konnte nicht gelesen werden.');
@@ -1638,13 +1814,19 @@ const methods={
     }
    }catch(e){ctx.emit('Dateiprüfung abgelehnt',{kind:component.kind});return{ok:false,status:400,message:component.failureMessage+' '+e.message};}
    ctx.emit('Dateiinhalt geprüft',{kind:component.kind,bytes:bytes.length,bundle:bundle?bundle.media.size:0});
-   const f=path.join(ctx.uploads.directory,filename);fs.writeFileSync(f,content,{flag:'wx'});
-   // Bundle-Medien unter uploads/<dateistamm>/<relpfad> — /play/<key>/<pfad>
-   // löst diese Dateien später über uploads.gameMedia auf.
-   const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
-   if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
-   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;row.modes=modes;}else next.people.find(p=>p.id===(targetPerson?.id||ctx.session.personId)).avatarImage='/avatars/'+filename});}
-   catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
+   const f=path.join(ctx.uploads.directory,filename);
+   ctx.uploads.beginWrite?.(filename);
+   try{
+    fs.writeFileSync(f,content,{flag:'wx'});
+    // Bundle-Medien unter uploads/<dateistamm>/<relpfad> — /play/<key>/<pfad>
+    // löst diese Dateien später über uploads.gameMedia auf.
+    const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
+    if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
+    try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;row.modes=modes;row.mathEnabled=mathEnabled;}else next.people.find(p=>p.id===(targetPerson?.id||ctx.session.personId)).avatarImage='/avatars/'+filename});}
+    catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
+   }finally{
+    ctx.uploads.endWrite?.(filename);
+   }
    // Ersetzte Datei erst nach erfolgreicher Zuordnung entfernen.
    if(oldFile&&oldFile!==filename)ctx.uploads.removeGameFile(oldFile);
    const gameId=record?.id||targetGame?.id;
@@ -1676,6 +1858,7 @@ function whereMatch(ctx,row,where,scope){
  for(const [key,val]of Object.entries(where||{})){
   if(key==='_manageable'){if(!ctx.core.can(ctx.session,'manageArea',{areaId:row.id}))return false;continue;}
   if(key==='_activeChain'){if(!areaActive(ctx.core.db,row.id))return false;continue;}
+  if(key==='_availableForHouse'){if(!require('./cms-game-availability.cjs').allowed(row,exprOf(ctx,val,scope),ctx.core.db))return false;continue;}
   if(key==='under'){if(!isAncestor(ctx,exprOf(ctx,val,scope),row))return false;continue;}
   if(key==='anyOf'){if(!val.some(w=>whereMatch(ctx,row,w,scope)))return false;continue;}
   if(key==='has'){ensureEntity(ctx,val.entity);if(!ctx.core.db[val.entity].some(r2=>whereMatch(ctx,r2,val.where,{...scope,row:r2})))return false;continue;}
@@ -1838,6 +2021,12 @@ function resumePartySession(ctx,p,member){
 
 /** Kind-Karte für die Elternsicht (E01/E06): Live-Status, Tagesminuten, Budget.
  *  Ohne Heartbeat seit >2min gilt eine Sitzung als getrennt (P3.3). */
+function parentEditableChild(ctx){
+ const id=ctx.body?.childId;
+ if(!ctx.session||typeof id!=='string'||!ctx.core.can(ctx.session,'viewChild',{childId:id}))return{error:{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'}};
+ const person=ctx.core.db.people.find(p=>p.id===id&&p.active&&p.kind==='child');
+ return person?{person}:{error:{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'}};
+}
 function childCardOf(db,id){
  const p=db.people.find(x=>x.id===id);if(!p)return null;
  const active=(db.playSessions||[]).find(s=>s.childId===id&&['active','paused'].includes(s.status));
@@ -1845,7 +2034,7 @@ function childCardOf(db,id){
  const today=(db.playSessions||[]).filter(s=>s.childId===id&&new Date(s.startedAt).toDateString()===new Date().toDateString()).reduce((a,s)=>a+s.minutes,0);
  const budget=(db.timeBudgets||[]).find(t=>t.childId===id);
  return{
-  id,name:p.name,avatar:p.avatar,
+  id,name:p.name,avatar:p.avatar,avatarImage:p.avatarImage||DEFAULT_AVATAR,
   spiel:active?(db.games.find(g=>g.id===active.gameId)?.title||active.gameId):'—',
   status:active?active.status:'ruht',
   heute:today,budget:budget?.dailyMinutes??null,pendingApproval:!!budget?.pendingBudget,
@@ -1880,4 +2069,7 @@ Object.assign(methods.TServerAccess,{
  inviteSponsor:sponsorAdmin.inviteSponsor,
  revokeSponsorInvite:sponsorAdmin.revokeSponsorInvite,
 });
+Object.assign(methods.TServerAccess,require('./cms-game-availability.cjs').methods(methods.TServerAccess));
+Object.assign(methods.TServerAccess,{learningCatalog:require('./cms-learning-catalog.cjs').learningCatalog});
+Object.assign(methods.TServerPlaySession,{mathCommand:require('./cms-math.cjs').mathCommand,mathSummary:require('./cms-math.cjs').mathSummary});
 module.exports={methods};

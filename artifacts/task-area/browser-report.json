@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "zipSandbox": true,
+  "imagesDecoded": true,
+  "paperCard": true,
+  "flipAndSolution": true,
+  "automaticAdvance": true,
+  "rapidReview": true,
+  "realReceiverLabel": true,
+  "disconnectDetected": true,
+  "unrecognizedEvent": true,
+  "spokenAnswer": true,
+  "interactionReturn": true,
+  "reloadNoDoubleBooking": true,
+  "browserErrors": []
+}

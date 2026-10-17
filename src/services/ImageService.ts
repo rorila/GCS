@@ -1,5 +1,6 @@
 import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
+import { gameServerHttp } from '../utils/ServerUrl';
 
 export interface ImageFile {
     name: string;
@@ -14,7 +15,7 @@ export interface ImageFile {
  */
 export class ImageService {
     private logger = Logger.get('ImageService', 'Project_Save_Load');
-    private baseUrl: string = 'http://localhost:8080/api';
+    private baseUrl: string = gameServerHttp('/api');
 
     constructor() {
         this.logger.info('Initialized');

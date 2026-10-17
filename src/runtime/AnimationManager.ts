@@ -789,7 +789,7 @@ export class AnimationManager {
      * Feuert bei exakt 50% der Dauer den optionalen onMidpoint-Callback,
      * damit Inhalte (Bilder/Texte) gewechselt werden können.
      */
-    public flip(target: any, duration: number = 600, onMidpoint?: () => void, _children?: any[]): void {
+    public flip(target: any, duration: number = 600, onMidpoint?: () => void, _children?: any[], threeDimensional = false): void {
         if (!target) return;
 
         let midpointFired = false;
@@ -819,6 +819,20 @@ export class AnimationManager {
         // transformierten Eltern-Element und werden vom Browser mitskaliert.
         // Zuvor wurde jedes Kind einzeln pro Frame beschrieben.
         const half = Math.max(1, duration / 2);
+        if (threeDimensional) {
+            this.runCssTransform(el, [
+                { transform: 'perspective(1000px) rotateY(90deg)', duration: half, easing: 'ease-in' },
+                { transform: 'perspective(1000px) rotateY(0deg)', duration: half, easing: 'ease-out', onStart: () => {
+                    // Exchange the faces edge-on; the answer opens from the
+                    // opposite side without displaying mirrored text.
+                    fireMidpoint();
+                    el.style.transition = 'none';
+                    el.style.transform = 'perspective(1000px) rotateY(-90deg)';
+                    void el.offsetWidth;
+                } }
+            ], fireMidpoint);
+            return;
+        }
         this.runCssTransform(el, [
             { transform: 'scaleX(0)', duration: half, easing: 'ease-in' },
             { transform: 'scaleX(1)', duration: half, easing: 'ease-out', onStart: fireMidpoint }

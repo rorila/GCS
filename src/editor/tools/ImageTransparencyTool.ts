@@ -19,6 +19,7 @@ import {
     getTextureWarnings
 } from './ImageUtils';
 import { PromptDialog } from '../ui/PromptDialog';
+import { gameServerHttp } from '../../utils/ServerUrl';
 
 interface ImageOptimizerSettings {
     backgroundColors: string[];
@@ -67,7 +68,7 @@ export class ImageOptimizerTool {
     public onExport: ((result: ImageOptimizerResult) => void) | null = null;
     public onError: ((msg: string) => void) | null = null;
 
-    constructor(parent: HTMLElement, uploadUrl = 'http://localhost:8080/api/upload/spritesheet') {
+    constructor(parent: HTMLElement, uploadUrl = gameServerHttp('/api/upload/spritesheet')) {
         this.parent = parent;
         this.uploadUrl = uploadUrl;
         this.container = document.createElement('div');

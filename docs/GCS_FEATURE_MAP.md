@@ -222,3 +222,25 @@ stage_admin_login ohne Bereichsnavigation; Sitzung_Pruefen erkennt eine bestehen
 
 ### Quiz-Sprachausgabe
 `TTextToSpeech`, `CmsSpeechAudioAdapter`, `CmsTtsHost` und `scripts/cms/cms-tts.cjs` binden Piper mit MP3-Cache in den CMS-Spielhost ein. `cms-quiz-tts.cjs` erhält die deklarativen Quiz-Tasks auch bei erneuter Generierung. Mikrofon und Lösungsanzeige warten auf das Audio-Ende.
+
+### Mathe-Insel: Finns Flussbrücke (16.10.2026)
+
+`scripts/cms/cms-build-math-island.cjs` erzeugt `Mathe-Insel-Flussbruecke.json` und ein CMS-ZIP mit lokalen CC0-Medien. Gemeinsame Variablen liegen im Blueprint. Die Features Mathematik/Sprache, Brücke/Fuchs und Musik/Bewegung verwenden bestehende GCS-Tasks und Komponenten (`TSprite`, `TImageList`, `TAnimation`, `TTimer`, `TAudio`, `TPanel`, `move_to`). Zehn abgeschlossene Aufgaben bauen zehn Teile; ein einzelner Fehlversuch baut nichts. Musik pausiert vor Sprachabläufen und bei Pause/Ende. Bestehende serverseitige Mathematik- und Sprachverträge bleiben erhalten. Keine neue Engine-Komponente, keine zusätzliche HTML-Spiellogik. Browserprüfung: `scripts/test-cms-math-island-ui.cjs`. Anleitung und Quellen: `docs/Mathe-Insel-Flussbruecke.md`.
+
+### Lernzielkatalog für HouseAdmins und Eltern (16.10.2026)
+
+`stage_learning_catalog` kombiniert Bundesland, Klasse, Verfügbarkeit und Textsuche. `TTable` und `TObjectList` zeigen serverseitig gefilterte, auswählbare Zeilen samt Beschreibung, Prüfstatus und Quelle. `stage_server_learning_catalog` ruft über `/api/cms/admin/learning-catalog` die Methode `TServerAccess.learningCatalog` auf. Sie prüft aktive Haus-/SuperAdmin-Rollen oder bestätigte Elternbeziehungen und liefert ausschließlich Katalogdaten. Die versionierte Inhaltsdatei `scripts/cms/catalogs/learning-catalog.json` trennt Länder, Klassenlisten, eigene Bereichsübersichten, Übungsziele und Aufgabenprofile. Filteroptionen entstehen aus den Daten; weitere Klassen/Länder brauchen keinen UI-Umbau. Der Builder `cms-learning-catalog-ui.cjs` ist in Haus-/Eltern-/Mathematik-Generatoren integriert. Keine automatische Kindzuweisung. Anleitung: `docs/Lernzielkatalog.md`. Tests: `test-learning-catalog.cjs`, `test-learning-catalog-ui.cjs`.
+
+### Karteikasten als Standardquelle der Lernabenteuer (16.10.2026)
+
+Die drei Mathe-Spielprojekte verwenden das Profil `cardbox-v1` und die GCS-Stage `stage_cardbox_filters` für Mehrfach-Stapelauswahl und Leitner-Fachfilter. `cms-math-cardbox-ui.cjs` ergänzt Quelle, Eingabe-/Auswahl-/Selbstbewertungssteuerung und kurze Runden; die bestehenden Builder wenden es an. `cms-cardbox-selection.cjs` liest nur den persönlichen Kasten und eigene/ausdrücklich zugeordnete Stapel, Fach 1–5, fachaufsteigend und älteste zuerst. `cms-cardbox-round.cjs` speichert Rundenversion 2 im bestehenden PlaySession-Datensatz und delegiert die einmalige Fach-/Lernpunktebuchung an `cms-card-points.cjs`. Gemeinsamer äußerer Commit mit Anfragebeleg; kein paralleler Lernstand. Generatorkommandos bleiben für Altverträge erhalten, sind aber keine Standardquelle dieser drei Oberflächen. JSON-/SQLite-Persistenz, Zugriffsentzug, kurze Szenen, Sprachsteuerung und tatsächlicher Upload-Sandbox in drei Spielen getestet. Anleitung: `docs/Karteikasten-Abenteuer.md`.
+
+## UseCase: Aufgabenbereich und Spielwelt · Bilder zählen und Turmbau
+- Dateien: docs/Aufgabenbereich-Spielwelt-Turmbau.md, scripts/cms/cms-task-presentation.cjs, scripts/cms/cms-task-layout.cjs, scripts/cms/cms-build-counting-tower.cjs, scripts/create-counting-decks.cjs, scripts/cms/cms-quiz-counting-layout.cjs
+- Methoden: content, apply, build, plan, insert, installGame
+- Beschreibung: Karten bestimmen das Aufgabenlayout links; eine unabhängige Spielwelt rechts konsumiert den gespeicherten Ergebnisfortschritt. Zwei Zählstapel, drei Antworten, Vorlesen und Turmbau; gemeinsamer Leitner-Lernstand und Lernzielbezug.
+
+## UseCase: Eigenständiger Aufgabenbereich mit Event-Testempfänger
+- Dateien: docs/Aufgabenbereich-Plan-und-Eventvertrag.md, docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md, scripts/cms/cms-task-events.cjs, scripts/cms/cms-build-task-area.cjs, scripts/test-task-area.cjs, scripts/test-task-area-ui.cjs
+- Methoden: command, choose, emit, view, build, TestReceiver_Receive, Area_Apply
+- Beschreibung: Gemeinsame Papierkarte für verschiedene Aufgabenarten, Leitner und schnelle Wiederholung. Aufgabenereignisse und korrelierter Rückkanal mit echtem Empfangslabel; keine Spielwelt. Sprites unterstützen onImageReady/onImageError für fehlersichere Zählaufgaben.

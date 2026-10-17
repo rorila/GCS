@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "externalTask": true,
+  "typedPayload": true,
+  "correlatedOutput": true,
+  "deduplication": true,
+  "realTaskFailure": true,
+  "stoppedRuntime": true,
+  "editorPresetAndSave": true,
+  "browserErrors": []
+}

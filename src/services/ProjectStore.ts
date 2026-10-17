@@ -355,6 +355,9 @@ export class ProjectStore {
         }
 
         // FlowChart-Task-Referenzen
+        this.project.stages?.filter(stage => !m.stageId || stage.id === m.stageId).forEach(stage => {
+            stage.externalInterface?.inputs.forEach(port => { if (port.task === m.oldName) port.task = m.newName; });
+        });
         this.updateTaskReferences(m.oldName, m.newName);
 
         return true;

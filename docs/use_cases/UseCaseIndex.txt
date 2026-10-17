@@ -1654,3 +1654,28 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 
 
 
+
+## UseCase: Mathe-Insel – Finns Flussbrücke
+- Dateien: docs/Mathe-Insel-Flussbruecke.md, scripts/cms/cms-build-math-island.cjs, scripts/test-cms-math-island-ui.cjs
+- Methoden: buildIsland, writeIsland, portableProject
+- Beschreibung: Deklarative Mathematik-Abenteuerszene mit Brückenbau, Fuchsanimation und lokalem CC0-Audio; importierbares CMS-ZIP und isolierter Browsertest.
+
+## UseCase: Lernzielkatalog filtern und auswählen
+- Dateien: docs/Lernzielkatalog.md, scripts/cms/cms-learning-catalog.cjs, scripts/cms/cms-learning-catalog-ui.cjs, scripts/cms/catalogs/learning-catalog.json
+- Methoden: learningCatalog, queryCatalog, validateCatalog, apply
+- Beschreibung: Gemeinsame GCS-Tabelle für HouseAdmins und bestätigte Eltern; kombinierte Filter nach Bundesland und Klassenstufe, Suche und auswählbare Details. Erweiterbare Katalogdaten, serverseitige Rollenprüfung und keine Kindzuweisung.
+
+## UseCase: Karteikasten als Standardquelle in Lernabenteuern
+- Dateien: docs/Karteikasten-Abenteuer.md, scripts/cms/cms-cardbox-round.cjs, scripts/cms/cms-cardbox-selection.cjs, scripts/cms/cms-math-cardbox-ui.cjs
+- Methoden: command, prepare, book, pool, apply
+- Beschreibung: Eigener Karteikasten als Standard; eigene/zugeordnete Stapel mehrfach auswählen, Leitner-Fach filtern, Antworten einmalig im gemeinsamen Lernstand verbuchen. Rechenballons, Rechenpuzzle und Flussbrücke einschließlich kurzer Runden und SQLite-Wiederaufnahme.
+
+## UseCase: Aufgabenbereich und Spielwelt · Bilder zählen und Turmbau
+- Dateien: docs/Aufgabenbereich-Spielwelt-Turmbau.md, scripts/cms/cms-task-presentation.cjs, scripts/cms/cms-task-layout.cjs, scripts/cms/cms-build-counting-tower.cjs, scripts/create-counting-decks.cjs, scripts/cms/cms-quiz-counting-layout.cjs
+- Methoden: content, apply, build, plan, insert, installGame
+- Beschreibung: Karten bestimmen das Aufgabenlayout links; eine unabhängige Spielwelt rechts konsumiert den gespeicherten Ergebnisfortschritt. Zwei Zählstapel, drei Antworten, Vorlesen und Turmbau; gemeinsamer Leitner-Lernstand und Lernzielbezug.
+
+## UseCase: Eigenständiger Aufgabenbereich mit Event-Testempfänger
+- Dateien: docs/Aufgabenbereich-Plan-und-Eventvertrag.md, docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md, scripts/cms/cms-task-events.cjs, scripts/cms/cms-build-task-area.cjs, scripts/test-task-area.cjs, scripts/test-task-area-ui.cjs
+- Methoden: command, choose, emit, view, build, TestReceiver_Receive, Area_Apply
+- Beschreibung: Gemeinsame Papierkarte für verschiedene Aufgabenarten, Leitner und schnelle Wiederholung. Aufgabenereignisse und korrelierter Rückkanal mit echtem Empfangslabel; keine Spielwelt. Sprites unterstützen onImageReady/onImageError für fehlersichere Zählaufgaben.

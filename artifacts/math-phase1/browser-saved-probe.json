@@ -1,0 +1,382 @@
+{
+  "meta": {
+    "id": "math-interface-probe",
+    "name": "Mathe · Schnittstellenprobe",
+    "author": "GCS",
+    "version": "0.1.0",
+    "description": "Isolierte technische Probe für Phase 1, keine Lernfortschritt-Buchung."
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18
+    }
+  },
+  "objects": [],
+  "variables": [
+    {
+      "name": "MathProbeCount",
+      "type": "integer",
+      "isVariable": true,
+      "className": "TIntegerVariable",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "value": 0,
+      "scope": "global"
+    },
+    {
+      "name": "MathProbeResult",
+      "type": "integer",
+      "isVariable": true,
+      "className": "TIntegerVariable",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "value": 0,
+      "scope": "global"
+    }
+  ],
+  "actions": [],
+  "tasks": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "objects": [],
+      "variables": [],
+      "tasks": [],
+      "actions": [],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_math_probe",
+      "name": "Mathematik · Schnittstellenprobe",
+      "type": "standard",
+      "objects": [
+        {
+          "id": "math_probe_ProbeTitle",
+          "name": "ProbeTitle",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 2,
+          "width": 56,
+          "height": 3,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Mathematik · Technischer Schnittstellentest"
+        },
+        {
+          "id": "math_probe_ProbeQuestion",
+          "name": "ProbeQuestion",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 14,
+          "y": 8,
+          "width": 36,
+          "height": 4,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 40,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "27 + 8 = ?"
+        },
+        {
+          "id": "math_probe_ProbeWrongA",
+          "name": "ProbeWrongA",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 6,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 34",
+          "events": {
+            "onClick": "MathProbe_Wrong"
+          }
+        },
+        {
+          "id": "math_probe_ProbeCorrect",
+          "name": "ProbeCorrect",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 24,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 35",
+          "events": {
+            "onClick": "MathProbe_Right"
+          }
+        },
+        {
+          "id": "math_probe_ProbeWrongB",
+          "name": "ProbeWrongB",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 42,
+          "y": 15,
+          "width": 16,
+          "height": 5,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "🎈 25",
+          "events": {
+            "onClick": "MathProbe_Wrong"
+          }
+        },
+        {
+          "id": "math_probe_ProbeFeedback",
+          "name": "ProbeFeedback",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 24,
+          "width": 56,
+          "height": 4,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Wähle eine Antwort."
+        },
+        {
+          "id": "math_probe_ProbeCount",
+          "name": "ProbeCount",
+          "className": "TLabel",
+          "scope": "stage",
+          "x": 4,
+          "y": 30,
+          "width": 56,
+          "height": 2,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "transparent",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "${MathProbeCount}"
+        },
+        {
+          "id": "math_probe_ProbeReset",
+          "name": "ProbeReset",
+          "className": "TButton",
+          "scope": "stage",
+          "x": 22,
+          "y": 34,
+          "width": 20,
+          "height": 3,
+          "visible": true,
+          "zIndex": 1,
+          "style": {
+            "color": "#eefafa",
+            "backgroundColor": "#285984",
+            "fontSize": 24,
+            "fontFamily": "Segoe UI, sans-serif",
+            "textAlign": "center",
+            "borderRadius": 12
+          },
+          "text": "Zurücksetzen",
+          "events": {
+            "onClick": "MathProbe_Reset"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "MathProbe_Count",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "MathProbe_CountPlus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "MathProbe_Right",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "MathProbe_Count"
+            },
+            {
+              "type": "action",
+              "name": "MathProbe_Calculate"
+            },
+            {
+              "type": "action",
+              "name": "MathProbe_ShowRight"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "MathProbe_Wrong",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "MathProbe_Count"
+            },
+            {
+              "type": "action",
+              "name": "MathProbe_ShowHint"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "MathProbe_Reset",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "MathProbe_Clear"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "MathProbe_EventParam",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "MathProbe_ShowParam"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "probeText",
+              "type": "string",
+              "defaultValue": "Parameter-Standardwert"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "5df1b1cf-6450-498a-8185-eba7e55fceff",
+          "name": "MathProbe_CountPlus",
+          "type": "calculate",
+          "formula": "MathProbeCount + 1",
+          "resultVariable": "MathProbeCount"
+        },
+        {
+          "id": "521ce795-6e10-4aa2-910b-0071e2a56c07",
+          "name": "MathProbe_Calculate",
+          "type": "calculate",
+          "formula": "27 + 8",
+          "resultVariable": "MathProbeResult"
+        },
+        {
+          "id": "93b1aca5-deaf-4ace-b6d3-83682313540d",
+          "name": "MathProbe_ShowRight",
+          "type": "property",
+          "changes": {
+            "ProbeFeedback.text": "Richtig: 27 + 8 = ${MathProbeResult}."
+          }
+        },
+        {
+          "id": "53ae5d40-c61a-48de-9d30-7a6b5da0fc10",
+          "name": "MathProbe_ShowHint",
+          "type": "property",
+          "changes": {
+            "ProbeFeedback.text": "Tipp: 27 + 3 = 30. Danach fehlen noch 5."
+          }
+        },
+        {
+          "id": "b2eeab1a-df84-4494-aab1-b7360ecfb949",
+          "name": "MathProbe_Clear",
+          "type": "property",
+          "changes": {
+            "MathProbeCount": 0,
+            "MathProbeResult": 0,
+            "ProbeFeedback.text": "Wähle eine Antwort."
+          }
+        },
+        {
+          "id": "2d06e3fc-5d57-4c54-8869-f73585740fca",
+          "name": "MathProbe_ShowParam",
+          "type": "property",
+          "changes": {
+            "ProbeFeedback.text": "${probeText}"
+          }
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#0c1b26"
+      },
+      "startAnimation": "none"
+    }
+  ],
+  "activeStageId": "stage_math_probe"
+}

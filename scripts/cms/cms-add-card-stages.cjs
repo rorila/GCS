@@ -125,14 +125,14 @@ const buildCardsStage = (id, name, parentMode) => {
     ? { list: '/api/cms/parent/child-cards', save: '/api/cms/parent/child-card-save', del: '/api/cms/parent/child-card-delete' }
     : { list: '/api/cms/cards/list', save: '/api/cms/cards/save', del: '/api/cms/cards/delete' };
   const idBody = parentMode ? { childId: '${CMSKindId}' } : {};
-  const backTarget = parentMode ? 'stage_parent' : 'stage_gallery';
+  const backTarget = parentMode ? (project.stages.some(s => s.id === 'stage_parent_child') ? 'stage_parent_child' : 'stage_parent') : 'stage_gallery';
 
   s.objects.push(
     // --- Kopfbereich ---
     label('Titel', parentMode ? 'KARTEIKASTEN DES KINDES' : 'MEIN KARTEIKASTEN', 2, 1, 40, 2, 26, { textAlign: 'left', fontWeight: 'bold' }),
     label('ProfilZeile', '', 2, 4, 34, 1.5, 14, { textAlign: 'left', opacity: '0.7' }),
     label('Status', '', 2, 6, 34, 1.5, 13, { textAlign: 'left' }),
-    button('StapelGalerie', parentMode ? '🗂 Stapel zuordnen' : '🗂 Stapel finden', 40, 3, 11, 2, 'Navigation_stage_card_gallery'),
+    button('StapelGalerie', parentMode ? '🗂 Stapel zuordnen' : '📚 Stapel hinzufügen', 40, 3, 11, 2, 'Navigation_stage_card_gallery'),
     button('Zurueck', '⬅ Zurück', 52, 3, 9, 2, 'Navigation_Zurueck'),
     // --- Filterzeile ---
     label('FilterTitel', '🔽 FILTER', 2, 8, 8, 2, 13, { textAlign: 'left' }),
@@ -225,7 +225,7 @@ const buildCardsStage = (id, name, parentMode) => {
         B.nav('Act_Nav_StapelNeu', 'stage_decks_create'),
       ]), 'Neuen leeren Stapel anlegen'),
     ]),
-    task('Navigation_stage_card_gallery', busyGuard([B.nav('Act_Nav_StapelGalerie', 'stage_card_gallery')])),
+    task('Navigation_stage_card_gallery', busyGuard([...(parentMode ? [] : [B.prop('Act_EigenerStapelKontext', { CMSKindId: '' })]), B.nav('Act_Nav_StapelGalerie', 'stage_card_gallery')])),
     // --- Sperren/Navigation ---
     task('Sperre_KartenLaden', busyGuard([callTask('Karten_Laden')])),
     task('Sperre_FilterLeeren', busyGuard([callTask('Filter_Leeren')])),
@@ -349,7 +349,7 @@ if (gallery && !(gallery.objects || []).some(o => o.name === 'MeinKarteikasten')
   gallery.objects.push(button('MeinKarteikasten', '📚 Mein Karteikasten', 46, 6, 14, 3, 'Navigation_stage_cards'));
   gallery.tasks.push(task('Navigation_stage_cards', busyGuard([G.nav('Act_Nav_Karteikasten', 'stage_cards')]), 'Zum Karteikasten'));
 }
-const parentStage = project.stages.find(s => s.id === 'stage_parent');
+const parentStage = project.stages.find(s => s.id === 'stage_parent_child') || project.stages.find(s => s.id === 'stage_parent');
 if (parentStage && !(parentStage.objects || []).some(o => o.name === 'KindKarteikasten')) {
   parentStage.objects.push(button('KindKarteikasten', '🗂 Karteikasten', 36, 30, 11, 2, 'Navigation_stage_child_cards', { visible: false }));
   parentStage.tasks.push(task('Navigation_stage_child_cards', busyGuard([
@@ -386,6 +386,7 @@ if (missing) { console.error(missing + ' fehlende Referenzen — Abbruch.'); pro
 // Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
 const { applyCmsTheme } = require('./cms-style.cjs');
 const themeResult = applyCmsTheme(project);
+require('./cms-card-choice-editor.cjs').configureCardChoiceEditor(project);
 console.log(`Theme: ${themeResult.styled} Objekte, ${themeResult.paneled} Panels.`);
 
 fs.writeFileSync(FILE, JSON.stringify(project, null, 1));

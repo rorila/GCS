@@ -58,7 +58,7 @@ admin.push({ns:'AdmSpiele',path:'/api/cms/admin/games',task:'Server_Spielfreigab
           n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
           // Nur Spiele, die der HouseAdmin dem Haus freigegeben hat — der
           // RaumAdmin schaltet aus dem Hauskatalog für seinen Raum um.
-          n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published',has:{entity:'grants',where:{gameId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',label:'$item.title',name:'$item.title',active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.areaId',active:true}}}},extra:{message:{concat:['$vars.Bereich.item.name',' · Spielefreigaben']}}}],'Spiele'),
+          n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published',_availableForHouse:'$vars.Haus.item.id',has:{entity:'grants',where:{gameId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',label:'$item.title',name:'$item.title',active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.areaId',active:true}}}},extra:{message:{concat:['$vars.Bereich.item.name',' · Spielefreigaben']}}}],'Spiele'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Spiele.items}',message:'${Spiele.message}'}]),
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
@@ -380,31 +380,40 @@ house.push({ns:'RaumSpeichern',path:'/api/cms/admin/room-update',task:'Server_Ra
           n.act('Eingabe400','AntwortSenden','fail',[400,'Name und aktiven Zustand angeben.'])]});}
 
 {const n=ns('HausbewohnerAnlegen');
-house.push({ns:'HausbewohnerAnlegen',path:'/api/cms/admin/house-person-create',task:'Server_HausbewohnerAnlegen_Verarbeiten',desc:'Haus → Name → Avatar → Emoji-Code → Bewohnerprofil anlegen',
+house.push({ns:'HausbewohnerAnlegen',path:'/api/cms/admin/house-person-create',task:'Server_HausbewohnerAnlegen_Verarbeiten',desc:'Haus → Anfragekennung → Name → Avatar-Preset → Bewohnerart → Emoji-Code → Bewohnerprofil anlegen',
  inner:[
-  n.call('NamePruefen'),
-  n.cond('Name gültig?','Namen.ok','==',true,[
-   n.call('AvatarPruefen'),
-   n.cond('Avatar gültig?','AvatarWert.ok','==',true,[
-    n.call('ArtPruefen'),
-    n.cond('Bewohnerart gültig?','ArtWert.ok','==',true,[
-     n.call('FolgePruefen'),
-     n.cond('Emoji-Code gültig?','Folge.ok','==',true,[
-      n.call('DuplikatPruefen'),
-      n.cond('Emoji-Code vergeben?','Belegt','==',true,[n.call('Folge409')],[n.call('Anlegen'),n.call('Antworten')])
-     ],[n.call('Folge400')])
-    ],[n.call('Art400')])
-   ],[n.call('Avatar400')])
-  ],[n.call('Name400')])
+  n.call('AnfragePruefen'),
+  n.cond('Anfragekennung gültig?','AnfrageKennung.ok','==',true,[
+   n.call('NamePruefen'),
+   n.cond('Name gültig?','Namen.ok','==',true,[
+    n.call('AvatarPruefen'),
+    n.cond('Avatar gültig?','AvatarWert.ok','==',true,[
+     n.call('ArtPruefen'),
+     n.cond('Bewohnerart gültig?','ArtWert.ok','==',true,[
+      n.call('FolgePruefen'),
+      n.cond('Emoji-Code gültig?','Folge.ok','==',true,[
+       n.call('DuplikatPruefen'),
+       n.cond('Emoji-Code vergeben?','Belegt','==',true,[n.call('Folge409')],[
+        n.call('Anlegen'),
+        n.cond('Anlage gelungen?','Ergebnis.ok','==',true,[n.call('Antworten')],[n.call('AnlageFehler')])
+       ])
+      ],[n.call('Folge400')])
+     ],[n.call('Art400')])
+    ],[n.call('Avatar400')])
+   ],[n.call('Name400')])
+  ],[n.call('Anfrage400')])
  ],
- actions:[n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Anzeigename angeben (max. 60 Zeichen).'}],'Namen'),
-          n.act('AvatarPruefen','EingabePruefung','text',['avatar',{max:12,message:'Avatar-Symbol angeben (max. 12 Zeichen).'}],'AvatarWert'),
+ actions:[n.act('AnfragePruefen','EingabePruefung','requestId',['requestId'],'AnfrageKennung'),
+          n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Anzeigename angeben (max. 60 Zeichen).'}],'Namen'),
+          n.act('AvatarPruefen','EingabePruefung','residentAvatar',[],'AvatarWert'),
           n.act('ArtPruefen','EingabePruefung','choiceDefault',['kind',['child','adult'],'child'],'ArtWert'),
           n.act('FolgePruefen','EingabePruefung','emojiSeq',['sequence'],'Folge'),
-          n.act('DuplikatPruefen','Datenbestand','codeTaken',[{sequence:'$vars.Folge.value'}],'Belegt'),
+          n.act('DuplikatPruefen','Datenbestand','codeTaken',[{sequence:'$vars.Folge.value',requestId:'$vars.AnfrageKennung.value',houseId:'$body.houseId'}],'Belegt'),
           n.act('Folge409','AntwortSenden','fail',[409,'Diese Emoji-Folge ist bereits vergeben.']),
-          n.act('Anlegen','DatenSpeicher','createHouseResident',[{name:'$vars.Namen.value',avatar:'$vars.AvatarWert.value',kind:'$vars.ArtWert.value',sequence:'$vars.Folge.value',houseId:'$body.houseId',audit:{action:'house-resident-create',areaId:'$body.houseId'}}],'Ergebnis'),
-          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Hausbewohner angelegt: ${Namen.value}'}]),
+          n.act('Anlegen','DatenSpeicher','createHouseResident',[{name:'$vars.Namen.value',avatar:'$vars.AvatarWert.value',avatarImage:'$vars.AvatarWert.avatarImage',kind:'$vars.ArtWert.value',sequence:'$vars.Folge.value',houseId:'$body.houseId',requestId:'$vars.AnfrageKennung.value',audit:{action:'house-resident-create',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',avatarImage:'${Ergebnis.avatarImage}',message:'Hausbewohner angelegt: ${Namen.value}'}]),
+          n.act('AnlageFehler','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
+          n.act('Anfrage400','AntwortSenden','fail',[400,'${AnfrageKennung.message}']),
           n.act('Name400','AntwortSenden','fail',[400,'${Namen.message}']),
           n.act('Avatar400','AntwortSenden','fail',[400,'${AvatarWert.message}']),
           n.act('Art400','AntwortSenden','fail',[400,'${ArtWert.message}']),
@@ -629,7 +638,7 @@ house.push({ns:'HausUebersicht',path:'/api/cms/admin/house-overview',task:'Serve
   n.act('Bewohner','Datenbestand','list',[{entity:'people',where:activePeopleOfHouse,fields:{id:'$item.id'}}],'UebersichtBewohner'),
   n.act('Kinder','Datenbestand','list',[{entity:'people',where:{...activePeopleOfHouse,kind:'child'},fields:{id:'$item.id'}}],'UebersichtKinder'),
   n.act('Familien','Datenbestand','list',[{entity:'guardians',where:{status:'confirmed',childId:{in:{set:{entity:'memberships',where:{active:true,areaId:'$body.houseId'},field:'personId'}}}},fields:{id:'$item.childId'}}],'UebersichtFamilien'),
-  n.act('Spiele','Datenbestand','list',[{entity:'grants',where:{areaId:'$body.houseId',active:true},fields:{id:'$item.gameId'}}],'UebersichtSpiele'),
+  n.act('Spiele','Datenbestand','list',[{entity:'games',where:{status:'published',_availableForHouse:'$body.houseId'},fields:{id:'$item.id'}}],'UebersichtSpiele'),
   n.act('Einladungen','Datenbestand','list',[{entity:'invites',where:{houseId:'$body.houseId',usedAt:{falsy:true}},fields:{id:'$item.id'}}],'UebersichtEinladungen'),
   n.act('Antworten','AntwortSenden','send',[{rooms:'${UebersichtRaeume.items.length}',residents:'${UebersichtBewohner.items.length}',children:'${UebersichtKinder.items.length}',families:'${UebersichtFamilien.items.length}',games:'${UebersichtSpiele.items.length}',invites:'${UebersichtEinladungen.items.length}',message:'Hausübersicht geladen.'}])
  ]});}
@@ -651,12 +660,12 @@ house.push({ns:'HausFamilieSetzen',path:'/api/cms/admin/guardian-set',task:'Serv
 
 {const n=ns('HausSpiele');
 house.push({ns:'HausSpiele',path:'/api/cms/admin/house-games',task:'Server_HausSpiele_Verarbeiten',desc:'Haus prüfen → veröffentlichte Galeriespiele mit Hausfreigabe auflisten',inner:[n.call('Abfragen'),n.call('Antworten')],
- actions:[n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published'},fields:{id:'$item.id',name:'$item.title',label:{concat:['$item.avatar','  ','$item.title']},multiplayer:{exists:{entity:'games',where:{id:'$item.id',multiplayer:{truthy:true}}}},active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.houseId',active:true}}}}}],'HausSpiele'),n.act('Antworten','AntwortSenden','send',[{items:'${HausSpiele.items}',message:'Galeriespiele für dieses Haus'}])]});}
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published',_availableForHouse:'$body.houseId'},fields:{id:'$item.id',name:'$item.title',label:{concat:['$item.avatar','  ','$item.title']},multiplayer:{exists:{entity:'games',where:{id:'$item.id',multiplayer:{truthy:true}}}},active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.houseId',active:true}}}}}],'HausSpiele'),n.act('Antworten','AntwortSenden','send',[{items:'${HausSpiele.items}',message:'Galeriespiele für dieses Haus'}])]});}
 
 {const n=ns('HausSpielSetzen');
 house.push({ns:'HausSpielSetzen',path:'/api/cms/admin/house-game-set',task:'Server_HausSpielSetzen_Verarbeiten',desc:'Haus → veröffentlichtes Spiel → Hausfreigabe setzen; Entzug beendet laufende Sitzungen/Partien in allen Räumen des Hauses',
  inner:[n.call('AktivPruefen'),n.call('SpielPruefen'),n.cond('Eingabe gültig?','AktivWert.ok','==',true,[n.cond('Spiel verfügbar?','Vorhanden','==',true,[n.call('Speichern'),n.cond('Hausfreigabe entzogen?','AktivWert.value','==',false,[n.call('LaufendeBeenden')],[]),n.call('Antworten')],[n.call('Spiel403')])],[n.call('Eingabe400')])],
- actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),n.act('SpielPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.gameId',status:'published'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.houseId',gameId:'$body.gameId'},set:{active:'$vars.AktivWert.value'},audit:{action:'house-game-set',areaId:'$body.houseId'}}],'Ergebnis'),n.act('LaufendeBeenden','Zugangsverwaltung','revokeGame',[{gameId:'$body.gameId',houseId:'$body.houseId'}]),n.act('Antworten','AntwortSenden','send',[{message:'Hausspiel-Zuordnung gespeichert.'}]),n.act('Spiel403','AntwortSenden','fail',[403,'Spiel ist nicht in der Galerie verfügbar.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
+ actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),n.act('SpielPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.gameId',status:'published',_availableForHouse:'$body.houseId'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.houseId',gameId:'$body.gameId'},set:{active:'$vars.AktivWert.value'},audit:{action:'house-game-set',areaId:'$body.houseId'}}],'Ergebnis'),n.act('LaufendeBeenden','Zugangsverwaltung','revokeGame',[{gameId:'$body.gameId',houseId:'$body.houseId'}]),n.act('Antworten','AntwortSenden','send',[{message:'Hausspiel-Zuordnung gespeichert.'}]),n.act('Spiel403','AntwortSenden','fail',[403,'Spiel ist nicht in der Galerie verfügbar.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
 
 {const n=ns('HausEinladungen');
 house.push({ns:'HausEinladungen',path:'/api/cms/admin/house-invites',task:'Server_HausEinladungen_Verarbeiten',desc:'Haus prüfen → Einladungen ohne geheime Token auflisten',inner:[n.call('Abfragen'),n.call('Antworten')],
@@ -712,7 +721,7 @@ function buildStage(id,name,endpoints,{hausGateDefault=true}={}){
   actions.push(...ep.actions);
  });
  return {id,type:'standard',name,generatedBy:'cms-add-admin-server-stages.cjs',grid:{columns:64,rows:48,cellWidth:24,cellHeight:24},
-  objects,variables:['Pruefung','Bereich','Haus','HausRecht','Raum','RaumAnzeige','RaumAktiv','Namen','AktivWert','AvatarWert','ArtWert','Beschreibung','Folge','Belegt','Vorhanden','KindVorhanden','ErwachsenerVorhanden','Bestaetigt','Person','Zuordnung','HatCode','Einladung','Ergebnis','AdminErgebnis','CodeErgebnis','Admin','AdminOptionen','Raeume','Haeuser','Personen','Kinder','Erwachsene','Kandidaten','StatBewohner','StatBeobachter','StatSpiele','StatAdmins','Mitglieder','Spiele','Zuordnungen','Sicherung','UebersichtRaeume','UebersichtBewohner','UebersichtKinder','UebersichtFamilien','UebersichtSpiele','UebersichtEinladungen','Familien','HausSpiele','HausEinladungen'].map(variable),
+  objects,variables:['Pruefung','Bereich','Haus','HausRecht','Raum','RaumAnzeige','RaumAktiv','AnfrageKennung','Namen','AktivWert','AvatarWert','ArtWert','Beschreibung','Folge','Belegt','Vorhanden','KindVorhanden','ErwachsenerVorhanden','Bestaetigt','Person','Zuordnung','HatCode','Einladung','Ergebnis','AdminErgebnis','CodeErgebnis','Admin','AdminOptionen','Raeume','Haeuser','Personen','Kinder','Erwachsene','Kandidaten','StatBewohner','StatBeobachter','StatSpiele','StatAdmins','Mitglieder','Spiele','Zuordnungen','Sicherung','UebersichtRaeume','UebersichtBewohner','UebersichtKinder','UebersichtFamilien','UebersichtSpiele','UebersichtEinladungen','Familien','HausSpiele','HausEinladungen'].map(variable),
   tasks,actions,flowCharts:[],events:{},startAnimation:null,features:[],group:'Server'};
 }
 

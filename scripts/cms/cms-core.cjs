@@ -8,17 +8,34 @@ const GLYPH_TO_ID=new Map(EMOJI_GLYPHS.map((g,i)=>[g,EMOJI_IDS[i]]));
 const ID_TO_GLYPH=new Map(EMOJI_IDS.map((id,i)=>[id,EMOJI_GLYPHS[i]]));
 const canonEmojiSeq=seq=>Array.isArray(seq)?seq.map(v=>GLYPH_TO_ID.get(v)||v):seq;
 const avatarGlyph=value=>ID_TO_GLYPH.get(value)||value||'🙂';
+const DEFAULT_AVATAR_IMAGE='/images/default-avatar.svg';
+const AVATAR_PRESET_LIST=[
+ {id:'default',label:'Standard',src:DEFAULT_AVATAR_IMAGE},
+ {id:'fox',label:'Fuchs',src:'/images/Avatars_allgemein/Fuchs.svg'},
+ {id:'monkey',label:'Affe',src:'/images/Avatars_allgemein/Affe.png'},
+ {id:'elephant',label:'Elefant',src:'/images/Avatars_allgemein/Elefant.png'},
+ {id:'crocodile',label:'Krokodil',src:'/images/Avatars_allgemein/Krokodil.png'},
+ {id:'lion',label:'Löwe',src:'/images/Avatars_allgemein/Löwe.png'},
+ {id:'panda',label:'Panda',src:'/images/Avatars_allgemein/Panda.png'},
+ {id:'parrot',label:'Papagei',src:'/images/Avatars_allgemein/Papagei.png'},
+ {id:'zebra',label:'Zebra',src:'/images/Avatars_allgemein/Zebra.png'}
+];
+const AVATAR_PRESETS=Object.fromEntries(AVATAR_PRESET_LIST.map(p=>[p.id,p.src]));
+const resolveAvatarPreset=presetId=>typeof presetId==='string'&&Object.prototype.hasOwnProperty.call(AVATAR_PRESETS,presetId)?AVATAR_PRESETS[presetId]:null;
 function validate(db){
  if(db.version!==SCHEMA_VERSION)throw Error('Unbekannte CMS-Datenversion: '+db.version);
  for(const key of ['people','areas','memberships','roles','guardians','games','grants','codes','invites','timeBudgets','playSessions','progress','deviceGrants','parties','gameInvitations','notifications','temporaryRoomAccess'])if(!Array.isArray(db[key]))throw Error('Fehlende Liste: '+key);
  for(const key of ['people','areas','games'])if(new Set(db[key].map(x=>x.id)).size!==db[key].length)throw Error('Doppelte IDs: '+key);
  const person=id=>db.people.some(p=>p.id===id),area=id=>db.areas.some(a=>a.id===id);
  for(const p of db.people)if(!['child','adult'].includes(p.kind))throw Error('Ungültige Personenart: '+p.id);
+ const reqKeys=new Set();for(const p of db.people)if(p.createdRequestId){const rk=`${p.createdBy||''}:${p.createdHouseId||''}:${p.createdRequestId}`;if(reqKeys.has(rk))throw Error('Doppelte Anlage-Anfragekennung: '+p.createdRequestId);reqKeys.add(rk);}
  for(const a of db.areas){const seen=new Set([a.id]);let p=a.parentId;while(p){if(seen.has(p)||!area(p))throw Error('Ungültige Bereichshierarchie');seen.add(p);p=db.areas.find(x=>x.id===p).parentId;}}
  for(const x of [...db.memberships,...db.roles])if(!person(x.personId)||!area(x.areaId))throw Error('Ungültige Person-/Bereichsreferenz');
  for(const x of db.guardians)if(!person(x.childId)||!person(x.guardianId)||x.childId===x.guardianId||!['pending','confirmed','revoked'].includes(x.status))throw Error('Ungültige Erziehungsbeziehung');
  for(const g of db.games)if(!person(g.ownerId))throw Error('Ungültiger Spieleigentümer');
  for(const g of db.grants)if(!area(g.areaId)||!db.games.some(x=>x.id===g.gameId))throw Error('Ungültige Spielfreigabe');
+ for(const session of db.playSessions)if(session.mathRound)require('./cms-math.cjs').validateRound(session.mathRound);
+ for(const session of db.playSessions)if(session.taskArea)require('./cms-task-events.cjs').validate(session.taskArea);
  for(const i of db.invites)if(!person(i.personId)||!area(i.houseId)||typeof i.hash!=='string'||typeof i.purpose!=='string')throw Error('Ungültige Einladung');
  for(const t of db.timeBudgets)if(!person(t.childId))throw Error('Ungültiges Zeitbudget');
  for(const s of db.playSessions)if(!person(s.childId)||!db.games.some(g=>g.id===s.gameId))throw Error('Ungültige Spielsitzung');
@@ -72,13 +89,13 @@ function activeRoles(db,session){
  return session.activeRole?all.filter(r=>r.role===session.activeRole.role&&r.areaId===session.activeRole.areaId):all;
 }
 // Stapel-Sichtbarkeit für ein Kind: eigener Stapel immer; sonst nur
-// veröffentlichte — entweder dem Kind zugeordnet oder freigegebener
-// Kind-Stapel aus demselben Haus (Zuordnung an Kinder, nicht Räume).
+// veröffentlichte — zugeordnete Stapel oder freigegebene Stapel aus
+// demselben Haus. Kinder und Erwachsene wählen diese selbst aus.
 function deckVisibleForChild(db,deck,childId){
  if(deck.ownerId===childId)return true;
  if(!deck.published||deck.pendingApproval)return false;
  if((deck.assignedChildIds||[]).includes(childId))return true;
- return deck.ownerType==='child'&&deck.houseId&&deck.houseId===houseOfPerson(db,childId);
+ return !!deck.houseId&&deck.houseId===houseOfPerson(db,childId);
 }
 function can(db,session,action,{areaId,game,childId,deck}={}){
  if(!session||!active(db,session.personId))return false;
@@ -90,7 +107,7 @@ function can(db,session,action,{areaId,game,childId,deck}={}){
   // einzelnen Räumen zu; die Hausfreigabe allein schaltet keinen Raum frei.
   // Raumzuordnungen bleiben bei Katalog-Entzug gespeichert und wirken
   // bei Wiederaufnahme automatisch wieder.
-  const granted=!!house
+  const granted=!!house&&require('./cms-game-availability.cjs').allowed(game,house.id,db)
    &&db.grants.some(g=>g.gameId===game?.id&&g.active&&g.areaId===areaId)
    &&db.grants.some(g=>g.gameId===game?.id&&g.active&&g.areaId===house.id);
   return game?.status==='published'&&(permanent||temporary)&&granted;
@@ -134,7 +151,7 @@ function can(db,session,action,{areaId,game,childId,deck}={}){
  // HouseAdmin Kinder seines Hauses, RaumAdmin Kinder seiner Räume,
  // SuperAdmin alle. Fremde Stapel nur wenn veröffentlicht.
  if(action==='assignDeck'){
-  if(!deck||!childId||!(deck.published||deck.ownerId===session.personId))return false;
+  if(!deck||!childId||!db.people.some(p=>p.id===childId&&p.active)||!(deck.published||deck.ownerId===session.personId))return false;
   if(childrenOf(db,session.personId).includes(childId))return true;
   const rs=activeRoles(db,session);
   if(rs.some(r=>r.role==='superAdmin'&&r.areaId==='root'))return true;
@@ -182,4 +199,4 @@ function createCore(db){validate(db);const sessions=new Map(),roomPresence=new M
  function issueSession(personId,assurance='account',ttlMs=3600000){if(!active(db,personId))return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId,assurance,authVersion:db.people.find(p=>p.id===personId)?.authVersion||0,expires:Date.now()+ttlMs});return token;}
  return {db,login,session,logout,dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);clearPresence(id);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),issueSession,can:(s,a,c)=>can(db,s,a,c),setPresence,presenceFor,clearPresence,presenceTtlMs};
 }
-module.exports={areaActive,validate,within,can,rooms,houseOf,houseOfPerson,activeRoles,deckVisibleForChild,childrenOf,guardiansOf,createCore,canonEmojiSeq,avatarGlyph,EMOJI_IDS};
+module.exports={areaActive,validate,within,can,rooms,houseOf,houseOfPerson,activeRoles,deckVisibleForChild,childrenOf,guardiansOf,createCore,canonEmojiSeq,avatarGlyph,EMOJI_IDS,EMOJI_GLYPHS,DEFAULT_AVATAR_IMAGE,AVATAR_PRESET_LIST,AVATAR_PRESETS,resolveAvatarPreset};

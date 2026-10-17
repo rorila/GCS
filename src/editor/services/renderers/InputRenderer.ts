@@ -1,3 +1,4 @@
+import { setRenderedContent } from './RenderedContent';
 import { IRenderContext } from './IRenderContext';
 import { SecurityUtils } from '../../../utils/SecurityUtils';
 
@@ -144,6 +145,7 @@ export class InputRenderer {
                         if (obj.uppercase) val = val.toUpperCase();
                         obj.text = val;
                         input.value = val;
+                        if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onChange', val);
                     };
                     input.onkeyup = (e: KeyboardEvent) => {
                         if (e.key === 'Enter') {
@@ -180,6 +182,64 @@ export class InputRenderer {
         } else {
             el.innerText = obj.text || obj.placeholder || 'Enter text...';
         }
+    }
+
+    public static renderMemo(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+        if (isNew) {
+            el.innerHTML = '';
+            const area = document.createElement('textarea');
+            area.style.width = '100%';
+            area.style.height = '100%';
+            area.style.border = 'none';
+            area.style.background = 'transparent';
+            area.style.padding = '8px';
+            area.style.fontSize = 'inherit';
+            area.style.outline = 'none';
+            area.style.boxSizing = 'border-box';
+            area.style.resize = 'none';
+            if (!ctx.host.runMode) {
+                area.style.pointerEvents = 'none';
+                area.style.userSelect = 'none';
+            }
+            el.appendChild(area);
+        }
+        const area = el.querySelector('textarea') as HTMLTextAreaElement;
+        if (!area) return;
+        if (!ctx.host.runMode) {
+            area.style.pointerEvents = 'none';
+            area.style.userSelect = 'none';
+        }
+        if (ctx.host.runMode) {
+            area.oninput = () => {
+                obj.text = area.value;
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onChange', area.value);
+            };
+            area.onblur = () => {
+                obj.text = area.value;
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onBlur', area.value);
+            };
+            area.onfocus = () => {
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onFocus', area.value);
+            };
+        }
+        // Nur bei Abweichung ueberschreiben: so bleiben Tippen (value==obj.text
+        // nach oninput) und Caret-Position erhalten, externe setProperty-Aenderungen
+        // (z. B. Vorlagen-Laden) greifen aber auch bei fokussiertem Feld.
+        if (area.value !== (obj.text || '')) area.value = obj.text || '';
+        area.readOnly = !!obj.readOnly;
+        area.name = obj.name;
+        area.setAttribute('aria-label', obj.placeholder || obj.name);
+        area.placeholder = obj.placeholder || '';
+        if (obj.maxLength) area.maxLength = obj.maxLength; else area.removeAttribute('maxlength');
+        area.style.color = obj.style?.color || '#000000';
+        area.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
+        area.style.textAlign = obj.style?.textAlign || 'left';
+        area.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : ctx.scaleFontSize(14);
+        const fw = obj.style?.fontWeight;
+        area.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
+        const fs = obj.style?.fontStyle;
+        area.style.fontStyle = (fs === true || fs === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontFamily) area.style.fontFamily = obj.style.fontFamily;
     }
 
     public static renderColorPicker(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
@@ -265,7 +325,6 @@ export class InputRenderer {
             select.style.userSelect = 'none';
         }
         if (select) {
-            const currentOptionsHtml = select.innerHTML;
 
             let rawOptions: string[] = [];
             if (Array.isArray(obj.options)) {
@@ -293,9 +352,7 @@ export class InputRenderer {
                 expectedHtml += `<option value="${idx}">${SecurityUtils.escapeHtml(opt.label)}</option>`;
             });
 
-            if (currentOptionsHtml !== expectedHtml) {
-                select.innerHTML = expectedHtml;
-            }
+            setRenderedContent(select, expectedHtml, 'innerHTML', ctx.host.runMode);
 
             const targetIndex = (obj.selectedIndex !== undefined && obj.selectedIndex >= 0 && obj.selectedIndex < parsedOptions.length)
                                 ? obj.selectedIndex : 0;

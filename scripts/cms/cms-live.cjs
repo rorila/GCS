@@ -4,6 +4,7 @@ const GUID='258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
 function createLiveSync({core,launches,component={}}={}){
  const cfg={endpointPath:component.endpointPath||'/api/cms/party/live',maxPayloadBytes:Number(component.maxPayloadBytes)||4096,maxMessagesPerSecond:Number(component.maxMessagesPerSecond)||30};
+ const guards=require('./cms-http-guard.cjs').createHttpGuards();
  const clients=new Set(),parties=new Map(),states=new Map();
  const text=value=>Buffer.from(JSON.stringify(value),'utf8');
  const accept=key=>crypto.createHash('sha1').update(key+GUID).digest('base64');
@@ -106,9 +107,9 @@ function createLiveSync({core,launches,component={}}={}){
  }catch(error){close(client,1011,'Verarbeitungsfehler');}};
  const upgrade=(req,socket,head)=>{
   try{
-   const host=String(req.headers.host||'');
-   if(!/^(localhost|127\.0\.0\.1):\d+$/.test(host))return deny(socket,403,'Host nicht erlaubt');
-   if(req.headers.origin&&req.headers.origin!==`http://${host}`&&req.headers.origin!==`https://${host}`)return deny(socket,403,'Ungültiger Ursprung');
+   // Host-/Origin-Liste inklusive PUBLIC_ORIGIN (Fly-HTTPS-Eingang).
+   if(!guards.hostOk(req))return deny(socket,403,'Host nicht erlaubt');
+   if(!guards.originOk(req))return deny(socket,403,'Ungültiger Ursprung');
    const url=new URL(req.url,'http://localhost');
    if(url.pathname!==cfg.endpointPath||req.headers.upgrade?.toLowerCase()!=='websocket'||req.headers['sec-websocket-version']!=='13')return deny(socket,404,'Nicht gefunden');
    const key=url.searchParams.get('launchKey')||'';

@@ -368,3 +368,30 @@ Fly.io-Dokumentation, geprüft am 13. Oktober 2026:
 - [Run multiple process groups](https://docs.fly.io/launch/processes): Prozessgruppen auf getrennten Machines; keine gemeinsame localhost-Umgebung.
 
 Die vorhandene Fly-App `pong-multiplayer` wurde nicht über ein Fly-Konto untersucht. Dieser Plan beschreibt den Repository-Stand und eine neue Zielkonfiguration; bestehende Cloud-Ressourcen sind vor Umsetzung gesondert zu inventarisieren.
+
+## 10. Umsetzungsstand (implementiert, noch nicht deployed)
+
+Stand dieser Arbeitsrunde — bereitgestellt, aber noch nicht gegen ein echtes Fly-Konto oder einen Containerlauf verifiziert:
+
+**Produktions-Startgerüst**
+- `deploy/fly/Dockerfile`: Multi-Stage-Image — Vite-Editor-Build, Runtime-Bundle, Game-Server-`dist`, CMS-Skripte, nginx, Piper-Venv (Stimmen wie `Install_LocalSpeech.ps1`), whisper.cpp aus Quellen (Tag `v1.8.2`, Modell `ggml-small.bin`, optionaler SHA256-Build-Arg).
+- `deploy/fly/entrypoint.sh`: bricht ab, wenn `/data` nicht gemountet oder `JWT_SECRET` nicht gesetzt ist; wählt die Editor-Routing-Variante.
+- `scripts/production/start-services.mjs`: Supervisor für nginx (:8000), Game-Server (:8080), CMS (:8081), Piper (:5000), Whisper (:8177) mit Readiness-Warte, SIGTERM-Weiterleitung und Fail-fast bei Dienstausfall. Integrierter Backup-Scheduler (`cms-database.cjs backup`, Intervall `CMS_BACKUP_INTERVAL_MIN`, S3-Upload nur bei gesetzten `CMS_BACKUP_S3_*`).
+- `deploy/fly/nginx.conf`: strikte Routen-Allowlist — CMS-Seiten/API/Live-WS → :8081, `/ws/game` + `/api/platform/*` + `/rooms/*` + GET `/platform/games` + `/runtimes/*` → :8080, Medien statisch, `/health/live` + `/health/ready`, sonst 404. `deploy/fly/editor.conf` blendet die nicht authentifizierten Editor-APIs nur bei `GCS_EDITOR_PUBLIC=1` ein.
+- `deploy/fly/fly.toml`: eine Machine, `min_machines_running = 0`, kein `release_command` (Migration nur mit gemountetem Volume), Mount `/data`, HTTPS erzwungen, Readiness-Check `/health/ready`.
+
+**URL- und Origin-Vertrag**
+- `src/utils/ServerUrl.ts`: zentrale Auflösung — Vite-Dev (:5173) → `hostname:8080`, sonst same-origin; Game-WS immer über `/ws/game`. Ersetzt die hartcodierten `localhost:8080`-Aufrufe in `MultiplayerManager`, `TGameServer`/`NetworkManager` (alter Localhost-Default wird automatisch aufgelöst), `HttpActions`, `ImageService` und den Editor-Upload-Tools.
+- `scripts/cms/cms-http-guard.cjs`: gemeinsame Host-/Origin-Prüfung und Client-IP für `cms-server`, `cms-live`, `cms-speech`, `cms-tts` und `cms-editor-test`. `PUBLIC_ORIGIN` erlaubt den öffentlichen Host; `CMS_TRUST_PROXY=1` aktiviert `X-Forwarded-For` nur von Loopback-Peers. Cookies erhalten `Secure` unter HTTPS. Editor-Test ist hinter einem Proxy zusätzlich hart gesperrt.
+
+**Game-Server**
+- `JWT_SECRET` ist bei `NODE_ENV=production` Pflicht (kein Fallback).
+- `GCS_EDITOR_APIS=off` blendet `/api/dev`, `/api/agent`, `/api/data`, `/api/upload`, `/api/tts`, `/api/training`, `/api/library`, `/kb/*` sowie mutierende `/platform/games`-Aufrufe serverseitig aus.
+- `GCS_DATA_DIR`, `GCS_UPLOADED_GAMES_DIR`, `GCS_RUNTIMES_DIR` erlauben die Volume-Pfade; `SIGTERM`/`SIGINT` fahren den Server kontrolliert herunter.
+
+**Noch offen / vor Staging zu prüfen**
+- `game-server/Dockerfile` und `game-server/fly.toml` sind das **alte Standalone-Setup** der App `pong-multiplayer` — unverändert gelassen; für die CMS-Bereitstellung gilt ausschließlich `deploy/fly/`.
+- `node:sqlite` (DatabaseSync) ist unter Node 22 experimentell — Kompatibilität unter Linux/Docker beim ersten Build verifizieren; Alternative `better-sqlite3` bleibt der dokumentierte Plan B.
+- `docker build` und ein Container-Probelauf stehen noch aus (werden vom Betreiber ausgeführt).
+- `PUBLIC_ORIGIN`, App-Name und alle Secrets sind Platzhalter.
+- Bekannter Altfehler: `test-cms-login-session.cjs` schlägt auch auf dem Stand vor dieser Arbeitsrunde fehl (Timeout bei Stage-Navigation) — keine Regression dieser Änderungen.

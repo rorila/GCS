@@ -76,6 +76,7 @@ import {TServerProfile} from '../components/TServerProfile';
 import {TServerSession} from '../components/TServerSession';
 import {TServerResponse} from '../components/TServerResponse';
 import {TServerQuery} from '../components/TServerQuery';
+import {TServerSql} from '../components/TServerSql';
 import {TServerStore} from '../components/TServerStore';
 import {TServerAccess} from '../components/TServerAccess';
 import {TServerEnroll} from '../components/TServerEnroll';
@@ -211,6 +212,7 @@ export class ComponentRegistry {
         this.register('TServerSession',TServerSession);this.typeMapping.set('ServerSession','TServerSession');
         this.register('TServerResponse',TServerResponse);this.typeMapping.set('ServerResponse','TServerResponse');
         this.register('TServerQuery',TServerQuery);this.typeMapping.set('ServerQuery','TServerQuery');
+        this.register('TServerSql',TServerSql);this.typeMapping.set('ServerSql','TServerSql');
         this.register('TServerStore',TServerStore);this.typeMapping.set('ServerStore','TServerStore');
         this.register('TServerAccess',TServerAccess);this.typeMapping.set('ServerAccess','TServerAccess');
         this.register('TServerEnroll',TServerEnroll);this.typeMapping.set('ServerEnroll','TServerEnroll');

@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "realServer": true,
+  "syntheticData": true,
+  "pausedAndResumed": true,
+  "reloadRestoredSameRound": true,
+  "tasks": 10,
+  "finished": true,
+  "sessionEnded": true,
+  "parentProgress": true,
+  "multiplicationDeck": true,
+  "sourceCardsUnchanged": true,
+  "tabletViewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "browserErrors": []
+}

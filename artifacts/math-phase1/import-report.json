@@ -1,0 +1,43 @@
+{
+  "result": {
+    "success": true,
+    "phase": "applied",
+    "plannedOperations": 31,
+    "appliedOperations": 32,
+    "conflicts": [],
+    "warnings": [
+      "Ziel-Stage 'stage_math_probe' existiert nicht. Verwende stattdessen 'stage_math_probe'.",
+      "Ziel-Stage 'stage_math_probe' wurde neu angelegt."
+    ],
+    "errors": [],
+    "renamedItems": {},
+    "skippedItems": [],
+    "canUndo": true
+  },
+  "variables": [
+    {
+      "name": "MathProbeCount",
+      "type": "integer",
+      "isVariable": true,
+      "className": "TIntegerVariable",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "value": 0,
+      "scope": "global"
+    },
+    {
+      "name": "MathProbeResult",
+      "type": "integer",
+      "isVariable": true,
+      "className": "TIntegerVariable",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "value": 0,
+      "scope": "global"
+    }
+  ],
+  "stageIds": [
+    "stage_blueprint",
+    "stage_math_probe"
+  ]
+}

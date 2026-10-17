@@ -17,7 +17,7 @@ module.exports = ({ exprOf }) => {
 // keinen Leitner-Stand).
 const deckCardDto = (db, c) => {
   const by = db.people.find(p => p.id === c.createdBy);
-  return { id: c.id, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, answerFormat: c.answerFormat, createdByName: by?.name || '', createdAt: c.createdAt };
+  return { id: c.id, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, wrongAnswers: c.wrongAnswers || [], answerFormat: c.answerFormat, ...require('./cms-task-presentation.cjs').content(c), answersText: (c.answers || []).join('; '), wrongAnswersText: (c.wrongAnswers || []).join('; '), createdByName: by?.name || '', createdAt: c.createdAt };
 };
 
 const deckDto = (db, d, childId) => {
@@ -34,7 +34,7 @@ const deckDto = (db, d, childId) => {
     status: d.pendingApproval ? 'wartet auf Freigabe' : d.published ? 'veröffentlicht' : 'Entwurf',
     publishable: own && !d.published && !d.pendingApproval,
     unpublishable: own && !!d.published,
-    cardCount: cards.length, newCards, hasNew: newCards > 0, importedCount: imported.length,
+    cardCount: cards.length, newCards, hasNew: newCards > 0 || (cards.length > 0 && !!childId && !own && !(d.assignedChildIds || []).includes(childId)), importedCount: imported.length,
     assignedChildIds: d.assignedChildIds || [], createdAt: d.createdAt, updatedAt: d.updatedAt,
   };
 };
@@ -67,7 +67,7 @@ return { TServerDecks: {
     const manageable = ctx.core.can(s, 'manageDeck', { deck });
     const approvable = ctx.core.can(s, 'approveDeck', { deck });
     if (!manageable && !approvable) return { ok: false, status: 403, message: 'Kein Zugriff auf diesen Stapel.' };
-    return { ok: true, deck: { ...deckDto(db, deck, null), manageable, canPublish: manageable && !deck.published && !deck.pendingApproval, canUnpublish: manageable && !!deck.published, canApprove: approvable && !!deck.pendingApproval } };
+    return { ok: true, currentUserName: db.people.find(p => p.id === s.personId)?.name || '', deck: { ...deckDto(db, deck, null), manageable, canPublish: manageable && !deck.published && !deck.pendingApproval, canUnpublish: manageable && !!deck.published, canApprove: approvable && !!deck.pendingApproval } };
   },
 
   // Erwachsenen-Sicht: verwaltbare Stapel + ausstehende Freigaben der
@@ -93,7 +93,10 @@ return { TServerDecks: {
     const childId = exprOf(ctx, spec.childId, {}) || s.personId;
     if (!ctx.core.can(s, 'viewDeck', { deck, childId }) && !ctx.core.can(s, 'manageDeck', { deck }) && !ctx.core.can(s, 'approveDeck', { deck }))
       return { ok: false, status: 403, message: 'Kein Zugriff auf diesen Stapel.' };
-    return { ok: true, items: db.flashcards.filter(c => c.deckId === deck.id && c.active !== false).map(c => deckCardDto(db, c)) };
+    const items=db.flashcards.filter(c=>c.deckId===deck.id&&c.active!==false).map(c=>deckCardDto(db,c));
+    const cardId=exprOf(ctx,spec.cardId,{}),card=cardId?items.find(c=>c.id===cardId):undefined;
+    if(cardId&&!card)return{ok:false,status:404,message:'Karte nicht gefunden.'};
+    return{ok:true,items,...(card?{card}:{})};
   },
 
   // Stapel anlegen oder Metadaten ändern. Kind → ownerType 'child' +
@@ -145,21 +148,27 @@ return { TServerDecks: {
     const cardId = exprOf(ctx, spec.cardId, {});
     const question = norm(exprOf(ctx, spec.question, {})), subject = norm(exprOf(ctx, spec.subject, {})), topic = norm(exprOf(ctx, spec.topic, {}));
     const answers = answersOf(exprOf(ctx, spec.answers, {}));
+    const oldCard=cardId&&db.flashcards.find(c=>c.id===cardId&&c.deckId===deck.id);
+    const rawWrong=exprOf(ctx,spec.wrongAnswers,{});
+    const wrongAnswers=[...new Set(rawWrong===undefined?(oldCard?.wrongAnswers||[]):answersOf(rawWrong))];
+    if(wrongAnswers.length>20||wrongAnswers.some(a=>a.length>500))return{ok:false,status:400,message:'Maximal 20 falsche Antworten mit je 500 Zeichen angeben.'};
+    if(wrongAnswers.some(a=>require('./cms-spoken-number.cjs').checkCardAnswer(a,answers).correct))return{ok:false,status:400,message:'Eine falsche Antwort darf keine richtige Antwort sein.'};
     const answerFormat = ['text', 'self'].includes(exprOf(ctx, spec.answerFormat, {})) ? exprOf(ctx, spec.answerFormat, {}) : 'text';
     if (!question || !subject) return { ok: false, status: 400, message: 'Frage und Schulfach sind Pflicht.' };
     if (answerFormat === 'text' && !answers.length) return { ok: false, status: 400, message: 'Mindestens eine akzeptierte Antwort angeben.' };
+    if(oldCard?.taskType){try{require('./cms-task-presentation.cjs').content({...oldCard,answers,wrongAnswers,answerFormat});}catch(e){return{ok:false,status:400,message:e.message};}}
     if (cardId) {
       const card = db.flashcards.find(c => c.id === cardId && c.deckId === deck.id && c.active !== false);
       if (!card) return { ok: false, status: 404, message: 'Karte nicht gefunden.' };
       ctx.commit(s, 'deck-card-update', deck.houseId, next => {
         const c = next.flashcards.find(x => x.id === cardId);
-        c.question = question; c.subject = subject; c.topic = topic; c.answers = answers; c.answerFormat = answerFormat; c.updatedAt = nowIso();
+        c.question = question; c.subject = subject; c.topic = topic; c.answers = answers; c.wrongAnswers = wrongAnswers; c.answerFormat = answerFormat; c.updatedAt = nowIso();
       });
       return { ok: true, cardId, message: 'Stapelkarte gespeichert.' };
     }
     const id = 'card-' + crypto.randomUUID();
     ctx.commit(s, 'deck-card-create', deck.houseId, next => {
-      next.flashcards.push({ id, deckId: deck.id, subject, topic, question, answers, answerFormat, createdBy: s.personId, createdAt: nowIso(), updatedAt: nowIso(), active: true });
+      next.flashcards.push({ id, deckId: deck.id, subject, topic, question, answers, wrongAnswers, answerFormat, createdBy: s.personId, createdAt: nowIso(), updatedAt: nowIso(), active: true });
       const d = next.cardDecks.find(x => x.id === deck.id); if (d) d.updatedAt = nowIso();
     });
     return { ok: true, cardId: id, message: 'Karte angelegt.' };
@@ -224,8 +233,8 @@ return { TServerDecks: {
     const deck = findDeck(db, exprOf(ctx, spec.deckId, {}));
     if (!deck) return { ok: false, status: 404, message: 'Stapel nicht gefunden.' };
     const childId = norm(exprOf(ctx, spec.childId, {}));
-    if (!childId) return { ok: false, status: 400, message: 'Kein Kind angegeben.' };
-    if (!ctx.core.can(s, 'assignDeck', { deck, childId })) return { ok: false, status: 403, message: 'Diesem Kind darf kein Stapel zugeordnet werden.' };
+    if (!childId) return { ok: false, status: 400, message: 'Keine lernende Person angegeben.' };
+    if (!ctx.core.can(s, 'assignDeck', { deck, childId })) return { ok: false, status: 403, message: 'Dieser Person darf kein Stapel zugeordnet werden.' };
     const assign = exprOf(ctx, spec.assign, {}) !== false && exprOf(ctx, spec.assign, {}) !== 'false';
     const now = nowIso(); let added = 0;
     ctx.commit(s, assign ? 'deck-assign' : 'deck-unassign', deck.houseId, next => {
@@ -236,7 +245,7 @@ return { TServerDecks: {
       if (assign) {
         const have = new Set(next.flashcards.filter(c => c.childId === childId && c.sourceDeckId === deck.id).map(c => c.sourceCardId));
         for (const c of next.flashcards.filter(c => c.deckId === deck.id && c.active !== false && !have.has(c.id))) {
-          next.flashcards.push({ id: 'card-' + crypto.randomUUID(), childId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, answerFormat: c.answerFormat, box: 1, status: 'active', createdBy: s.personId, sourceDeckId: deck.id, sourceCardId: c.id, createdAt: now, updatedAt: now, lastReviewedAt: null, active: true });
+          next.flashcards.push({ id: 'card-' + crypto.randomUUID(), childId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, wrongAnswers: c.wrongAnswers || [], answerFormat: c.answerFormat, ...require('./cms-task-presentation.cjs').content(c), box: 1, status: 'active', createdBy: s.personId, sourceDeckId: deck.id, sourceCardId: c.id, createdAt: now, updatedAt: now, lastReviewedAt: null, active: true });
           added++;
         }
       }
@@ -255,14 +264,14 @@ return { TServerDecks: {
     const ids = new Set(childrenOf(db, s.personId));
     const rs = activeRoles(db, s);
     if (rs.some(r => r.role === 'superAdmin' && r.areaId === 'root'))
-      db.people.filter(p => p.kind === 'child' && p.active).forEach(p => ids.add(p.id));
+      db.people.filter(p => p.active).forEach(p => ids.add(p.id));
     for (const r of rs.filter(r => r.role === 'areaAdmin')) {
       const area = db.areas.find(a => a.id === r.areaId);
       if (!area) continue;
       db.memberships
         .filter(m => m.active && m.areaId === area.id && areaActive(db, m.areaId))
         .map(m => db.people.find(p => p.id === m.personId))
-        .filter(p => p?.kind === 'child' && p.active)
+        .filter(p => p?.active)
         .forEach(p => ids.add(p.id));
     }
     const items = [...ids].map(id => {
@@ -291,7 +300,7 @@ return { TServerDecks: {
     ctx.commit(s, 'deck-from-topic', houseOfPerson(db, s.personId), next => {
       next.cardDecks.push({ id: deckId, name, subject, description, ownerType: 'child', ownerId: s.personId, houseId: houseOfPerson(db, s.personId), published: false, pendingApproval: false, assignedChildIds: [], active: true, createdAt: now, updatedAt: now });
       for (const c of cards)
-        next.flashcards.push({ id: 'card-' + crypto.randomUUID(), deckId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, answerFormat: c.answerFormat, createdBy: s.personId, createdAt: now, updatedAt: now, active: true });
+        next.flashcards.push({ id: 'card-' + crypto.randomUUID(), deckId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, wrongAnswers: c.wrongAnswers || [], answerFormat: c.answerFormat, ...require('./cms-task-presentation.cjs').content(c), createdBy: s.personId, createdAt: now, updatedAt: now, active: true });
     });
     return { ok: true, deckId, cardCount: cards.length, message: `Stapel „${name}" mit ${cards.length} Karten angelegt — in der Stapel-Galerie veröffentlichen.` };
   },
@@ -307,11 +316,14 @@ return { TServerDecks: {
     if (!ctx.core.can(s, 'manageCards', { childId })) return { ok: false, status: 403, message: 'Kein Zugriff auf diesen Karteikasten.' };
     const have = new Set(db.flashcards.filter(c => c.childId === childId && c.sourceDeckId === deck.id).map(c => c.sourceCardId));
     const fresh = db.flashcards.filter(c => c.deckId === deck.id && c.active !== false && !have.has(c.id));
-    if (!fresh.length) return { ok: true, added: 0, message: 'Alle Stapelkarten sind bereits im Kasten.' };
+    if (!fresh.length&&(deck.assignedChildIds||[]).includes(childId)) return { ok: true, added: 0, message: 'Alle Stapelkarten sind bereits im Kasten.' };
     const now = nowIso();
     ctx.commit(s, 'deck-import', childId, next => {
+      const assigned=next.cardDecks.find(d=>d.id===deck.id);
+      assigned.assignedChildIds=[...new Set([...(assigned.assignedChildIds||[]),childId])];
+      assigned.updatedAt=now;
       for (const c of fresh)
-        next.flashcards.push({ id: 'card-' + crypto.randomUUID(), childId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, answerFormat: c.answerFormat, box: 1, status: 'active', createdBy: s.personId, sourceDeckId: deck.id, sourceCardId: c.id, createdAt: now, updatedAt: now, lastReviewedAt: null, active: true });
+        next.flashcards.push({ id: 'card-' + crypto.randomUUID(), childId, subject: c.subject, topic: c.topic, question: c.question, answers: c.answers, wrongAnswers: c.wrongAnswers || [], answerFormat: c.answerFormat, ...require('./cms-task-presentation.cjs').content(c), box: 1, status: 'active', createdBy: s.personId, sourceDeckId: deck.id, sourceCardId: c.id, createdAt: now, updatedAt: now, lastReviewedAt: null, active: true });
     });
     return { ok: true, added: fresh.length, message: fresh.length + (fresh.length === 1 ? ' Karte übernommen (Fach 1).' : ' Karten übernommen (Fach 1).') };
   },

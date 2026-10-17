@@ -23,20 +23,21 @@ if(detail)detail.params[0].person.avatarImage='${Person.item.avatarImage}';
 // --- B) Bewohnerliste: Avatar-Spalte + zentraler Upload ---------------------
 const res=stg('stage_house_residents');
 const tab=obj(res,'BewohnerTabelle');
-tab.height=15.5;
+tab.y=8.5;
+tab.height=11.5;
 const col={field:'avatarImage',type:'image',fallback:'avatar',label:'Avatar',x:0,y:0};
 if(!tab.columns.some(c=>c.field==='avatarImage'))tab.columns.unshift(col);
 
 const picker=(name,prefix)=>Object.assign({},base,{className:'TFilePicker',id:uid('cms_obj'),name,scope:'stage',
  isService:true,isHiddenInRun:true,events:{onSelected:prefix+'_Bereit',onError:prefix+'_Dateifehler'},
- x:1,y:46,width:5,height:2,style:{...svcStyle},accept:'.png,.jpg,.jpeg,.webp',maxBytes:2097152,filename:'',size:0,message:''});
+ x:1,y:46,width:5,height:2,style:{...svcStyle},accept:'.png,.jpg,.jpeg,.webp',maxBytes:2097152,filename:'',size:0,message:'',previewUrl:''});
 const uploader=(name,prefix,pickerName)=>Object.assign({},base,{className:'TFileUpload',id:uid('cms_obj'),name,scope:'stage',
  isService:true,isHiddenInRun:true,events:{onStarted:prefix+'_Status',onProgress:prefix+'_Status',onError:prefix+'_Status',onCancel:prefix+'_Status',onSuccess:prefix+'_Gespeichert'},
  x:1,y:49,width:5,height:2,style:{...svcStyle},picker:pickerName,endpoint:'/api/cms/upload/avatar',progress:0,busy:false,message:'',result:{}});
 
 if(!obj(res,'BewAvatarDatei'))res.objects.push(picker('BewAvatarDatei','BewAvatar'));
 if(!obj(res,'BewAvatarUpload'))res.objects.push(uploader('BewAvatarUpload','BewAvatar','BewAvatarDatei'));
-const button=(name,text,x,task)=>Object.assign({},base,{className:'TButton',id:uid('cms_obj'),name,events:{onClick:task},x,y:25,width:x===15?14:x===30?12:10,height:2.8,style:{...btnStyle},text,icon:''});
+const button=(name,text,x,task)=>Object.assign({},base,{className:'TButton',id:uid('cms_obj'),name,events:{onClick:task},x,y:20.4,width:x===15?14:x===30?12:10,height:2.4,style:{...btnStyle},text,icon:''});
 if(!obj(res,'AvatarWaehlen'))res.objects.push(button('AvatarWaehlen','🖼 Bild wählen',15,'BewAvatar_Waehlen'));
 if(!obj(res,'AvatarHochladen'))res.objects.push(button('AvatarHochladen','Hochladen',30,'BewAvatar_Uebertragen'));
 if(!obj(res,'AvatarAbbrechen'))res.objects.push(button('AvatarAbbrechen','Abbrechen',43,'BewAvatar_Abbrechen'));

@@ -1,0 +1,29 @@
+{
+  "aiValidation": {
+    "valid": true,
+    "issues": []
+  },
+  "projectIssues": [
+    {
+      "level": "warning",
+      "message": "Task 'MathProbe_Count' hat 1 Actions aber kein FlowChart."
+    },
+    {
+      "level": "warning",
+      "message": "Task 'MathProbe_Right' hat 3 Actions aber kein FlowChart."
+    },
+    {
+      "level": "warning",
+      "message": "Task 'MathProbe_Wrong' hat 2 Actions aber kein FlowChart."
+    },
+    {
+      "level": "warning",
+      "message": "Task 'MathProbe_Reset' hat 1 Actions aber kein FlowChart."
+    },
+    {
+      "level": "warning",
+      "message": "Task 'MathProbe_EventParam' hat 1 Actions aber kein FlowChart."
+    }
+  ],
+  "operations": 31
+}

@@ -1,5 +1,6 @@
 import { ClientMessage, ServerMessage } from '../../game-server/src/Protocol';
 import { Logger } from '../utils/Logger';
+import { gameServerWs } from '../utils/ServerUrl';
 
 // const logger = Logger.get('MultiplayerManager');
 
@@ -39,16 +40,9 @@ export class MultiplayerManager {
     }
 
     private connect() {
-        // Use the same host but switch to WS protocol
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let host = window.location.hostname + (window.location.port ? `:${window.location.port}` : '');
-
-        // If we are on Vite dev server (5173), point WS to backend (8080)
-        if (window.location.port === '5173') {
-            host = window.location.hostname + ':8080';
-        }
-
-        const wsUrl = `${protocol}//${host}`;
+        // Zentraler URL-Vertrag: same-origin /ws/game in Produktion und
+        // Standalone, Entwicklungs-Backend :8080 unter dem Vite-Port 5173.
+        const wsUrl = gameServerWs();
 
         MultiplayerManager.logger.info(`Connecting to ${wsUrl}`);
         this.ws = new WebSocket(wsUrl);

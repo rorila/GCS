@@ -1,0 +1,32 @@
+# Git-/Arbeitsartefakte
+.git
+.gitignore
+*.log
+
+# Lokale Umgebung und Geheimnisse — niemals ins Image
+.env
+.env.*
+!.env.production.example
+
+# Node-Artefakte (werden im Build-Stage frisch installiert)
+node_modules
+dist
+game-server/node_modules
+game-server/dist
+
+# Laufzeitdaten und lokale Medien — gehören auf das Volume, nicht ins Image
+game-server/data
+game-server/tts
+uploaded_games
+tools
+test-data
+backups
+
+# Entwicklungs-/Testartefakte
+coverage
+playwright-report
+test-results
+*.md
+!README.md
+!docs/
+!docs/**

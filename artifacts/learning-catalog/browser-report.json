@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "realCms": true,
+  "houseAdmin": true,
+  "parentOverview": true,
+  "parentChild": true,
+  "filters": [
+    "state",
+    "grade",
+    "availability",
+    "search"
+  ],
+  "emptyAndReset": true,
+  "rowSelection": true,
+  "returnNavigation": true,
+  "childDenied": true,
+  "browserErrors": []
+}

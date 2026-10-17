@@ -20,6 +20,8 @@ import { ImageOptimizerTool } from '../tools/ImageTransparencyTool';
 import { AudioSequenceTool } from '../tools/AudioSequenceTool';
 import { AssetAnalyzerTool } from '../tools/AssetAnalyzerTool';
 import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
+import { gameServerHttp } from '../../utils/ServerUrl';
+import { StageOverviewDialog } from '../dialogs/StageOverviewDialog';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -65,6 +67,7 @@ export interface EditorMenuHost {
 export class EditorMenuManager {
     private static logger = Logger.get('EditorMenuManager', 'Inspector_Update');
     private host: EditorMenuHost;
+    private readonly stageOverview = new StageOverviewDialog();
 
     constructor(host: EditorMenuHost) {
         this.host = host;
@@ -187,6 +190,7 @@ export class EditorMenuManager {
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
             case 'import-stage': this.host.importStageFromFile(); break;
             case 'manage-stages': this.showStageManagerDialog(); break;
+            case 'stage-overview': this.stageOverview.show(this.host); break;
             case 'stage-duplicate':
                 if ((this.host as any).stageManager) (this.host as any).stageManager.duplicateStage();
                 break;
@@ -364,7 +368,7 @@ export class EditorMenuManager {
     }
 
     private openImageOptimizerTool(): void {
-        const tool = new ImageOptimizerTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        const tool = new ImageOptimizerTool(document.body, gameServerHttp('/api/upload/spritesheet'));
         tool.onExport = (result) => {
             invalidateMediaManifestCache();
             NotificationToast.show(`Bild '${result.fileName}' gespeichert.`, 'success');
@@ -388,7 +392,7 @@ export class EditorMenuManager {
     }
 
     private openVideoToSpriteSheetTool(): void {
-        const tool = new VideoToSpriteSheetTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        const tool = new VideoToSpriteSheetTool(document.body, gameServerHttp('/api/upload/spritesheet'));
         tool.onExport = (result) => this.handleSpriteSheetExport(result);
         tool.onError = (msg) => NotificationToast.show(msg, 'error');
         tool.open();
@@ -482,6 +486,7 @@ export class EditorMenuManager {
 
         // Base items for stage management
         const baseItems: MenuItem[] = [
+            { id: 'stage-overview', label: '🖼️ Stage-Übersicht', action: 'stage-overview' },
             { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
             { id: 'manage-stages', label: '📋 Stages verwalten...', action: 'manage-stages' },
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },

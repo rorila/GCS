@@ -72,16 +72,20 @@ function prepareAttempt(ctx,card){
  });
  return {...card,attemptId,learning:summary(ctx.core.db,card.childId)};
 }
-function answer(ctx,card,correct){
+function answer(ctx,card,correct,options={}){
+ // Only trusted server callers can supply a learning reason; request bodies
+ // cannot turn an arbitrary answer into an assisted result.
+ const assisted=['solutionShown','timedOut'].includes(options.reason);
  const b=ctx.body,db=ctx.core.db,s=ctx.session,attempt=card.learningAttempt;
  if(!attempt||attempt.id!==b.attemptId||attempt.playSessionId!==b.playSessionId)return fail(409,'Karte neu laden: Lernversuch ist nicht mehr gültig.');
- if(attempt.result){if(attempt.answer!==b.answer||attempt.correct!==correct)return fail(409,'Lernversuch bereits mit anderer Antwort gebucht.');return {...attempt.result,reused:true};}
+ if(attempt.result){if(attempt.answer!==b.answer||attempt.correct!==correct||attempt.reason!==options.reason)return fail(409,'Lernversuch bereits mit anderer Antwort gebucht.');return {...attempt.result,reused:true};}
  const ps=db.playSessions.find(p=>p.id===b.playSessionId&&p.childId===s.personId&&p.status==='active');
  if(!ps)return fail(403,'Aktive eigene Spielsitzung erforderlich.');
  if(card.box===6||signature(card)!==attempt.signature)return fail(409,'Karte wurde geändert oder ist bereits abgeschlossen. Bitte neu laden.');
  if(typeof correct!=='boolean')return fail(400,'Richtig/Falsch muss ausdrücklich angegeben werden.');
  const self=card.answerFormat==='self';
- if(!self){
+ if(assisted&&correct)return fail(400,'Eine angezeigte Lösung ist keine richtige Antwort.');
+ if(!self&&!assisted){
   if(typeof b.answer!=='string'||b.answer.length>500)return fail(400,'Antworttext fehlt oder ist zu lang.');
   const checked=checkCardAnswer(b.answer,card.answers);
   if(!checked.valid)return fail(400,'Antwort nicht eindeutig erkannt. Bitte erneut antworten.');
@@ -104,7 +108,7 @@ function answer(ctx,card,correct){
   // Ledgerzeile 'led-…'). Liegt im gespeicherten Versuchsergebnis und wird
   // bei idempotenter Wiederholung unveraendert zurueckgegeben.
   const result={ok:true,box:toBox,previousBox:fromBox,mastered:toBox===6,pointsDelta:learningDelta,learning,learningEventId:eventId,verification:self?'reported':'verified',message:toBox===6?'Abgeschlossen — Karte bleibt in Fach 6.':correct?'Richtig — Fach '+toBox:fromBox===1?'Karte bleibt in Fach 1.':'Zurück in Fach 1.'};
-  c.learningAttempt={...c.learningAttempt,answer:b.answer,correct,result};
+  c.learningAttempt={...c.learningAttempt,answer:b.answer,correct,reason:options.reason,result};
   return result;
  });
 }

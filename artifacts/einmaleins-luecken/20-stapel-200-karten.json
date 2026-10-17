@@ -1,0 +1,4107 @@
+{
+  "author": "Wiebke",
+  "decks": [
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "name": "Kleines 1×1 · 1 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "name": "Kleines 1×1 · 2 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "name": "Kleines 1×1 · 3 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "name": "Kleines 1×1 · 4 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "name": "Kleines 1×1 · 5 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "name": "Kleines 1×1 · 6 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "name": "Kleines 1×1 · 7 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "name": "Kleines 1×1 · 8 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "name": "Kleines 1×1 · 9 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "name": "Kleines 1×1 · 10 × ?",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: zweiten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "name": "Kleines 1×1 · ? × 1",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "name": "Kleines 1×1 · ? × 2",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "name": "Kleines 1×1 · ? × 3",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "name": "Kleines 1×1 · ? × 4",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "name": "Kleines 1×1 · ? × 5",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "name": "Kleines 1×1 · ? × 6",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "name": "Kleines 1×1 · ? × 7",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "name": "Kleines 1×1 · ? × 8",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "name": "Kleines 1×1 · ? × 9",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "name": "Kleines 1×1 · ? × 10",
+      "subject": "Mathe",
+      "description": "Kleines Einmaleins: ersten Faktor ergänzen. Zehn Aufgaben mit jeweils zwei falschen Antworten.",
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 1",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 2",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 3",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 4",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 5",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 6",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 7",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 8",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 9",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-1",
+      "question": "1 × ? = 10",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 1 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 2",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 4",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 6",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 8",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 10",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 12",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 14",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 16",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 18",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-2",
+      "question": "2 × ? = 20",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 2 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 3",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 6",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 9",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 12",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 15",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 18",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 21",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 24",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 27",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-3",
+      "question": "3 × ? = 30",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 3 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 4",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 8",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 12",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 16",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 20",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 24",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 28",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 32",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 36",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-4",
+      "question": "4 × ? = 40",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 4 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 5",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 10",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 15",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 20",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 25",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 30",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 35",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 40",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 45",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-5",
+      "question": "5 × ? = 50",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 5 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 6",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 12",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 18",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 24",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 30",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 36",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 42",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 48",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 54",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-6",
+      "question": "6 × ? = 60",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 6 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 7",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 14",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 21",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 28",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 35",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 42",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 49",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 56",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 63",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-7",
+      "question": "7 × ? = 70",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 7 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 8",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 16",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 24",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 32",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 40",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 48",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 56",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 64",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 72",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-8",
+      "question": "8 × ? = 80",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 8 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 9",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 18",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 27",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 36",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 45",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 54",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 63",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 72",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 81",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-9",
+      "question": "9 × ? = 90",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 9 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 10",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 20",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 30",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 40",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 50",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 60",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 70",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 80",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 90",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-second-10",
+      "question": "10 × ? = 100",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · 10 × ?",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 1",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 2",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 3",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 4",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 5",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 6",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 7",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 8",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 9",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-1",
+      "question": "? × 1 = 10",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 1",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 2",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 4",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 6",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 8",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 10",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 12",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 14",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 16",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 18",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-2",
+      "question": "? × 2 = 20",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 2",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 3",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 6",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 9",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 12",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 15",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 18",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 21",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 24",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 27",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-3",
+      "question": "? × 3 = 30",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 3",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 4",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 8",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 12",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 16",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 20",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 24",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 28",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 32",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 36",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-4",
+      "question": "? × 4 = 40",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 4",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 5",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 10",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 15",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 20",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 25",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 30",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 35",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 40",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 45",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-5",
+      "question": "? × 5 = 50",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 5",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 6",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 12",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 18",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 24",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 30",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 36",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 42",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 48",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 54",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-6",
+      "question": "? × 6 = 60",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 6",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 7",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 14",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 21",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 28",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 35",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 42",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 49",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 56",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 63",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-7",
+      "question": "? × 7 = 70",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 7",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 8",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 16",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 24",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 32",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 40",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 48",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 56",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 64",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 72",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-8",
+      "question": "? × 8 = 80",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 8",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 9",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 18",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 27",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 36",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 45",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 54",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 63",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 72",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 81",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-9",
+      "question": "? × 9 = 90",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 9",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-1",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 10",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-2",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 20",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-3",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 30",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-4",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 40",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-5",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 50",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "6"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-6",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 60",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-7",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 70",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-8",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 80",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-9",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 90",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    },
+    {
+      "id": "card-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10-10",
+      "deckId": "deck-einmaleins-luecke-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-first-10",
+      "question": "? × 10 = 100",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "subject": "Mathe",
+      "topic": "Kleines 1×1 · ? × 10",
+      "answerFormat": "text",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-15T17:58:26.421Z",
+      "updatedAt": "2026-10-15T17:58:26.421Z"
+    }
+  ]
+}

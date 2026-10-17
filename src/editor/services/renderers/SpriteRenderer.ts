@@ -5,6 +5,7 @@ import { SpriteGeometry } from '../../../runtime/SpriteGeometry';
 import { ImageMetaCache } from '../../../runtime/ImageMetaCache';
 import { PuzzlePieceRenderer } from './PuzzlePieceRenderer';
 import { Logger } from '../../../utils/Logger';
+import { normalizeImageSource } from '../../../utils/ImageSource';
 
 const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
 
@@ -113,12 +114,7 @@ export class SpriteRenderer {
                 } else {
                     bgImg = resolveSrc(obj.backgroundImage || '');
                 }
-                src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
-                    ? bgImg
-                    : `./images/${bgImg}`;
-                if (src.startsWith('/images/') || src.startsWith('/audio/')) {
-                    src = '.' + src;
-                }
+                src = normalizeImageSource(bgImg);
             }
 
             // ── DIAGNOSE: Pfad-Auflösung ──
@@ -146,7 +142,14 @@ export class SpriteRenderer {
                     (imgEl as HTMLVideoElement).onerror = () => { imgEl.style.display = 'none'; };
                 } else {
                     imgEl = document.createElement('img');
-                    (imgEl as HTMLImageElement).onerror = () => { imgEl.style.display = 'none'; };
+                    (imgEl as HTMLImageElement).onload = () => {
+                        imgEl.style.display = '';
+                        if (ctx.host.runMode && obj.events?.onImageReady) ctx.host.onEvent?.(obj.id, 'onImageReady');
+                    };
+                    (imgEl as HTMLImageElement).onerror = () => {
+                        imgEl.style.display = 'none';
+                        if (ctx.host.runMode && obj.events?.onImageError) ctx.host.onEvent?.(obj.id, 'onImageError');
+                    };
                     imgEl.style.willChange = 'transform';
                     imgEl.style.backfaceVisibility = 'hidden';
                 }
@@ -301,7 +304,9 @@ export class SpriteRenderer {
                 videoEl.style.display = '';
             } else {
                 const imgNode = imgEl as HTMLImageElement;
-                if (imgNode.getAttribute('src') !== src) {
+                const reloadVersion = String(obj.imageReloadVersion || 0);
+                if (imgNode.getAttribute('src') !== src || imgNode.dataset.reloadVersion !== reloadVersion) {
+                    imgNode.dataset.reloadVersion = reloadVersion;
                     imgNode.src = src;
                     imgNode.style.display = '';
                 }

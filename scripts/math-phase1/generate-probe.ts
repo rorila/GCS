@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {buildInterfaceProbe} from './build-interface-probe';
+const result=buildInterfaceProbe();
+assert.equal(result.aiValidation.valid,true,JSON.stringify(result.aiValidation.issues));
+assert.equal(result.projectIssues.filter(i=>i.level==='error').length,0,JSON.stringify(result.projectIssues));
+const directory=path.resolve('artifacts/math-phase1');fs.mkdirSync(directory,{recursive:true});
+for(const [name,data] of [['GCS-Mathe-Schnittstellenprobe.json',result.project],['Schnittstellenprobe.agent.json',result.script],['build-report.json',{aiValidation:result.aiValidation,projectIssues:result.projectIssues,operations:result.script.operations.length}]])fs.writeFileSync(path.join(directory,name as string),JSON.stringify(data,null,2)+'\n');
+console.log(JSON.stringify({directory,operations:result.script.operations.length,aiValid:result.aiValidation.valid,projectIssues:result.projectIssues}));

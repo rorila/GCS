@@ -107,6 +107,7 @@ export * from './TServerResponse';
 
 export * from './TServerSession';
 export * from './TServerQuery';
+export * from './TServerSql';
 export * from './TServerStore';
 export * from './TServerAccess';
 

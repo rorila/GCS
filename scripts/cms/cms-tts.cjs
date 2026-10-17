@@ -34,7 +34,7 @@ function createTtsService({ core, launches, store, cacheDirectory = path.join(__
       && ps.gameId === launch.gameId && core.can(session, 'play', { game, areaId: launch.areaId }) ? session.personId : null;
   }
   async function bodyOf(req) {
-    if (req.headers.origin !== `http://${req.headers.host}`) throw Object.assign(new Error('Ungültiger Anfrageursprung.'), { status: 403 });
+    if (!require('./cms-http-guard.cjs').createHttpGuards().originOk(req)) throw Object.assign(new Error('Ungültiger Anfrageursprung.'), { status: 403 });
     if (req.method !== 'POST') throw Object.assign(new Error('Methode nicht unterstützt.'), { status: 405 });
     if (!(req.headers['content-type'] || '').startsWith('application/json')) throw Object.assign(new Error('JSON erforderlich.'), { status: 415 });
     let bytes = 0, chunks = [];

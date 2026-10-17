@@ -5,7 +5,7 @@ function renderCms(file,stageId='stage_main',initialVariables={}){const project=
  // Server configurations are edited in this same file, but never hydrated in the browser.
  project.stages=project.stages.filter(s=>!s.id.startsWith('stage_server_'));
  for(const s of project.stages)for(const v of s.variables||[])if(Object.prototype.hasOwnProperty.call(initialVariables,v.name)){v.value=initialVariables[v.name];v.defaultValue=initialVariables[v.name];}
- return '<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GCS CMS</title><style>html,body{margin:0;overflow:hidden}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+JSON.stringify(project).replace(/</g,'\\u003c')+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script><script src="/cms-shell.js"></script></html>';}
+ return '<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GCS CMS</title><style>html,body{margin:0;overflow:hidden}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.__gcsCmsHost=true;window.PROJECT='+JSON.stringify(project).replace(/</g,'\\u003c')+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script><script src="/cms-shell.js"></script></html>';}
 /** Referenz-Integrität: prüft die Verdrahtung des Plans, nie das Verhalten.
  *  Editor und Tests teilen sich diese Funktion — lose Kabel werden sichtbar,
  *  ohne dass Flows eingefroren werden.
@@ -20,19 +20,20 @@ function checkIntegrity(project){
  // im Kontext der Ziel-Stage (z.B. Act_Zur_Galerie_Wechseln -> task:Raeume).
  // Deshalb gilt fuer Oberflaechen die globale Namensmenge; nur Server-Stages
  // werden strikt lokal geprueft (die Runtime merged dort nichts).
+ const flatten=objects=>(objects||[]).flatMap(o=>[o,...flatten(o.children)]);
  const globalTasks=new Set(),globalActions=new Set(),globalObjects=new Map();
  for(const s of project.stages||[]){
   for(const t of s.tasks||[])globalTasks.add(t.name);
   for(const a of s.actions||[])globalActions.add(a.name);
-  for(const o of s.objects||[])globalObjects.set(o.name,o);
+  for(const o of flatten(s.objects))globalObjects.set(o.name,o);
  }
  for(const t of project.tasks||[])globalTasks.add(t.name);
  for(const a of project.actions||[])globalActions.add(a.name);
- for(const o of project.objects||[])globalObjects.set(o.name,o);
+ for(const o of flatten(project.objects))globalObjects.set(o.name,o);
  for(const stage of project.stages||[]){
   const sid=stage.id||stage.name||'?';
   const issue=(level,message)=>issues.push({stage:sid,level,message});
-  const objects=stage.objects||[],tasks=stage.tasks||[],actions=stage.actions||[];
+  const objects=flatten(stage.objects),tasks=stage.tasks||[],actions=stage.actions||[];
   const isServer=objects.some(o=>o.className==='TServerEndpoint');
   const lvl=isServer?'fehler':'warnung';
   const ids=new Set();

@@ -1,0 +1,13 @@
+import http from 'node:http';import fs from 'node:fs';
+const source=JSON.parse(fs.readFileSync('game-server/public/projects/Karteikasten-Quiz.json','utf8'));const queue=[{id:'a',question:'8 × 7',answers:['56']},{id:'b',question:'6 + 6',answers:['12']}];const calls=[];
+for(const s of source.stages)for(const v of s.variables||[])if(v.name==='CMS_LAUNCH')v.value='local-quiz';
+const learning={totalPoints:0,completedCards:0,promotions:0,resets:0,revision:0,modeRevision:0,mode:'progress',rewards:[]};
+const server=http.createServer(async(req,res)=>{
+ if(req.url==='/runtime-standalone.js'){res.setHeader('Content-Type','text/javascript');return res.end(fs.readFileSync('public/runtime-standalone.js'));}
+ if(req.url==='/__test/state'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(calls));}
+ if(req.method==='POST'){let raw='';for await(const c of req)raw+=c;const b=JSON.parse(raw||'{}');calls.push(b);res.setHeader('Content-Type','application/json');if(req.url==='/api/tts'){res.statusCode=503;return res.end(JSON.stringify({ok:false,error:'Lokale Prüfung ohne Audio'}));}let out={ok:true,learning};
+ if(b.action==='cardNext'){const card=queue.find(c=>!String(b.excludeIds||'').split(',').includes(c.id));out={ok:true,...(card?{card:{...card,attemptId:'attempt-'+calls.length,box:1,subject:'Mathe',topic:'Rechnen',answerFormat:'text',deckName:'Rechnen bis 100',deckSubject:'Mathe',deckOwnerName:'Wiebke',learning}}:{empty:true}),learning};}
+ if(b.action==='cardAnswer'&&!b.correct){const index=queue.findIndex(c=>c.id===b.cardId);queue.push(...queue.splice(index,1));}
+ return res.end(JSON.stringify(out));}
+ res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Quizkarte – isolierte Prüfung</title><style>body{margin:0;background:#122b39}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><output id="flip-proof" style="position:fixed;bottom:0;left:0;color:#9bb;font:10px system-ui">Test: noch keine Wendebewegung</output><script>window.PROJECT='+JSON.stringify(source).replaceAll('<','\\u003c')+'</script><script src="/runtime-standalone.js"></script><script>window.startStandalone(window.PROJECT);const samples=new Set();new MutationObserver(()=>{const el=document.querySelector("[data-id=quiz_paper_QuizKarte]");if(el?.style.transform.startsWith("scaleX")){samples.add(el.style.transform);document.getElementById("flip-proof").textContent="Test: "+[...samples].join(" / ");}}).observe(document.getElementById("run-stage"),{subtree:true,attributes:true,attributeFilter:["style"]})</script></html>');});
+server.listen(0,'127.0.0.1',()=>console.log('QUIZ http://localhost:'+server.address().port));

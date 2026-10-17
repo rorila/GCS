@@ -183,11 +183,11 @@ const withGuard=(n,inner)=>{const g=guard(n);g[1].then=inner;return g;};
  pactions.push(
   n.act('Mitgliedschaft','Datenbestand','exists',[{entity:'memberships',where:{personId:'$session.personId',areaId:'$body.areaId',active:true}}],'Mitglied'),
   n.act('RaumAktiv','Datenbestand','exists',[{entity:'areas',where:{id:'$body.areaId',type:'room',_activeChain:true}}],'RaumAktiv'),
-  n.act('Laden','Datenbestand','gamesFor',['$body.areaId'],'Spiele'),
+  n.act('Laden','Datenbestand','gamesFor',['$body.areaId','$body.includeParty'],'Spiele'),
   n.act('Seite','Datenbestand','page',[{items:'${Spiele.items}',page:'$body.page',
    fields:{id:'$item.id',label:{concat:['$item.avatar','  ','$item.title']},visible:true},
    message:'${Spiele.message}'}],'Seite'),
-  n.act('Antworten','AntwortSenden','send',[{merge:'${Seite}'}]),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Seite}',items:'${Spiele.items}'}]),
   n.act('FehlerRaum','AntwortSenden','fail',[403,'⛔ Raum nicht freigegeben']));
 }
 
@@ -202,7 +202,7 @@ const withGuard=(n,inner)=>{const g=guard(n);g[1].then=inner;return g;};
  pactions.push(
   n.act('Starten','SpielStart','launchGame',[],'Launch'),
   n.act('Antworten','AntwortSenden','send',[{merge:'${Launch}'}]),
-  n.act('FehlerStart','AntwortSenden','fail',['${Launch.status}','${Launch.message}']));
+  n.act('FehlerStart','AntwortSenden','fail',['${Launch.status}','${Launch.message}',{conflict:'${Launch.conflict}'}]));
 }
 
 const childRoomGuard=n=>withGuard(n,[

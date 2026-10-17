@@ -32,13 +32,16 @@ const uploads=project.stages.find(s=>s.id==='stage_server_uploads');
 if(!uploads)throw Error('stage_server_uploads fehlt');
 if(uploads.generatedBy&&uploads.generatedBy!==BUILDER){console.log('stage_server_uploads wurde im Editor verändert — Abbruch.');process.exit(1);}
 const gameNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='game'),
-      avatarNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='avatar');
+      avatarNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='avatar'),
+      residentAvatarNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='resident-avatar')
+       ||comp('TServerUpload','BewohnerAvatarUploadVerarbeiten',{kind:'resident-avatar',maxBytes:2097152,successMessage:'Hausbewohner angelegt.',failureMessage:'Avatarbild ungültig.',x:2,y:22});
 if(!gameNode||!avatarNode)throw Error('Upload-Stage: TServerUpload-Komponenten fehlen');
 uploads.objects=mergeByName(uploads.objects,[
  comp('TServerEndpoint','BibliothekEmpfangen',{endpointPath:'/api/cms/upload-library',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Server_Bibliothek_Verarbeiten'},x:16,y:2}),
  comp('TServerEndpoint','SpielUploadEmpfangen',{endpointPath:'/api/cms/upload/game',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Spiel_Upload_Verarbeiten'},x:16,y:6}),
  comp('TServerEndpoint','AvatarUploadEmpfangen',{endpointPath:'/api/cms/upload/avatar',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Avatar_Upload_Verarbeiten'},x:16,y:10}),
- gameNode,avatarNode,
+ comp('TServerEndpoint','BewohnerAvatarUploadEmpfangen',{endpointPath:'/api/cms/upload/resident-avatar',httpMethod:'POST',traceEnabled:true,events:{onRequest:'BewohnerAvatar_Upload_Verarbeiten'},x:16,y:14}),
+ gameNode,avatarNode,residentAvatarNode,
  comp('TServerSession','Sitzung',{x:2,y:2}),
  comp('TServerQuery','BibliothekDaten',{x:2,y:7}),
  comp('TServerAccess','BibliothekSpeichern',{x:2,y:12}),
@@ -83,6 +86,14 @@ uploads.objects=mergeByName(uploads.objects,[
     n.cond('Berechtigt?','Pruefung.ok','==',false,[n.call('FehlerRolleKonto')],[]),
     n.call('AvatarVerarbeiten'),
     n.cond('Verarbeitung gelungen?','Ergebnis.ok','==',true,[n.call('UploadAntworten')],[n.call('FehlerDatei')])
+   ]},
+  {id:uid('srv_task'),name:'BewohnerAvatar_Upload_Verarbeiten',scope:'stage',
+   description:'Verwaltungssitzung → Hausberechtigung + Bewohnerdaten + Bild prüfen → Datei + Bewohneranlage speichern',
+   actionSequence:[
+    n.call('RolleVerwaltung'),
+    n.cond('Berechtigt?','Pruefung.ok','==',false,[n.call('FehlerRolleVerwaltung')],[]),
+    n.call('BewohnerAvatarVerarbeiten'),
+    n.cond('Verarbeitung gelungen?','Ergebnis.ok','==',true,[n.call('UploadAntworten')],[n.call('FehlerDatei')])
    ]}
  ]);
  uploads.actions=mergeByName(uploads.actions,[
@@ -91,6 +102,8 @@ uploads.objects=mergeByName(uploads.objects,[
   n.act('FehlerRolle','AntwortSenden','fail',[403,'${Pruefung.message}']),
   n.act('RolleKonto','Sitzung','requireRole',['account'],'Pruefung'),
   n.act('FehlerRolleKonto','AntwortSenden','fail',[403,'${Pruefung.message}']),
+  n.act('RolleVerwaltung','Sitzung','requireRole',['admin'],'Pruefung'),
+  n.act('FehlerRolleVerwaltung','AntwortSenden','fail',['${Pruefung.status}','${Pruefung.message}']),
   n.act('SpielLaden','BibliothekDaten','find',[{entity:'games',where:{id:'$body.id',ownerId:'$session.personId',file:{truthy:true}}}],'Spiel'),
   n.act('FehlerDateiNichtBereit','AntwortSenden','fail',[409,'Für dieses Spiel ist noch keine GCS-Datei hochgeladen.']),
   n.act('Veroeffentlichen','BibliothekSpeichern','publishGame',[],'Veroeffentlicht'),
@@ -101,6 +114,7 @@ uploads.objects=mergeByName(uploads.objects,[
   n.act('Liste','BibliothekDaten','libraryList',[],'Liste'),
   n.act('SpielVerarbeiten','SpielUploadVerarbeiten','process',[],'Ergebnis'),
   n.act('AvatarVerarbeiten','AvatarUploadVerarbeiten','process',[],'Ergebnis'),
+  n.act('BewohnerAvatarVerarbeiten','BewohnerAvatarUploadVerarbeiten','process',[],'Ergebnis'),
   n.act('Antworten','AntwortSenden','send',[{merge:'${Liste}'}]),
   n.act('UploadAntworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
   n.act('FehlerDatei','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}'])

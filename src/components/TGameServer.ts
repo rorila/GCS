@@ -2,8 +2,12 @@
 import { TWindow } from './TWindow';
 import { network } from '../multiplayer';
 import { Logger } from '../utils/Logger';
+import { gameServerWs } from '../utils/ServerUrl';
 
 const logger = Logger.get('TGameServer');
+// Default des alten Standalone-Entwicklungsservers — wird beim Verbinden
+// auf den aktuellen Origin aufgelöst (same-origin /ws/game bzw. :8080).
+const LEGACY_SERVER_URL = 'ws://localhost:8080';
 
 /**
  * TGameServer - A stage-placeable component that manages multiplayer server connection.
@@ -11,7 +15,7 @@ const logger = Logger.get('TGameServer');
  */
 export class TGameServer extends TWindow implements IRuntimeComponent {
     // Connection settings
-    public serverUrl: string = 'ws://localhost:8080';
+    public serverUrl: string = '';
     public autoConnect: boolean = false;
 
     // Runtime state (not persisted)
@@ -96,8 +100,11 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
      */
     public async connect(): Promise<void> {
         try {
-            // Configure server URL before connecting
-            (network as any).serverUrl = this.serverUrl;
+            // Configure server URL before connecting — leer oder der alte
+            // Localhost-Default wird same-origin/proxyfähig aufgelöst.
+            (network as any).serverUrl = this.serverUrl && this.serverUrl !== LEGACY_SERVER_URL
+                ? this.serverUrl
+                : gameServerWs();
 
             await network.connect();
             this._connected = true;

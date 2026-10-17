@@ -19,6 +19,7 @@ import { ObjectListPickerDialog } from './ObjectListPickerDialog';
 import { projectStore } from '../../services/ProjectStore';
 import { ActionRegistry } from '../../runtime/ActionRegistry';
 import { generateImageSplitterPieces } from './ImageSplitterActions';
+import { StageInterfaceDialog } from '../dialogs/StageInterfaceDialog';
 
 const logger = Logger.get('InspectorActionHandler');
 
@@ -48,6 +49,9 @@ export class InspectorActionHandler {
         InspectorActionHandler.logger.debug(`Executing action: ${action}`);
 
         switch (action) {
+            case 'editStageInterface':
+                new StageInterfaceDialog().show(this.project, selectedObject, () => { void this.host.update(selectedObject); });
+                break;
             case 'save':
                 this.handleSave();
                 break;

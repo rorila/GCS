@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="360" viewBox="0 0 560 360">
+  <defs>
+    <pattern id="squares" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#b9cdd9" stroke-width=".7"/></pattern>
+    <pattern id="major" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0V100" fill="none" stroke="#9cb6c9" stroke-width=".9"/></pattern>
+  </defs>
+  <rect x="1" y="1" width="558" height="358" rx="8" fill="#fffefa" stroke="#e1c9cf" stroke-width="2"/>
+  <path d="M2 12V348M558 12V348" stroke="#e3a9b8" stroke-width="2"/>
+  <rect x="13" y="30" width="534" height="303" fill="url(#squares)"/>
+  <rect x="13" y="30" width="534" height="303" fill="url(#major)"/>
+  <g fill="none" stroke="#2e6094" stroke-width="2.5">
+    <path d="M13 23V12H24M536 12H547V23M13 337V348H24M536 348H547V337"/>
+  </g>
+  <g fill="#2e6094"><rect x="17" y="16" width="4" height="4"/><rect x="539" y="16" width="4" height="4"/><rect x="17" y="340" width="4" height="4"/><rect x="539" y="340" width="4" height="4"/><circle cx="272" cy="346" r="2"/><circle cx="280" cy="346" r="2"/><circle cx="288" cy="346" r="2"/></g>
+</svg>

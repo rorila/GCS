@@ -1,0 +1,710 @@
+{
+  "version": 1,
+  "author": "Wiebke",
+  "decks": [
+    {
+      "id": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "name": "Anzahlen 1–5",
+      "subject": "Mathe",
+      "description": "Bilder zählen von 1 bis 5. Zwei Bildvarianten je Anzahl; eine richtige und zwei falsche Antworten. Lernziel: Zahlen darstellen und vergleichen (Teilbereich Anzahlen erfassen).",
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "taskTypes": [
+        "count-images"
+      ],
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "name": "Anzahlen 5–10",
+      "subject": "Mathe",
+      "description": "Bilder zählen von 5 bis 10. Zwei Bildvarianten je Anzahl; eine richtige und zwei falsche Antworten. Lernziel: Zahlen darstellen und vergleichen (Teilbereich Anzahlen erfassen).",
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "taskTypes": [
+        "count-images"
+      ],
+      "ownerType": "account",
+      "ownerId": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "houseId": "house-fc822466-1669-4f2c-a53e-08887edeb7c7",
+      "published": false,
+      "pendingApproval": false,
+      "assignedChildIds": [],
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-1-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 1,
+        "layoutSeed": 2
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-1-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "1"
+      ],
+      "wrongAnswers": [
+        "2",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 1,
+        "layoutSeed": 3
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-2-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 2,
+        "layoutSeed": 4
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-2-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Papageien siehst du?",
+      "answers": [
+        "2"
+      ],
+      "wrongAnswers": [
+        "1",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "parrot",
+        "count": 2,
+        "layoutSeed": 5
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-3-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Papageien siehst du?",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "parrot",
+        "count": 3,
+        "layoutSeed": 6
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-3-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Füchse siehst du?",
+      "answers": [
+        "3"
+      ],
+      "wrongAnswers": [
+        "2",
+        "4"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "fox",
+        "count": 3,
+        "layoutSeed": 7
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-4-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Füchse siehst du?",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "fox",
+        "count": 4,
+        "layoutSeed": 8
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-4-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "4"
+      ],
+      "wrongAnswers": [
+        "3",
+        "5"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 4,
+        "layoutSeed": 9
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-5-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 5,
+        "layoutSeed": 10
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5-5-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-1-5",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "4",
+        "3"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 1–5",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 5,
+        "layoutSeed": 11
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-5-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "6",
+        "7"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 5,
+        "layoutSeed": 10
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-5-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "5"
+      ],
+      "wrongAnswers": [
+        "6",
+        "7"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 5,
+        "layoutSeed": 11
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-6-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 6,
+        "layoutSeed": 12
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-6-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Papageien siehst du?",
+      "answers": [
+        "6"
+      ],
+      "wrongAnswers": [
+        "5",
+        "7"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "parrot",
+        "count": 6,
+        "layoutSeed": 13
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-7-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Papageien siehst du?",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "parrot",
+        "count": 7,
+        "layoutSeed": 14
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-7-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Füchse siehst du?",
+      "answers": [
+        "7"
+      ],
+      "wrongAnswers": [
+        "6",
+        "8"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "fox",
+        "count": 7,
+        "layoutSeed": 15
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-8-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Füchse siehst du?",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "fox",
+        "count": 8,
+        "layoutSeed": 16
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-8-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "8"
+      ],
+      "wrongAnswers": [
+        "7",
+        "9"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 8,
+        "layoutSeed": 17
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-9-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Elefanten siehst du?",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "elephant",
+        "count": 9,
+        "layoutSeed": 18
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-9-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "9"
+      ],
+      "wrongAnswers": [
+        "8",
+        "10"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 9,
+        "layoutSeed": 19
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-10-0",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Pandas siehst du?",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "panda",
+        "count": 10,
+        "layoutSeed": 20
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    },
+    {
+      "id": "card-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10-10-1",
+      "deckId": "deck-counting-person-49c71416-cdbc-48bd-94c8-d142f6e212b0-5-10",
+      "question": "Wie viele Papageien siehst du?",
+      "answers": [
+        "10"
+      ],
+      "wrongAnswers": [
+        "9",
+        "8"
+      ],
+      "answerFormat": "text",
+      "subject": "Mathe",
+      "topic": "Anzahlen 5–10",
+      "taskType": "count-images",
+      "presentation": {
+        "version": 1,
+        "assetId": "parrot",
+        "count": 10,
+        "layoutSeed": 21
+      },
+      "objectiveIds": [
+        "by.gs.math.12.area.1.1"
+      ],
+      "hint": "Zähle jedes Bild genau einmal. Beginne oben links und zähle Reihe für Reihe.",
+      "createdBy": "person-49c71416-cdbc-48bd-94c8-d142f6e212b0",
+      "active": true,
+      "createdAt": "2026-10-16T15:06:39.367Z",
+      "updatedAt": "2026-10-16T15:06:39.367Z"
+    }
+  ]
+}

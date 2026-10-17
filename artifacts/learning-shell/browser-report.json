@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "uploadedZip": true,
+  "isolatedPanes": true,
+  "unchangedCellSize": true,
+  "wrongAnswerNoReward": true,
+  "onePartPerAnswer": true,
+  "invalidDropKeepsCredit": true,
+  "dragAtReducedScale": true,
+  "duplicateNoReward": true,
+  "mobileTabs": true,
+  "goalEndsRound": true,
+  "pendingReloadNoDoubleLearning": true,
+  "freeModeSameStage": true,
+  "voiceHardwareTested": false,
+  "browserErrors": [],
+  "cspErrors": []
+}

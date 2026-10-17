@@ -1,0 +1,1595 @@
+{
+  "meta": {
+    "name": "UfoShoter4",
+    "version": "1.0",
+    "author": "Antigravity",
+    "description": "",
+    "_sourcePath": "projects/UfoShoter4.json"
+  },
+  "globals": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "variables": [
+        {
+          "className": "TIntegerVariable",
+          "name": "score",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "number",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "objects": [
+        {
+          "id": "game_loop",
+          "name": "GameLoop",
+          "className": "TGameLoop"
+        },
+        {
+          "id": "obj_1778078189689_ku2xm95ca",
+          "name": "ImageBase64List",
+          "className": "TStringMap"
+        },
+        {
+          "id": "44ea9704-9133-443e-9ae5-da01e9608a58",
+          "name": "KanonenTemplateBreite",
+          "className": "TVariable"
+        },
+        {
+          "id": "35ad891e-fc1f-4ec0-bbf2-7578c6dbb044",
+          "name": "KanonenTemplateHoehe",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778166396523_i3n2poccb",
+          "name": "KanonenBasisXPos",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778166423969_ch4resxyp",
+          "name": "KanonenBasisYPos",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778177527680_5hv5tgzi8",
+          "name": "UfoTemplateXOffset",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778509803973_dpofxet4k",
+          "name": "CurrSpriteName",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778509970925_oe2ytsndx",
+          "name": "CurrCannonCount",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778602644962_ta3gauggs",
+          "name": "StickyNote_39",
+          "className": "TStickyNote"
+        },
+        {
+          "id": "obj_1778603167028_djwvhh3uv",
+          "name": "MaxCannons",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778603514991_vdou2ahnb",
+          "name": "MaxUfos",
+          "className": "TVariable"
+        },
+        {
+          "id": "obj_1778603643792_vfj7hu6ho",
+          "name": "StickyNote_38",
+          "className": "TStickyNote"
+        },
+        {
+          "id": "fd84a0fb-7812-478c-b535-02d79dce4bdc",
+          "name": "CreateSpritesTimer",
+          "className": "TTimer",
+          "events": {
+            "onTimer": "UfoTimerSendetNeuesUfo"
+          }
+        },
+        {
+          "id": "58868dab-b5ee-4c1f-865c-cd7c5e4bb9f7",
+          "name": "SchussTimer",
+          "className": "TTimer",
+          "events": {
+            "onTimer": "UfoSchiesst"
+          }
+        },
+        {
+          "id": "a0f3a428-b323-4f66-836f-b66a0a1301e4",
+          "name": "KanonenTemplateTimer",
+          "className": "TTimer",
+          "events": {
+            "onTimer": "ZeigeRestKanonenAn"
+          }
+        },
+        {
+          "id": "obj_1778603871946_04iaaj1c3",
+          "name": "StickyNote_39",
+          "className": "TStickyNote"
+        },
+        {
+          "id": "534a3b84-3890-4b74-be96-04c87d095b48",
+          "name": "aud_schuss",
+          "className": "TAudio"
+        },
+        {
+          "id": "f7cccb75-47f9-4b00-8ee9-4d264fb0eec7",
+          "name": "aud_Treffer",
+          "className": "TAudio"
+        },
+        {
+          "id": "obj_1778604047159_mas65sk2p",
+          "name": "StickyNote_39",
+          "className": "TStickyNote"
+        },
+        {
+          "id": "obj_1778608102757_utr42rhgp",
+          "name": "Null",
+          "className": "TVariable"
+        }
+      ],
+      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1778756098513",
+          "details": "",
+          "type": "show_toast",
+          "name": "Act_ShowTheGameEndInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "toastType": "info",
+          "message": "Spiel beendet"
+        }
+      ]
+    },
+    {
+      "id": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
+      "name": "Level2",
+      "type": "standard",
+      "variables": [],
+      "objects": [
+        {
+          "id": "obj_import_1778766554175_vx6n",
+          "name": "BulletTemplate",
+          "className": "TSpriteTemplate",
+          "events": {
+            "onCollision": "KanonenKugelTrifftZiel",
+            "onBoundaryHit": "KanonenKugelTrifftRand"
+          }
+        },
+        {
+          "id": "obj_import_1778766554175_vzrm",
+          "name": "Kanone",
+          "className": "TSprite",
+          "events": {
+            "onBoundaryHit": "KanoneTrifftRand",
+            "onCollision": "KanoneWirdGetroffen"
+          }
+        },
+        {
+          "id": "obj_import_1778766554175_ru83",
+          "name": "ScoreLabel",
+          "className": "TLabel"
+        },
+        {
+          "id": "obj_import_1778766554175_cp36",
+          "name": "InputController",
+          "className": "TInputController",
+          "events": {
+            "onKeyDown_ArrowLeft": "KanoneBewegtSichNachLinks",
+            "onKeyDown_ArrowRight": "KanoneBewegtSichNachRechts",
+            "onKeyUp_ArrowLeft": "KanoneTrifftRand",
+            "onKeyUp_ArrowRight": "KanoneTrifftRand",
+            "onKeyDown_Space": "KanoneSchiesst"
+          }
+        },
+        {
+          "id": "obj_import_1778766554175_p3nq",
+          "name": "VirtualGamepad_11",
+          "className": "TVirtualGamepad"
+        },
+        {
+          "id": "obj_import_1778766554175_39nn",
+          "name": "UfoBasis",
+          "className": "TPanel"
+        },
+        {
+          "id": "obj_import_1778766554175_2qlw",
+          "name": "UfoTemplate",
+          "className": "TSpriteTemplate",
+          "events": {
+            "onCollision": "UfoWirdGetroffen",
+            "onBoundaryHit": "UfoTriffRand"
+          }
+        },
+        {
+          "id": "obj_import_1778766554175_qa97",
+          "name": "UfoBulletTemplate",
+          "className": "TSpriteTemplate"
+        },
+        {
+          "id": "obj_import_1778766554175_14zs",
+          "name": "KanonenTemplate",
+          "className": "TSpriteTemplate",
+          "events": {
+            "onBoundaryHit": "KanoneTrifftRand"
+          }
+        },
+        {
+          "id": "obj_import_1778766554175_lc6u",
+          "name": "KanonenBasis",
+          "className": "TPanel"
+        },
+        {
+          "id": "obj_import_1778766554175_s5xb",
+          "name": "currPoolSizeLbl",
+          "className": "TLabel"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "KanonenKugelTrifftZiel",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ZerstoereKanonenKugel",
+              "type": "action"
+            },
+            {
+              "name": "Act_SpieleTrefferAudio",
+              "type": "action"
+            },
+            {
+              "name": "Act_erhoeheUfoScore",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanonenKugelTrifftZiel": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ZerstoereKanonenKugel": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SpieleTrefferAudio": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_erhoeheUfoScore": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "name": "KanoneBewegtSichNachRechts",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_KanoneNachRechtsBewegen",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneBewegtSichNachRechts": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_KanoneNachRechtsBewegen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "KanoneBewegtSichNachLinks",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_KanoneNachLinksBewegen",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneBewegtSichNachLinks": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_KanoneNachLinksBewegen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "KanoneTrifftRand",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_KanoneStoppen",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneTrifftRand": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_KanoneStoppen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "KanoneSchiesst",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_KugelAbfeuern",
+              "type": "action"
+            },
+            {
+              "name": "Act_SpieleSchussAudio",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneSchiesst": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_KugelAbfeuern": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SpieleSchussAudio": {
+              "x": 40,
+              "y": 240
+            }
+          }
+        },
+        {
+          "name": "KanonenKugelTrifftRand",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ZerstoereKanonenKugel",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanonenKugelTrifftRand": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ZerstoereKanonenKugel": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "UfoTriffRand",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_AendereUfoXRichtung",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTriffRand": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_AendereUfoXRichtung": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "UfoTimerSendetNeuesUfo",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SpieleSchussAudio",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_ErzeugeNeuesUfo",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTimerSendetNeuesUfo": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SpieleSchussAudio": {
+              "x": 340,
+              "y": 40
+            },
+            "Act_ErzeugeNeuesUfo": {
+              "x": 600,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "UfoSchiesst",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_UfoSchiesst",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoSchiesst": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_UfoSchiesst": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "UfoWirdGetroffen",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${otherSprite.templateName}",
+                "rightValue": "BulletTemplate"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "LetUfoExplore",
+                  "type": "action"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoWirdGetroffen": {
+              "x": 40,
+              "y": 40
+            },
+            "${otherSprite.templateName} == BulletTemplate": {
+              "x": 40,
+              "y": 140
+            },
+            "LetUfoExplore": {
+              "x": 420,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "ZeigeRestKanonenAn",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_GetKanoneXPos",
+              "type": "action"
+            },
+            {
+              "name": "Act_GetKanoneYPos",
+              "type": "action"
+            },
+            {
+              "name": "Act_GetKanonenHoehe",
+              "type": "action"
+            },
+            {
+              "name": "Act_GetKanonenBreite",
+              "type": "action"
+            },
+            {
+              "name": "Act_CalcNewXOffset",
+              "type": "action"
+            },
+            {
+              "name": "Act_CalcNewXPos",
+              "type": "action"
+            },
+            {
+              "name": "Act_SpawnCannons",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ZeigeRestKanonenAn": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_GetKanoneXPos": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_GetKanoneYPos": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_GetKanonenHoehe": {
+              "x": 40,
+              "y": 340
+            },
+            "Act_GetKanonenBreite": {
+              "x": 40,
+              "y": 440
+            },
+            "Act_CalcNewXOffset": {
+              "x": 40,
+              "y": 540
+            },
+            "Act_CalcNewXPos": {
+              "x": 40,
+              "y": 640
+            },
+            "Act_SpawnCannons": {
+              "x": 40,
+              "y": 740
+            }
+          }
+        },
+        {
+          "name": "UfoKugelTrifftKanone",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ZerstoereUfoKugel",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoKugelTrifftKanone": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ZerstoereUfoKugel": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "KanoneWirdGetroffen",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${otherSprite.templateName}",
+                "rightValue": "UfoBulletTemplate"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "LetCannonExplore",
+                  "type": "action"
+                },
+                {
+                  "name": "UpdateCannonCounter",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "type": "task",
+                  "name": "SetANewCannon",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneWirdGetroffen": {
+              "x": 40,
+              "y": 40
+            },
+            "${otherSprite.templateName} == UfoBulletTemplate": {
+              "x": 40,
+              "y": 140
+            },
+            "LetCannonExplore": {
+              "x": 440,
+              "y": 140
+            },
+            "UpdateCannonCounter": {
+              "x": 660,
+              "y": 140
+            },
+            "SetANewCannon": {
+              "x": 920,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "StringTest",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_CalcNextSpriteName",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "DeleteAction",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StringTest": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_CalcNextSpriteName": {
+              "x": 220,
+              "y": 40
+            },
+            "DeleteAction": {
+              "x": 500,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowANewCannon",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_CalcCurrCannonName",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowANewCannon": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_CalcCurrCannonName": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "SetANewCannon",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${CurrCannonCount}",
+                "rightValue": 0,
+                "operator": ">",
+                "rightType": "literal"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_CalcNewCannonName",
+                  "type": "action"
+                },
+                {
+                  "name": "LetTheNextCannonGrow",
+                  "type": "action"
+                },
+                {
+                  "name": "LetTheNewCannonMove",
+                  "type": "action"
+                },
+                {
+                  "name": "SetCollisonEventToNewSprite",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_ShowLooserStage",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetANewCannon": {
+              "x": 40,
+              "y": 40
+            },
+            "${CurrCannonCount} > 0": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_CalcNewCannonName": {
+              "x": 300,
+              "y": 140
+            },
+            "LetTheNextCannonGrow": {
+              "x": 300,
+              "y": 240
+            },
+            "LetTheNewCannonMove": {
+              "x": 300,
+              "y": 340
+            },
+            "SetCollisonEventToNewSprite": {
+              "x": 280,
+              "y": 440
+            },
+            "Act_ShowLooserStage": {
+              "x": 40,
+              "y": 240
+            },
+            "comment": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1788159584308",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 400,
+              "height": 460,
+              "properties": {
+                "name": "comment",
+                "details": "Wenn noch minestens eine Kanone vorhanden ist, Dann\n          Erzeuge den neuen KannonenName\n          Die Kanone wird auf die korrekte Größe gebracht\n          Die Kannone wird korrekt platziert\n          Die Kannone wird das Event: onCollision zugeordnet\nsonst\n          Zeige die VerliererStage",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "comment",
+                "details": "Wenn noch minestens eine Kanone vorhanden ist, Dann\n          Erzeuge den neuen KannonenName\n          Die Kanone wird auf die korrekte Größe gebracht\n          Die Kannone wird korrekt platziert\n          Die Kannone wird das Event: onCollision zugeordnet\nsonst\n          Zeige die VerliererStage"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SchalteTimerEin",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SetCannonTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "SetUfoTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "SetShotTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SchalteTimerEin": {
+              "x": 40,
+              "y": 40
+            },
+            "SetCannonTimerOnStart": {
+              "x": 260,
+              "y": 40
+            },
+            "SetUfoTimerOnStart": {
+              "x": 520,
+              "y": 40
+            },
+            "SetShotTimerOnStart": {
+              "x": 760,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "StarteUfos",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SetUfoTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteUfos": {
+              "x": 40,
+              "y": 40
+            },
+            "SetUfoTimerOnStart": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "StarteSchuesse",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SetShotTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteSchuesse": {
+              "x": 40,
+              "y": 40
+            },
+            "SetShotTimerOnStart": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "StarteKannonen",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SetCannonTimerOnStart",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteKannonen": {
+              "x": 40,
+              "y": 40
+            },
+            "SetCannonTimerOnStart": {
+              "x": 260,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "NegateTest",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "IncrementAction",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "NegateTest": {
+              "x": 40,
+              "y": 40
+            },
+            "IncrementAction": {
+              "x": 220,
+              "y": 40
+            },
+            "NegateAction": {
+              "x": 200,
+              "y": 240
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "auto_action_0_1778748407469",
+              "type": "action",
+              "x": 200,
+              "y": 240,
+              "width": 280,
+              "height": 80,
+              "properties": {
+                "name": "NegateAction",
+                "details": "changes: {${CurrCannonCount}:true}",
+                "description": ""
+              },
+              "data": {
+                "name": "NegateAction",
+                "type": "negate",
+                "isLinked": true,
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "TestLooserStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowLooserStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "TestLooserStage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShowLooserStage": {
+              "x": 260,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_ZerstoereKanonenKugel",
+          "type": "destroy_object",
+          "target": "%Self%"
+        },
+        {
+          "name": "Act_erhoeheUfoScore",
+          "type": "calculate",
+          "resultVariable": "score",
+          "formula": "${score} + 1"
+        },
+        {
+          "name": "Act_KanoneNachRechtsBewegen",
+          "type": "property",
+          "changes": {
+            "${CurrSpriteName}.velocityX": 1
+          }
+        },
+        {
+          "name": "Act_KanoneNachLinksBewegen",
+          "type": "property",
+          "changes": {
+            "${CurrSpriteName}.velocityX": -1
+          }
+        },
+        {
+          "name": "Act_KanoneStoppen",
+          "type": "property",
+          "changes": {
+            "${CurrSpriteName}.velocityX": 0
+          }
+        },
+        {
+          "name": "Act_KugelAbfeuern",
+          "type": "spawn_object",
+          "templateId": "BulletTemplate",
+          "referenceObject": "${CurrSpriteName}",
+          "offsetX": 1.5,
+          "offsetY": -1,
+          "spawnMode": "normal",
+          "templateId_ref": "obj_import_1778766554175_vx6n"
+        },
+        {
+          "name": "Act_SpieleTrefferAudio",
+          "type": "play_audio",
+          "showDetails": false,
+          "details": "(spawn_object)",
+          "target": "aud_Treffer",
+          "target_ref": "f7cccb75-47f9-4b00-8ee9-4d264fb0eec7"
+        },
+        {
+          "id": "node-1775577311487",
+          "details": "",
+          "name": "Act_SpieleSchussAudio",
+          "showDetails": false,
+          "type": "play_audio",
+          "target": "aud_schuss",
+          "target_ref": "534a3b84-3890-4b74-be96-04c87d095b48"
+        },
+        {
+          "id": "node-1777740914772",
+          "details": "",
+          "name": "Act_ErzeugeNeuesUfo",
+          "showDetails": false,
+          "type": "spawn_object",
+          "x": 60,
+          "y": 2,
+          "templateId": "UfoTemplate",
+          "referenceObject": "UfoBasis",
+          "offsetX": 0,
+          "offsetY": 0,
+          "spawnMode": "normal",
+          "templateId_ref": "obj_import_1778766554175_2qlw",
+          "referenceObject_ref": "obj_import_1778766554175_39nn"
+        },
+        {
+          "id": "node-1777741488117",
+          "details": "",
+          "name": "LetUfoExplore",
+          "showDetails": false,
+          "type": "animate",
+          "templateId": "UfoBulletTemplate",
+          "referenceObject": "UfoTemplate",
+          "spawnMode": "random_active",
+          "offsetY": 5,
+          "x": 0,
+          "y": 0,
+          "effect": "explode",
+          "target": "self",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "source": "",
+          "midpointTask": ""
+        },
+        {
+          "id": "auto_Cond_UfoTreffer_0_1777819219387",
+          "details": "(Cond_UfoTreffer)",
+          "condition": "Bedingung",
+          "type": "animate",
+          "body": [],
+          "elseBody": [],
+          "name": "Cond_UfoTreffer",
+          "showDetails": true,
+          "effect": "explode",
+          "spread": 320,
+          "fragments": 20,
+          "duration": 500,
+          "targetScale": 2,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "target": "",
+          "source": "",
+          "midpointTask": ""
+        },
+        {
+          "id": "node-1777823590208",
+          "details": "",
+          "name": "Act_AendereUfoXRichtung",
+          "showDetails": false,
+          "type": "negate",
+          "changes": {
+            "self.velocityX": true
+          }
+        },
+        {
+          "id": "node-1777824498583",
+          "details": "",
+          "name": "Act_UfoSchiesst",
+          "showDetails": false,
+          "type": "spawn_object",
+          "templateId": "UfoBulletTemplate",
+          "referenceObject": "UfoTemplate",
+          "offsetX": 0,
+          "x": 0,
+          "y": 0,
+          "offsetY": 0,
+          "spawnMode": "random_active",
+          "templateId_ref": "obj_import_1778766554175_qa97",
+          "referenceObject_ref": "obj_import_1778766554175_2qlw"
+        },
+        {
+          "id": "auto_CheckCollisionSprite_0_1777915212307",
+          "details": "",
+          "condition": {
+            "leftValue": "${otherSprite.templateName}",
+            "rightValue": "BulletTemplate"
+          },
+          "type": "CheckCollisionSprite",
+          "body": [
+            {
+              "name": "Cond_UfoTreffer",
+              "type": "action"
+            }
+          ],
+          "elseBody": [],
+          "name": "CheckCollisionSprite",
+          "showDetails": false
+        },
+        {
+          "id": "node-1778162455236",
+          "details": "",
+          "type": "variable",
+          "name": "Act_GetKanonenHoehe",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "variableName": "${KanonenTemplateHoehe}",
+          "source": "KanonenTemplate",
+          "sourceProperty": "height",
+          "source_ref": "obj_import_1778766554175_14zs"
+        },
+        {
+          "id": "auto_action_0_1778165971362",
+          "details": "${KanonenTemplateBreite.value} := KanonenTemplate.width",
+          "name": "Act_GetKanonenBreite",
+          "type": "variable",
+          "showDetails": true,
+          "changes": {
+            "KanonenTemplateBreite.value": ""
+          },
+          "variableName": "${KanonenTemplateBreite}",
+          "source": "KanonenBasis",
+          "sourceProperty": "width",
+          "source_ref": "obj_import_1778766554175_lc6u"
+        },
+        {
+          "id": "node-1778166267247",
+          "details": "",
+          "type": "spawn_object",
+          "name": "Act_SpawnCannons",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "templateId": "KanonenTemplate",
+          "referenceObject": "KanonenBasis",
+          "x": 0,
+          "y": 0,
+          "offsetX": "${KanonenBasisXPos.value}",
+          "offsetY": 0,
+          "spawnMode": "normal",
+          "templateId_ref": "obj_import_1778766554175_14zs",
+          "referenceObject_ref": "obj_import_1778766554175_lc6u"
+        },
+        {
+          "id": "node-1778166357943",
+          "details": "",
+          "type": "variable",
+          "name": "Act_GetKanoneXPos",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "variableName": "${KanonenBasisXPos}",
+          "source": "KanonenBasis",
+          "sourceProperty": "x",
+          "source_ref": "obj_import_1778766554175_lc6u"
+        },
+        {
+          "id": "node-1778166523936",
+          "details": "",
+          "type": "variable",
+          "name": "Act_GetKanoneYPos",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "variableName": "${KanonenBasisYPos}",
+          "source": "KanonenBasis",
+          "sourceProperty": "y",
+          "source_ref": "obj_import_1778766554175_lc6u"
+        },
+        {
+          "id": "node-1778168422689",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_CalcNewXPos",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "resultVariable": "${KanonenBasisXPos}",
+          "formula": "${KanonenBasisXPos}+${UfoTemplateXOffset}"
+        },
+        {
+          "id": "node-1778177470953",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_CalcNewXOffset",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "resultVariable": "${UfoTemplateXOffset}",
+          "formula": "${KanonenTemplateBreite}*${KanonenTemplateTimer.currentInterval}"
+        },
+        {
+          "id": "node-1778177710615",
+          "details": "",
+          "type": "destroy_object",
+          "name": "Act_ZerstoereUfoKugel",
+          "showDetails": false,
+          "target": "%self%",
+          "changes": {},
+          "resultVariable": "${KanonenTemplateTimer.currentInterval}"
+        },
+        {
+          "id": "node-1778253484375",
+          "details": "",
+          "type": "animate",
+          "name": "LetCannonExplore",
+          "showDetails": false,
+          "target": "${CurrSpriteName}",
+          "changes": {},
+          "effect": "explode",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "source": "",
+          "midpointTask": ""
+        },
+        {
+          "id": "node-1778493508663",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_CalcNextSpriteName",
+          "showDetails": false,
+          "target": "KanonenTemplate",
+          "changes": {},
+          "event": "",
+          "task": "",
+          "resultVariable": "CurrSpriteName",
+          "formula": "\"KanonenTemplate_pool_\"+3",
+          "resultVariable_ref": "obj_1778509803973_dpofxet4k"
+        },
+        {
+          "id": "node-1778516826086",
+          "details": "",
+          "type": "destroy_object",
+          "name": "DeleteAction",
+          "showDetails": false,
+          "target": "${CurrSpriteName}",
+          "changes": {},
+          "effect": "shake",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "easing": "easeOut"
+        },
+        {
+          "id": "node-1778601145504",
+          "details": "",
+          "type": "calculate",
+          "name": "UpdateCannonCounter",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CurrCannonCount": true
+          },
+          "resultVariable": "${CurrCannonCount}",
+          "formula": "${CurrCannonCount}-1"
+        },
+        {
+          "id": "node-1778601921397",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_CalcCurrCannonName",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1778606078738",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_CalcNewCannonName",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "resultVariable": "${CurrSpriteName}",
+          "formula": "\"KanonenTemplate_pool_\" +${CurrCannonCount}"
+        },
+        {
+          "id": "node-1778608457991",
+          "details": "",
+          "type": "animate",
+          "name": "LetTheNextCannonGrow",
+          "showDetails": false,
+          "target": "${CurrSpriteName}",
+          "changes": {},
+          "effect": "grow",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "source": "",
+          "midpointTask": ""
+        },
+        {
+          "id": "node-1778608735976",
+          "details": "",
+          "type": "property",
+          "name": "Act_UfoKurzVergroessern",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1778608895601",
+          "details": "",
+          "type": "move_to",
+          "name": "LetTheNewCannonMove",
+          "showDetails": false,
+          "target": "${CurrSpriteName}",
+          "changes": {},
+          "duration": 1000,
+          "easing": "easeIn",
+          "x": 31,
+          "y": 33
+        },
+        {
+          "id": "node-1778686930086",
+          "details": "",
+          "type": "call_method",
+          "name": "SetCannonTimerOnStart",
+          "showDetails": false,
+          "target": "KanonenTemplateTimer",
+          "changes": {},
+          "method": "timerStart",
+          "target_ref": "a0f3a428-b323-4f66-836f-b66a0a1301e4"
+        },
+        {
+          "id": "node-1778687663120",
+          "details": "",
+          "type": "call_method",
+          "name": "SetUfoTimerOnStart",
+          "showDetails": false,
+          "target": "CreateSpritesTimer",
+          "changes": {},
+          "method": "timerStart",
+          "target_ref": "fd84a0fb-7812-478c-b535-02d79dce4bdc"
+        },
+        {
+          "id": "node-1778687727297",
+          "details": "",
+          "type": "call_method",
+          "name": "SetShotTimerOnStart",
+          "showDetails": false,
+          "target": "SchussTimer",
+          "changes": {},
+          "method": "timerStart",
+          "params": "",
+          "target_ref": "58868dab-b5ee-4c1f-865c-cd7c5e4bb9f7"
+        },
+        {
+          "id": "node-1778692183937",
+          "details": "",
+          "type": "bind_event",
+          "name": "SetCollisonEventToNewSprite",
+          "showDetails": false,
+          "target": "${CurrSpriteName}",
+          "changes": {},
+          "event": "onCollision",
+          "task": "KanoneWirdGetroffen"
+        },
+        {
+          "id": "node-1778746465065",
+          "details": "",
+          "type": "negate",
+          "name": "NegateAction",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "${CurrCannonCount}": true
+          }
+        },
+        {
+          "id": "node-1778748258127",
+          "details": "",
+          "type": "increment",
+          "name": "IncrementAction",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "${CurrCannonCount}": -1
+          }
+        },
+        {
+          "id": "node-1778768858311",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Act_ShowLooserStage",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "stageId": "stage-1778766620478",
+          "reset": false
+        }
+      ]
+    },
+    {
+      "id": "stage-1778766620478",
+      "name": "LooserStage",
+      "type": "standard",
+      "variables": [],
+      "objects": [
+        {
+          "id": "obj_1778766681665_zopymj03k",
+          "name": "Label_43",
+          "className": "TLabel"
+        },
+        {
+          "id": "obj_1778769112756_g89jjm2jb",
+          "name": "Button_45",
+          "className": "TButton",
+          "events": {
+            "onClick": "StartANewGame"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartANewGame",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartNewGame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartANewGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartNewGame": {
+              "x": 260,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1778769171025",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "ShowLevel1Stage",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "stageId": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
+          "reset": true
+        },
+        {
+          "id": "node-1778778651321",
+          "details": "",
+          "type": "restart_game",
+          "name": "RestartGame",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1778999236329",
+          "details": "",
+          "type": "restart_game",
+          "name": "Act_StartNewGame",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        }
+      ]
+    }
+  ]
+}

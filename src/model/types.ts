@@ -463,6 +463,11 @@ export interface Feature {
 }
 
 export interface StageDefinition {
+    externalInterface?: import('./StageInterface').StageInterfaceDefinition;
+    /** Project-defined navigation tags; no runtime permissions. */
+    overviewTags?: Record<string, string[]>;
+    /** Audience tags for editor navigation; these do not grant runtime permissions. */
+    editorRoles?: ('general' | 'superAdmin' | 'houseAdmin' | 'roomAdmin' | 'parent' | 'player' | 'sponsor')[];
     id: string;               // Eindeutige ID der Stage
     name: string;             // Anzeigename
     type: StageType;          // Art der Stage: 'main' (HauptStage), 'standard', 'splash', 'template'
@@ -507,6 +512,9 @@ export interface StageDefinition {
 // Project
 // ─────────────────────────────────────────────
 export interface GameProject {
+    learningShell?: import('./LearningShell').LearningShellDefinition;
+    /** Optional project-specific stage navigation filters. */
+    stageOverview?: { filters: { id: string; label: string; options: { id: string; label: string }[] }[] };
     meta: ProjectMetadata;
     schemaVersion?: string;       // Phase 1 SYNC_REFACTOR — Schema-Versionierung
     stage: {

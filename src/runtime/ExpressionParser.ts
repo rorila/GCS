@@ -1,3 +1,4 @@
+import { createAnswerChoices } from '../utils/AnswerChoices';
 import { PropertyHelper } from './PropertyHelper';
 import { Logger } from '../utils/Logger';
 import jsep from 'jsep';
@@ -228,6 +229,7 @@ export class ExpressionParser {
                 if (node.name === 'isNaN') return isNaN;
                 if (node.name === 'checkNumberAnswer') return checkNumberAnswer;
                 if (node.name === 'checkCardAnswer') return checkCardAnswer;
+                if (node.name === 'createAnswerChoices') return createAnswerChoices;
                 
                 const val = context[node.name];
                 return PropertyHelper.resolveValue(val);
@@ -298,7 +300,7 @@ export class ExpressionParser {
                 const allowedFunctions = new Set([
                     'Math.floor', 'Math.ceil', 'Math.round', 'Math.random', 'Math.min', 'Math.max', 
                     'Math.abs', 'Math.sqrt', 'Math.pow', 'parseInt', 'parseFloat', 'isNaN', 'isFinite',
-                    'Number', 'String', 'Boolean', 'checkNumberAnswer', 'checkCardAnswer'
+                    'Number', 'String', 'Boolean', 'checkNumberAnswer', 'checkCardAnswer', 'createAnswerChoices'
                 ]);
 
                 // Safe Prototype methods for internal primitive objects (String/Array)

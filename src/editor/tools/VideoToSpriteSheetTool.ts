@@ -19,6 +19,7 @@ import {
 } from './spritesheet/VideoToSpriteSheetTypes';
 import { VideoToSpriteSheetCrop } from './spritesheet/VideoToSpriteSheetCrop';
 import { VideoToSpriteSheetUI } from './spritesheet/VideoToSpriteSheetUI';
+import { gameServerHttp } from '../../utils/ServerUrl';
 
 export { VIDEO_TO_SPRITESHEET_TOOL_VERSION, PERF };
 export type { Frame, ToolSettings, ExportResult };
@@ -75,7 +76,7 @@ export class VideoToSpriteSheetTool {
     private sheetInfoEl: HTMLElement | null = null;
     private animPreviewCanvas: HTMLCanvasElement | null = null;
 
-    constructor(parent: HTMLElement, uploadUrl = 'http://localhost:8080/api/upload/spritesheet') {
+    constructor(parent: HTMLElement, uploadUrl = gameServerHttp('/api/upload/spritesheet')) {
         this.parent = parent;
         this.uploadUrl = uploadUrl;
         this.container = document.createElement('div');
