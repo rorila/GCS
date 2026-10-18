@@ -145,6 +145,111 @@ ergänzen, (b) Ergebnis-Vorschau auf tatsächlich angelegte Komponenten
 beschränken — beides dokumentationsseitig bereits entschärft, Code-Fix braucht
 Freigabe.
 
+## TD-015 — Hintergrund-Panel verdeckt den Assistenten-Button (Z-Ordnung) — **Status: behoben (Working Tree, noch nicht committed)**
+
+**Fix (Codex, verifiziert durch Independent Review + strenger Playwright-Lauf
+`artifacts/user-guide-fixes/`):** `EditorProjectFactory.ts` — Hintergrund wird
+per `unshift` an Index 0 angelegt statt per `push` angehängt; der Button liegt
+darüber und ist direkt anklickbar. Altprojekte behalten ihre gespeicherte
+Reihenfolge (keine Migration).
+
+**Bereich:** `src/editor/EditorStageManager.ts` / `populateStageFromWizardData`
+(Objekt-Anfügereihenfolge) — UI-Audit-Befund **UI-01**
+(`artifacts/user-guide-verification/REPORT.md`)
+**Befund:** Der Stage-Assistent („Hintergrund + Buttons") legt `ActionButton`
+und `background_panel` an; das zuletzt gerenderte Panel liegt über dem Button
+und fängt Zeigerereignisse ab („background_panel intercepts pointer events").
+Der Button existiert und ist auswählbar — nur nicht per direktem Klick.
+**Workaround (verifiziert):** Objekt über die Objektauswahl-Dropdown oben im
+Inspector wählen. **Fix:** Panel hinter interaktive Objekte legen oder
+`pointer-events` für dekorative Panels deaktivieren — Freigabe nötig.
+
+## TD-016 — Variablen-Inspector ist generisch, ohne Scope-Auswahl — **Status: behoben (Working Tree, noch nicht committed)**
+
+**Fix (Codex):** `InspectorPropertiesRenderer.ts` Z. 25–31 — für
+`className === 'TVariable'` wird die Spezialvorlage `inspector_variable.json`
+(mit Scope-Auswahl Global/Stage/Task-Lokal) wieder verwendet; strenger Test
+findet `select[name="scope"]` und setzt `stage` erfolgreich.
+
+**Fix (TD-016-Vollendung, freigegeben):** Der Routing-Guard nutzt jetzt
+`usesVariableInspectorTemplate(obj)` — zentrale Erkennung über
+`isShelfVariable(obj)` ohne Map/Store-Ressourcen (`TStringMap`, `TObjectList`,
+`TKeyStore` behalten ihre eigenen generischen Sections). Damit laufen auch
+`TThresholdVariable`, `TTriggerVariable`, `TRangeVariable`, `TRandomVariable`,
+`TListVariable`, `TIntegerVariable`, `TRealVariable`, `TStringVariable`,
+`TBooleanVariable` und `TObjectVariable` über den `VariableHandler` und
+`inspector_variable.json`. Spezialklassen ohne serialisiertes `type`-Feld
+erhalten ein Sicht-Objekt (`getVariableInspectorTarget`), das den aus dem
+Klassennamen abgeleiteten Datentyp bereitstellt — so bleiben die bedingten
+Spezialfelder (`threshold`, `triggerValue`, `min`/`max`, `interval`,
+`isInteger`) sichtbar, ohne das gespeicherte Objekt zu verändern.
+Regressionstest `tests/td016_variable_inspector.test.ts` (6/6 PASS) deckt
+Routing für `TVariable` + alle zehn Spezialklassen, Scope-Auswahl
+(`global`/`stage`/`local`), Spezialfeld-Erhalt, Typwechsel ohne Verlust der
+Spezialfelder und DTO-Round-Trip-Kompatibilität ab.
+
+**Verbleibende Einschränkung:** Ein `type`-Wechsel an einer Spezialklassen-
+Instanz schreibt das Feld in-memory auf das Objekt (keine Klassen-Morphing via
+`morphVariable` — dieser Pfad ist derzeit ohne Aufrufer). Für Instanzen wird die
+Änderung nicht in `toDTO()` persistiert; beim erneuten Laden folgt der Typ
+wieder aus dem Klassennamen. Fachlich unschädlich, da Spezialfelder erhalten
+bleiben — ggf. als eigener kleiner Folgepunkt dokumentiert.
+
+**Bereich:** `src/editor/inspector/handlers/VariableHandler.ts`,
+`public/inspector_variable.json` — UI-Audit-Befund **UI-02**
+**Befund:** Der tatsächlich gezeigte Inspector bietet die Gruppen
+„Identität" und „Variable" mit `Typ`, `Standardwert`, `Aktueller Wert` —
+**keine** Scope-Auswahl. Neue Variablen werden der aktiven Stage zugeordnet
+(`scope: 'stage'` im gespeicherten Projekt). Ein Wechsel auf `global` ist
+über die Oberfläche zurzeit nicht nachgewiesen.
+**Auswirkung:** Einsteiger können keine globalen Variablen per UI anlegen
+(nur über JSON-Edit). Handbuch Kapitel 4 angepasst.
+
+## TD-017 — `spriteColor` wird gespeichert, aber nicht dargestellt — **Status: behoben (Working Tree, noch nicht committed)**
+
+**Fix (Codex):** `SpriteRenderer.ts` — `spriteColor` hat jetzt Vorrang vor
+`style.backgroundColor` (Stil bleibt Fallback; Medien-Sprites bleiben
+transparent). Unit-Tests prüfen Repaint, Legacy-Fallback und Persistenz nach
+Wiederöffnen (`tests/ui_audit_regressions.test.ts`, 5/5 PASS).
+
+**Bereich:** Sprite-Rendering (`TSprite`/`StageObjectRenderer`) — UI-Audit
+**UI-03**
+**Befund:** `spriteColor = #2d8a3e` landet korrekt im Projekt (Persistenz
+nach Wiederöffnen geprüft), die Stage zeigt das Sprite weiterhin in der
+`style.backgroundColor`-Farbe (rot). Darstellungsproblem, kein Datenverlust.
+**Fix:** Renderer muss `spriteColor` vor `style.backgroundColor` für den
+Farbfall auswerten — Freigabe nötig.
+
+## TD-018 — Regal-Eintrag aktualisiert sich nach Umbenennung nicht sofort — **Status: behoben (Working Tree, noch nicht committed)**
+
+**Fix (Codex):** `refreshSidepanel()` wurde in den gemeinsamen Render-Punkt
+(`EditorRenderManager.render`) verlegt — das Regal aktualisiert sich bei jeder
+Änderung; Detailzeile zeigt `value ?? defaultValue` (aktueller Wert zuerst,
+inkl. 0). Strenger Test bestätigt „integer · 2"/„· 0" direkt nach Eingabe.
+
+**Bereich:** `src/editor/EditorShelfModel.ts` / Regal-Renderer — UI-Audit
+**UI-04**
+**Befund:** Nach Inspector-Umbenennung (`Variable_5` → `Wasser`) zeigt der
+Regal-Eintrag zunächst noch den alten Namen/Details; die Daten sind korrekt
+gespeichert und nach erneutem Öffnen sichtbar. Reine Anzeige-Verzögerung.
+
+## TD-019 — Inspector-Positionsfelder bleiben nach Drag veraltet — **Status: behoben (Working Tree, noch nicht committed)**
+
+**Fix (Codex):** `EditorInteractionManager.refreshSelectedInspector()` lädt nach
+beendeten Move-/Resize-Gesten das ausgewählte Objekt frisch aus dem Projekt und
+aktualisiert den Inspector synchron (`InspectorHost.update` jetzt awaited).
+Strenger Test: Projekt-Koordinaten und Inspector-Felder stimmen ohne
+Neuauswahl überein. Zusatzbeobachtung (initialer Inspector-Zustand nach
+Projekt-Öffnen) bleibt unverändert offen — nicht Teil dieser fünf Korrekturen.
+
+**Bereich:** `StageInteractionManager` (Drag) ↔ Inspector-Bindung —
+UI-Audit **UI-05**
+**Befund:** Nach Drag landen die gerundeten Zielkoordinaten korrekt im
+Projekt, die Inspector-Felder `x`/`y` zeigen jedoch zunächst die alten
+Werte. Objekt über die Objektauswahl neu auswählen aktualisiert die
+Anzeige. Zusatzbeobachtung: nach „Projekt öffnen" zeigt der Inspector kurz
+die Standard-Stage-Daten, während Stage/Regal schon geladen sind.
+
 ---
 
 ## Security — Multiplayer (zur späteren Prüfung vorgemerkt)

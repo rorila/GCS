@@ -1,0 +1,42 @@
+import {describeCmsWorkflows} from './cms-workflow-names';
+import fs from 'node:fs';
+import {AgentController} from '../src/services/AgentController';
+import {projectStore} from '../src/services/ProjectStore';
+import {coreStore} from '../src/services/registry/CoreStore';
+import {SchemaMigrator} from '../src/services/SchemaMigrator';
+if(fs.existsSync('game-server/public/projects/GCS-CMS-Verwaltung.json')&&!process.argv.includes('--replace-generated'))throw Error('Verwaltungsprojekt existiert bereits.');
+const grid={cols:64,rows:40,cellSize:18,visible:false,backgroundColor:'#122b39'};
+const project:any={meta:{id:'gcs-cms-admin',name:'GCS-CMS-Verwaltung',version:'0.2.0'},stage:{grid},stages:[],objects:[],actions:[],tasks:[],variables:[],activeStageId:'stage_main'};
+projectStore.setProject(project);coreStore.setProject(project);const agent=AgentController.getInstance();agent.setProject(project);const bp='stage_blueprint',main='stage_main';agent.createStage(bp,'Verwaltungsdienste','blueprint',{grid});agent.createStage(main,'Raumverwaltung','main',{grid,startAnimation:'none'});coreStore.setActiveStageId(main);
+for(const [name,value]of Object.entries({Modus:'rooms',Raum:'',Seite:0,Seiten:0,Busy:0,Auswahl:'',Ziel:false,Slot0:'',Slot1:'',Slot2:'',Slot3:'',Next0:false,Next1:false,Next2:false,Next3:false}))agent.addVariable(name,typeof value==='number'?'integer':typeof value==='boolean'?'boolean':'string',value,'global');
+const label=(name:string,x:number,y:number,text:string,size=20)=>agent.createLabel(main,name,x,y,text,{width:56,height:2,fontSize:size,color:'#edf7f4',style:{backgroundColor:'transparent',borderWidth:0}});
+const button=(name:string,x:number,y:number,w:number,text:string,visible=true)=>agent.addObject(main,{className:'TButton',name,x,y,width:w,height:3,text,visible,style:{backgroundColor:'#285464',color:'#fff',borderColor:'#76c6bb',borderWidth:1,borderRadius:9,fontSize:17,fontFamily:'Segoe UI, sans-serif'}});
+label('Titel',4,3,'RAUMVERWALTUNG',28);label('Status',4,7,'Zuständigkeiten laden.');
+button('Raeume',4,10,12,'Meine Räume');button('Spiele',18,10,12,'Spiele');button('Mitglieder',32,10,12,'Mitglieder');button('Logout',46,10,12,'Abmelden');
+for(let i=0;i<4;i++)button('Karte'+i,5+(i%2)*28,15+Math.floor(i/2)*5,25,'',false);
+button('Vorher',4,25,8,'◀');button('Weiter',14,25,8,'▶');button('Backup',27,25,13,'Raum sichern');button('Restore',42,25,16,'Wiederherstellen');button('Confirm',27,29,31,'Sicherung wirklich wiederherstellen?',false);
+label('CodeInfo',4,29,'Emoji ändern: Person-ID und 4 Bild-IDs, z. B. dog,tree,house,elephant',12);
+for(const [name,x,w,hint]of [['Person',4,16,'Person-ID'],['Code',22,27,'dog,tree,house,elephant']]as any[])agent.addObject(main,{className:'TEdit',name,x,y:32,width:w,height:2.5,text:'',placeholder:hint,maxLength:120});
+button('CodeSave',51,32,9,'Speichern');label('Hilfe',4,36,'✓ = freigegeben/zugeordnet · Klick schaltet um. Personen-ID steht bei den Mitgliedern.',12);
+let serial=0;const t=(n:string)=>agent.createTask(bp,n,n),a=(n:string,type:any,params:any)=>agent.addAction(n,type,'Act_'+n+'_'+(++serial),params),p=(n:string,changes:any)=>a(n,'property',{changes}),call=(n:string,c:string)=>agent.addTaskCall(n,c),branch=(n:string,v:string,value:any,yes:string,no?:string)=>agent.addBranch(n,v,'==',value,b=>b.addTaskCall(yes),no?b=>b.addTaskCall(no):undefined);
+['RaeumeTask','SpieleTask','MitgliederTask','Laden','Zeigen','Fehler','Waehlen','WaehleRaum','Aendern','Grant','Member','Gespeichert','BackupTask','RestoreTask','ConfirmTask','Meldung','CodeTask','LogoutTask','Ende','VorherTask','WeiterTask'].forEach(t);
+const http=(n:string,route:string,body:any)=>{p(n,{Busy:1,'Status.text':'Bitte warten …'});a(n,'http',{url:'/api/cms/admin/'+route,method:'POST',body:JSON.stringify(body),resultVariable:'Antwort'});};
+for(const [n,mode]of [['RaeumeTask','rooms'],['SpieleTask','games'],['MitgliederTask','members']]){p(n,{Modus:mode,Seite:0,'Confirm.visible':false,'CodeInfo.visible':true});call(n,'Laden');}
+http('Laden','${Modus}',{areaId:'${Raum}',page:'${Seite}'});branch('Laden','Antwort.ok',true,'Zeigen','Fehler');
+p('Zeigen',{Busy:0,'Status.text':'${Antwort.message}',Seite:'${Antwort.page}',Seiten:'${Antwort.pages}',...Object.fromEntries([0,1,2,3].flatMap(i=>[['Karte'+i+'.text','${Antwort.slot'+i+'.label}'],['Karte'+i+'.visible','${Antwort.slot'+i+'.visible}'],['Slot'+i,'${Antwort.slot'+i+'.id}'],['Next'+i,'${Antwort.slot'+i+'.next}']]))});
+p('Fehler',{Busy:0,'Status.text':'${Antwort.message}'});p('Meldung',{Busy:0,'Status.text':'${Antwort.message}','Confirm.visible':false,'CodeInfo.visible':true});
+for(let i=0;i<4;i++){t('Select'+i);p('Select'+i,{Auswahl:'${Slot'+i+'}',Ziel:'${Next'+i+'}'});call('Select'+i,'Waehlen');}
+branch('Waehlen','Modus','rooms','WaehleRaum','Aendern');p('WaehleRaum',{Raum:'${Auswahl}'});call('WaehleRaum','SpieleTask');branch('Aendern','Modus','games','Grant','Member');
+http('Grant','grant',{areaId:'${Raum}',id:'${Auswahl}',active:'${Ziel}'});branch('Grant','Antwort.ok',true,'Gespeichert','Fehler');
+p('Member',{'Person.text':'${Auswahl}'});http('Member','membership',{areaId:'${Raum}',id:'${Auswahl}',active:'${Ziel}'});branch('Member','Antwort.ok',true,'Gespeichert','Fehler');call('Gespeichert','Laden');
+http('BackupTask','backup',{areaId:'${Raum}'});call('BackupTask','Meldung');p('RestoreTask',{'Confirm.visible':true,'CodeInfo.visible':false});http('ConfirmTask','restore',{areaId:'${Raum}',confirm:true});call('ConfirmTask','Meldung');
+http('CodeTask','code',{areaId:'${Raum}',id:'${Person.text}',sequenceText:'${Code.text}'});call('CodeTask','Meldung');
+http('LogoutTask','logout',{});call('LogoutTask','Ende');p('Ende',{Busy:0,'Status.text':'Abgemeldet. Zum Anmelden oben Verwaltung wählen.',...Object.fromEntries([0,1,2,3].map(i=>['Karte'+i+'.visible',false]))});
+a('VorherTask','calculate',{formula:'Math.max(0, Seite - 1)',resultVariable:'Seite'});call('VorherTask','Laden');a('WeiterTask','calculate',{formula:'Math.min(Math.max(0, Seiten - 1), Seite + 1)',resultVariable:'Seite'});call('WeiterTask','Laden');
+for(const [obj,task]of [['Raeume','RaeumeTask'],['Spiele','SpieleTask'],['Mitglieder','MitgliederTask'],['Backup','BackupTask'],['Restore','RestoreTask'],['Confirm','ConfirmTask'],['CodeSave','CodeTask'],['Logout','LogoutTask'],['Vorher','VorherTask'],['Weiter','WeiterTask'],...[0,1,2,3].map(i=>['Karte'+i,'Select'+i])]){const gate='Sperre_'+obj;t(gate);branch(gate,'Busy',0,task);agent.connectEvent(main,obj,'onClick',gate);}
+for(const stage of project.stages)for(const obj of stage.objects)agent.setProperty(stage.id,obj.name,'id',stage.id+'_'+obj.name);
+for(const v of project.variables)projectStore.dispatch({type:'SET_PROPERTY',target:v,path:'id',value:'admin_var_'+v.name});projectStore.dispatch({type:'SET_PROPERTY',target:project.stages[0],path:'variables',value:project.variables});projectStore.dispatch({type:'SET_PROPERTY',target:project,path:'variables',value:[]});SchemaMigrator.assignMissingIds(project);
+agent.createFeature(main,{id:'room-admin',name:'Raumverwaltung',description:'Bereichsbezogene Spielefreigaben, Mitgliedschaften, Emoji-Einwahl und Raumsicherung',tags:['CMS']});
+describeCmsWorkflows(project, 'room');
+fs.writeFileSync('game-server/public/projects/GCS-CMS-Verwaltung.json',JSON.stringify(project,null,2));
+fs.writeFileSync('public/cms-admin.html','<!doctype html><html lang="de"><meta charset="utf-8"><title>GCS Raumverwaltung</title><style>html,body{margin:0;overflow:hidden;background:#122b39}#run-stage{position:absolute;transform-origin:top left}nav{position:fixed;top:8px;left:18px;z-index:9999}a{color:#bde5df;margin-right:30px}</style><nav><a href="/">🎮 Spielen</a><a href="/admin">🔑 Raumverwaltung</a><a href="/house">Hausverwaltung</a><a href="/super">SuperAdmin</a></nav><main id="run-stage"></main><script>window.PROJECT='+JSON.stringify(project).replace(/</g,'\\u003c')+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script></html>');

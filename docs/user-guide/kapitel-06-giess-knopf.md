@@ -35,7 +35,9 @@ seine erste Aktion — „`Wasser` um 1 erhöhen".
 
 ### Schritt 1 — Button zum Gieß-Knopf umgestalten
 
-1. Tab **Stage**: Klicke den „Start"-Button an.
+1. Tab **Stage**: Klicke den „Start"-Button an. *(In Projekten, die vor
+   Fix TD-015 angelegt wurden: Auswahl über die Objektauswahl-Dropdown im
+   Inspector, Eintrag `ActionButton`.)*
 2. Inspector → **Eigenschaften**: ändere die Beschriftung (Feld **caption**)
    von `Start` in **`Gießen!`**.
 

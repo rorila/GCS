@@ -1,0 +1,327 @@
+import { actionRegistry } from '../../ActionRegistry';
+import { PropertyHelper } from '../../PropertyHelper';
+import { ExpressionParser } from '../../ExpressionParser';
+import { DebugLogService } from '../../../services/DebugLogService';
+import { resolveTarget } from '../ActionHelper';
+import { Logger } from '../../../utils/Logger';
+
+const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
+
+export function registerCalculateActions() {
+    // 3. Berechnung
+    actionRegistry.register('calculate', (action, context) => {
+        // FIX: Strip ${...} wrapper from resultVariable if present (Editor V-Button bug)
+        if (action.resultVariable && action.resultVariable.startsWith('${') && action.resultVariable.endsWith('}')) {
+            action = { ...action, resultVariable: action.resultVariable.slice(2, -1) };
+        }
+        // COMPATIBILITY FIX: Detect misclassified variable actions
+        if (action.source && action.sourceProperty && action.variableName) {
+            const srcObj = resolveTarget(action.source, context.objects, context.vars, context.eventData);
+            let val: any = undefined;
+            if (srcObj) {
+                val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+            }
+            if (val === undefined) {
+                const varVal = context.vars[action.source] !== undefined ? context.vars[action.source] : context.contextVars[action.source];
+                if (varVal !== undefined && typeof varVal === 'object' && varVal !== null) {
+                    val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
+                }
+            }
+            runtimeLogger.info(`Variable-Read (via calculate): ${action.variableName} := ${action.source}.${action.sourceProperty} = ${val}`);
+            if (action.variableName) {
+                context.contextVars[action.variableName] = val;
+                if (context.vars) {
+                    context.vars[action.variableName] = val;
+                }
+            }
+            return;
+        }
+
+        const objectMap = context.objects.reduce((acc: Record<string, any>, obj: any) => {
+            if (obj.id) acc[obj.id] = obj;
+            if (obj.name) acc[obj.name] = obj;
+            return acc;
+        }, {});
+
+        // Prototyp-Kette: objectMap liefert die aktuellen Objekte (z.B. Variablen).
+        // Aus contextVars/vars nur AUFGELOESTE Werte übernehmen. Unaufgelöste
+        // Variablen-Objekte (value === undefined) sollen objectMap nicht überschatten.
+        const isVariableLike = (obj: any) =>
+            obj && typeof obj === 'object' &&
+            (obj.isVariable === true || obj.className?.includes('Variable'));
+
+        const evalContext: Record<string, any> = Object.create(objectMap);
+        for (const [k, v] of Object.entries(context.contextVars || {})) {
+            if (v === undefined) continue;
+            // Live-Variable-Objekte aus objectMap haben Vorrang vor Binding-Strings in contextVars.
+            if (objectMap[k] && isVariableLike(objectMap[k])) continue;
+            const resolved = PropertyHelper.resolveValue(v);
+            if (resolved !== undefined) evalContext[k] = resolved;
+        }
+        for (const [k, v] of Object.entries(context.vars || {})) {
+            if (v === undefined) continue;
+            if (objectMap[k] && isVariableLike(objectMap[k])) continue;
+            const resolved = PropertyHelper.resolveValue(v);
+            if (resolved !== undefined) evalContext[k] = resolved;
+        }
+        evalContext.$eventData = context.eventData;
+
+        if (context.eventData && typeof context.eventData === 'object') {
+            if (!evalContext['self'] || typeof evalContext['self'] !== 'object') {
+                evalContext['self'] = context.vars?.sender || context.eventData;
+            }
+            if (!evalContext['other'] || typeof evalContext['other'] !== 'object') {
+                const otherObj = context.vars?.otherSprite;
+                if (otherObj && typeof otherObj === 'object') {
+                    evalContext['other'] = otherObj;
+                } else if (typeof evalContext['other'] === 'string' && objectMap[evalContext['other']]) {
+                    evalContext['other'] = objectMap[evalContext['other']];
+                }
+            }
+        }
+
+        let formula = action.formula || action.expression;
+
+        // Fallback: If no formula but calcSteps exist
+        if (!formula && action.calcSteps && Array.isArray(action.calcSteps) && action.calcSteps.length > 0) {
+            try {
+                let result: number = 0;
+
+                for (let i = 0; i < action.calcSteps.length; i++) {
+                    const step = action.calcSteps[i];
+                    let operandValue: number = 0;
+
+                    if (step.constant !== undefined && !step.variable) {
+                        operandValue = Number(step.constant);
+                    } else if ((step.operandType === 'variable' || !step.operandType) && step.variable) {
+                        if (step.variable.includes('.')) {
+                            const parts = step.variable.split('.');
+                            const rootName = parts[0];
+                            const propPath = parts.slice(1).join('.');
+                            const rootObj = evalContext[rootName];
+                            if (rootObj && typeof rootObj === 'object') {
+                                operandValue = Number(PropertyHelper.getPropertyValue(rootObj, propPath)) || 0;
+                            } else {
+                                operandValue = NaN;
+                            }
+                        } else {
+                            const v = PropertyHelper.resolveValue(evalContext[step.variable]);
+                            operandValue = v !== undefined ? Number(v) : NaN;
+                        }
+                    } else if (step.operandType === 'objectProperty' && step.source && step.property) {
+                        const srcObj = resolveTarget(step.source, context.objects, context.vars, context.eventData);
+                        operandValue = srcObj ? Number(PropertyHelper.getPropertyValue(srcObj, step.property)) : NaN;
+                    }
+
+                    if (i === 0) {
+                        result = operandValue;
+                    } else {
+                        switch (step.operator) {
+                            case '+': result += operandValue; break;
+                            case '-': result -= operandValue; break;
+                            case '*': result *= operandValue; break;
+                            case '/': result = operandValue !== 0 ? result / operandValue : NaN; break;
+                            default: result = operandValue; break;
+                        }
+                    }
+                }
+
+                runtimeLogger.info(`CalcSteps result for "${action.name}": ${result} (Target: ${action.resultVariable})`);
+
+                if (action.resultVariable) {
+                    if (action.resultVariable.includes('.')) {
+                        const parts = action.resultVariable.split('.');
+                        const rootName = parts[0];
+                        const propPath = parts.slice(1).join('.');
+                        const rootObj = resolveTarget(rootName, context.objects, context.vars, context.eventData) || evalContext[rootName];
+                        if (rootObj && typeof rootObj === 'object') {
+                            PropertyHelper.setPropertyValue(rootObj, propPath, result);
+                            runtimeLogger.info(`Calc property set: ${rootName}.${propPath} = ${result}`);
+                        } else {
+                            runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
+                        }
+                        // FIX: Also store as flat key so interpolate() can resolve ${Var.value}
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                    } else {
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                        const varObj = context.objects.find((o: any) =>
+                            (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                            (o.isVariable === true || o.className?.includes('Variable'))
+                        );
+                        if (varObj) {
+                            varObj.value = result;
+                        }
+                    }
+                    DebugLogService.getInstance().log('Action', `Evaluated: (${action.resultVariable} = ${result})`, {
+                        data: { type: 'calculate_result', resultVariable: action.resultVariable, result }
+                    });
+                }
+            } catch (err) {
+                runtimeLogger.error(`Error evaluating calcSteps for "${action.name}":`, err);
+            }
+            return;
+        }
+
+        if (formula) {
+            try {
+                const result = ExpressionParser.evaluate(formula, evalContext);
+                runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
+
+                const rawVal = evalContext[action.resultVariable];
+                const resolvedVal = PropertyHelper.resolveValue(rawVal);
+                DebugLogService.getInstance().log('Variable', `CalcDebug ${action.resultVariable}: raw=${typeof rawVal} class=${rawVal?.className} resolved=${resolvedVal}`, {
+                    data: { raw: rawVal, resolved: resolvedVal, formula, result }
+                });
+
+                if (action.resultVariable) {
+                    if (action.resultVariable.includes('.')) {
+                        const parts = action.resultVariable.split('.');
+                        const rootName = parts[0];
+                        const propPath = parts.slice(1).join('.');
+                        const rootObj = resolveTarget(rootName, context.objects, context.vars, context.eventData) || evalContext[rootName];
+                        if (rootObj && typeof rootObj === 'object') {
+                            PropertyHelper.setPropertyValue(rootObj, propPath, result);
+                            runtimeLogger.info(`Calc property set: ${rootName}.${propPath} = ${result}`);
+                        } else {
+                            runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
+                        }
+                        // FIX: Also store as flat key so interpolate() can resolve ${Var.value}
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                    } else {
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                        const varObj = context.objects.find((o: any) =>
+                            (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                            (o.isVariable === true || o.className?.includes('Variable'))
+                        );
+                        if (varObj) {
+                            varObj.value = result;
+                        }
+                    }
+                    DebugLogService.getInstance().log('Action', `Evaluated: (${action.resultVariable} = ${result})`, {
+                        data: { type: 'calculate_result', resultVariable: action.resultVariable, result }
+                    });
+                }
+            } catch (err) {
+                runtimeLogger.error(`Error evaluating "${formula}":`, err);
+            }
+        } else {
+            runtimeLogger.warn('No formula/expression/calcSteps provided in action:', action);
+        }
+    }, {
+        type: 'calculate',
+        label: 'Berechnung',
+        description: 'Führt eine mathematische Berechnung aus.',
+        parameters: [
+            { name: 'resultVariable', label: 'Ziel', type: 'variable', source: 'variables' },
+            { name: 'formula', label: 'Wert', type: 'string', multiline: true, placeholder: 'z.B. myVar := score + 10', hint: 'Ziel := Ausdruck, z.B. myVar := 5 + score' }
+        ]
+    });
+
+    // 3b. Negate
+    actionRegistry.register('negate', (action, context) => {
+        if (action.changes) {
+            Object.keys(action.changes).forEach(key => {
+                // Entferne ${} Syntax, falls vorhanden (z.B. ${CurrCannonCount} → CurrCannonCount)
+                const cleanKey = key.replace(/^\${(.+)}$/, '$1');
+                // Wenn target gesetzt ist, baue den vollständigen Pfad: target.key
+                const fullKey = action.target ? `${action.target}.${cleanKey}` : cleanKey;
+                const parts = fullKey.split('.');
+                const rootName = parts[0];
+                const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
+
+                const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
+
+                if (target && propPath) {
+                    const currentValue = PropertyHelper.getPropertyValue(target, propPath);
+                    if (typeof currentValue === 'number') {
+                        let valueToNegate = currentValue;
+                        if (currentValue === 0) {
+                            const prevKey = `_prev${propPath.charAt(0).toUpperCase()}${propPath.slice(1)}`;
+                            const prevVal = (target as any)[prevKey];
+                            if (typeof prevVal === 'number' && prevVal !== 0) {
+                                valueToNegate = prevVal;
+                            }
+                        }
+                        const negated = valueToNegate * -1;
+                        PropertyHelper.setPropertyValue(target, propPath, negated);
+                    }
+                } else if (!propPath) { // Global Variable (target kann null sein für globale Variablen)
+                    let currentValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                    // Wenn currentValue ein Objekt ist, extrahiere den value
+                    if (currentValue && typeof currentValue === 'object' && 'value' in currentValue) {
+                        currentValue = currentValue.value;
+                    }
+                    if (typeof currentValue === 'number') {
+                        const negated = currentValue * -1;
+                        context.vars[rootName] = negated;
+                        context.contextVars[rootName] = negated;
+                        const varObj = context.objects.find((o: any) => (o.name === rootName || o.id === rootName));
+                        if (varObj) varObj.value = negated;
+                    }
+                }
+            });
+        }
+    }, {
+        type: 'negate',
+        label: 'Wert negieren',
+        description: 'Negiert numerische Eigenschaften oder Variablen (- wird zu +, + wird zu -).',
+        parameters: [
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle Datenquellen (links) aus, die negiert werden sollen.' }
+        ]
+    });
+
+    // 3c. Increment
+    actionRegistry.register('increment', (action, context) => {
+        if (action.changes) {
+            Object.keys(action.changes).forEach(key => {
+                // Entferne ${} Syntax, falls vorhanden (z.B. ${CurrCannonCount} → CurrCannonCount)
+                const cleanKey = key.replace(/^\${(.+)}$/, '$1');
+                const rawValue = action.changes[key];
+                const incrementAmount = Number(PropertyHelper.interpolate(String(rawValue), { ...context.vars, ...context.contextVars, $eventData: context.eventData }, context.objects)) || 0;
+
+                const parts = cleanKey.split('.');
+                const rootName = parts[0];
+                const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
+
+                const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
+
+                if (target && propPath) {
+                    const currentValue = Number(PropertyHelper.getPropertyValue(target, propPath)) || 0;
+                    const newValue = currentValue + incrementAmount;
+                    PropertyHelper.setPropertyValue(target, propPath, newValue);
+                } else if (!propPath) { // Global Variable (target kann null sein für globale Variablen)
+                    let rawVarValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                    // Wenn rawVarValue ein Objekt ist, extrahiere den value
+                    if (rawVarValue && typeof rawVarValue === 'object' && 'value' in rawVarValue) {
+                        rawVarValue = rawVarValue.value;
+                    }
+                    const currentValue = Number(rawVarValue) || 0;
+                    const newValue = currentValue + incrementAmount;
+                    context.vars[rootName] = newValue;
+                    context.contextVars[rootName] = newValue;
+                    const varObj = context.objects.find((o: any) => (o.name === rootName || o.id === rootName));
+                    if (varObj) varObj.value = newValue;
+                }
+            });
+        }
+    }, {
+        type: 'increment',
+        label: 'Werte addieren',
+        description: 'Addiert numerische Werte auf bestehende Variablen oder Eigenschaften.',
+        parameters: [
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle Datenquellen (links) und den Wert, der addiert werden soll (rechts).' }
+        ]
+    });
+}

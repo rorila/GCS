@@ -1,0 +1,17 @@
+{
+  "stage": "Die Wiese",
+  "tree": {
+    "x": 28,
+    "y": 20,
+    "width": 8,
+    "height": 8,
+    "spriteColor": "#2d8a3e"
+  },
+  "water": {
+    "scope": "stage",
+    "type": "integer",
+    "defaultValue": 0,
+    "value": 0
+  },
+  "task": "Giessen"
+}

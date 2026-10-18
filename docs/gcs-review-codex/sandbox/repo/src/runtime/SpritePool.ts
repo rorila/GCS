@@ -1,0 +1,403 @@
+import { TSprite } from '../components/TSprite';
+import { TSpriteTemplate } from '../components/TSpriteTemplate';
+import { hydrateObjects } from '../utils/Serialization';
+
+import { Logger } from '../utils/Logger';
+import { ExpressionParser } from './ExpressionParser';
+
+const logger = Logger.get('SpritePool', 'ObjectPooling');
+
+interface PoolEntry {
+    sprite: TSprite;
+    busy: boolean;
+    acquiredAt: number;  // performance.now() Zeitpunkt des acquire
+}
+
+interface TemplatePool {
+    templateId: string;
+    templateName: string;
+    entries: PoolEntry[];
+    autoRecycle: boolean;
+    lifetime: number;     // Sekunden; 0 = keine automatische Lebensdauer
+}
+
+/**
+ * SpritePool – Object Pool Manager für TSpriteTemplate-Instanzen.
+ * 
+ * Erzeugt beim Runtime-Start N echte TSprite-Instanzen pro Template.
+ * Diese werden in die globale Object-Liste eingefügt und bekommen
+ * echte DOM-Elemente. spawn_object holt eine Instanz (acquire),
+ * destroy_object gibt sie zurück (release).
+ */
+export class SpritePool {
+    private pools: Map<string, TemplatePool> = new Map();
+
+    /**
+     * Liefert einen konkreten Zahlenwert. Ausdrücke wie "${Var}" ergeben 0,
+     * damit Pool-Instanzen keine Live-Bindings erben.
+     */
+    private static resolveNumeric(value: any): number {
+        if (typeof value === 'number' && !isNaN(value)) return value;
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+    }
+
+    /**
+     * Pool für ein Template initialisieren.
+     * Erzeugt `template.poolSize` echte TSprite-Instanzen.
+     * 
+     * @param template Das TSpriteTemplate-Objekt
+     * @param targetObjects Die globale Object-Liste, in die Instanzen eingefügt werden
+     * @returns Die erzeugten Pool-Sprites (zum Einfügen in this.objects)
+     */
+    public init(template: TSpriteTemplate, targetObjects: any[], context: Record<string, any> = {}): TSprite[] {
+        let poolSize = template.poolSize;
+
+        // Falls poolSize ein String/Ausdruck ist, jetzt auswerten
+        if (typeof poolSize === 'string') {
+            const evaluated = ExpressionParser.evaluateRaw(poolSize, context);
+            poolSize = Number(evaluated);
+            if (isNaN(poolSize)) {
+                logger.warn(`Pool Size Ausdruck "${template.poolSize}" ergab keinen gültigen Zahlenwert: ${evaluated}. Fallback auf 10.`);
+                poolSize = 10;
+            }
+        }
+
+        if (!poolSize || poolSize < 1) poolSize = 10;
+
+        const createdSprites: TSprite[] = [];
+
+        console.log(`[PUZZLE-DIAG] Pool-Init "${template.name}": poolSize=${poolSize} (roh: ${JSON.stringify(template.poolSize)})`);
+        logger.info(`Initialisiere Pool für "${template.name}" mit ${poolSize} Instanzen (Original: ${template.poolSize})`);
+
+        const entries: PoolEntry[] = [];
+
+        for (let i = 0; i < poolSize; i++) {
+            // Klon-JSON erzeugen aus dem Template
+            const cloneData: any = {
+                id: `${template.id}_pool_${i}`,
+                name: `${template.name}_pool_${i}`,
+                className: 'TSprite',  // Pool-Instanzen sind echte TSprites, keine Templates
+                x: -100,               // Offscreen parken
+                y: -100,
+                width: template.width,
+                height: template.height,
+                visible: false,         // Im Leerlauf unsichtbar
+                // Sprite-Properties vom Template übernehmen
+                velocityX: 0,           // Velocity wird erst bei acquire gesetzt
+                velocityY: 0,
+                gravity: (template as any).gravity,
+                pushOutOnCollision: (template as any).pushOutOnCollision,
+                appearanceMode: (template as any).appearanceMode,
+                // Scroll-/Kollisionsgruppe: Template als Container-Kind → Instanzen reiten mit
+                parentId: (template as any).parentId,
+                collisionEnabled: template.collisionEnabled,
+                collisionGroup: template.collisionGroup,
+                shape: template.shape,
+                spriteColor: template.spriteColor,
+                lerpSpeed: template.lerpSpeed,
+                // Interaktion/Darstellung vom Template vererben, sonst sind
+                // Pool-Instanzen weder draggable noch korrekt gestylt.
+                draggable: (template as any).draggable,
+                droppable: (template as any).droppable,
+                dragMode: (template as any).dragMode,
+                zIndex: (template as any).zIndex,
+                rotation: (template as any).rotation,
+                style: (template as any).style ? { ...(template as any).style } : undefined,
+                imageListId: template.imageListId,
+                // Ausdrücke wie ${Var} dürfen nicht in die Instanz kopiert werden — sonst
+                // erhielte jede Instanz ein eigenes Live-Binding. Der konkrete Wert wird
+                // erst beim Spawn in acquire() gesetzt.
+                imageIndex: SpritePool.resolveNumeric(template.imageIndex),
+                sourceWidth: SpritePool.resolveNumeric(template.sourceWidth),
+                sourceHeight: SpritePool.resolveNumeric(template.sourceHeight),
+                sourceRectX: SpritePool.resolveNumeric(template.sourceRectX),
+                sourceRectY: SpritePool.resolveNumeric(template.sourceRectY),
+                sourceRectWidth: SpritePool.resolveNumeric(template.sourceRectWidth),
+                sourceRectHeight: SpritePool.resolveNumeric(template.sourceRectHeight),
+                puzzleEdges: template.puzzleEdges,
+                puzzleTabDepth: SpritePool.resolveNumeric((template as any).puzzleTabDepth),
+                matchValue: template.matchValue,
+                animationId: template.animationId,
+                // Hitbox-Einstellungen vom Template übernehmen
+                customHitbox: template.customHitbox,
+                hitboxShape: template.hitboxShape,
+                hitboxOffsetX: template.hitboxOffsetX,
+                hitboxOffsetY: template.hitboxOffsetY,
+                hitboxWidth: template.hitboxWidth,
+                hitboxHeight: template.hitboxHeight,
+                // Pool-Metadata
+                templateId: template.id,
+                templateName: template.name,
+                isPoolInstance: true,
+                isTransient: true,      // Nicht speichern
+                events: template.events ? { ...template.events } : undefined,
+            };
+
+            // Bild vom Template übernehmen (falls vorhanden)
+            if (template.backgroundImage) {
+                cloneData.backgroundImage = template.backgroundImage;
+                cloneData.objectFit = template.objectFit;
+            }
+
+            // Hydrieren in echte TSprite-Instanz
+            const hydrated = hydrateObjects([cloneData]);
+            if (hydrated && hydrated.length > 0) {
+                const sprite = hydrated[0] as TSprite;
+                // Pool-Metadata NACH der Hydration nochmals explizit setzen,
+                // damit sie garantiert auf der Live-Instanz vorhanden sind.
+                (sprite as any).templateId = template.id;
+                (sprite as any).templateName = template.name;
+                (sprite as any).isPoolInstance = true;
+                entries.push({
+                    sprite,
+                    busy: false,
+                    acquiredAt: 0,
+                });
+                createdSprites.push(sprite);
+                targetObjects.push(sprite);
+            }
+        }
+
+        this.pools.set(template.id, {
+            templateId: template.id,
+            templateName: template.name,
+            entries,
+            autoRecycle: template.autoRecycle,
+            lifetime: template.lifetime,
+        });
+
+        logger.info(`Pool "${template.name}": ${entries.length} Instanzen erzeugt`);
+        return createdSprites;
+    }
+
+    /**
+     * Eine freie Instanz aus dem Pool holen.
+     * Setzt visible=true, Position und Velocity vom Template.
+     */
+    public acquire(templateId: string, x: number, y: number, template: TSpriteTemplate): TSprite | null {
+        const pool = this.pools.get(templateId);
+        if (!pool) {
+            logger.warn(`Kein Pool für Template "${templateId}" gefunden`);
+            return null;
+        }
+
+        // 1. Zuerst lifetime-abgelaufene Instanzen freigeben
+        if (pool.lifetime > 0) {
+            const now = performance.now();
+            const lifetimeMs = pool.lifetime * 1000;
+            pool.entries.forEach(entry => {
+                if (entry.busy && (now - entry.acquiredAt) > lifetimeMs) {
+                    this.releaseEntry(entry);
+                }
+            });
+        }
+
+        // 2. Freie Instanz suchen
+        let entry = pool.entries.find(e => !e.busy);
+
+        // 3. Wenn keine frei und autoRecycle aktiv → älteste recyclen
+        if (!entry && pool.autoRecycle) {
+            let oldest: PoolEntry | null = null;
+            let oldestTime = Infinity;
+            pool.entries.forEach(e => {
+                if (e.busy && e.acquiredAt < oldestTime) {
+                    oldestTime = e.acquiredAt;
+                    oldest = e;
+                }
+            });
+            if (oldest) {
+                this.releaseEntry(oldest);
+                entry = oldest;
+                logger.info(`Pool "${pool.templateName}": Auto-Recycle der ältesten Instanz`);
+            }
+        }
+
+        if (!entry) {
+            logger.warn(`Pool "${pool.templateName}" erschöpft (${pool.entries.length} Instanzen belegt)`);
+            return null;
+        }
+
+        // 4. Instanz konfigurieren. Nach der Reaktiv-Initialisierung muss der
+        // Proxy beschrieben werden, sonst sieht der Renderer die Änderungen nicht.
+        const sprite = (entry.sprite as any).__proxy__ || entry.sprite;
+        sprite.x = x;
+        sprite.y = y;
+        sprite.spawnX = x;
+        sprite.spawnY = y;
+        // width/height koennen im Flow zur Laufzeit am Template gesetzt werden
+        // (z.B. Zellgroesse aus einem Bildaufteiler) — beim Spawn uebernehmen.
+        sprite.width = SpritePool.resolveNumeric(template.width);
+        sprite.height = SpritePool.resolveNumeric(template.height);
+        // Spawn-Groesse merken (z.B. fuer verkleinerte Ablageteile, die nach
+        // einer falschen Ablage wieder auf ihre Tray-Groesse schrumpfen).
+        sprite.spawnWidth = sprite.width;
+        sprite.spawnHeight = sprite.height;
+        sprite.velocityX = template.velocityX;
+        sprite.velocityY = template.velocityY;
+        sprite.imageIndex = SpritePool.resolveNumeric(template.imageIndex);
+        sprite.imageListId = template.imageListId;
+        sprite.animationId = template.animationId;
+        sprite.appearanceMode = template.appearanceMode;
+        sprite.sourceWidth = SpritePool.resolveNumeric(template.sourceWidth);
+        sprite.sourceHeight = SpritePool.resolveNumeric(template.sourceHeight);
+        sprite.sourceRectX = SpritePool.resolveNumeric(template.sourceRectX);
+        sprite.sourceRectY = SpritePool.resolveNumeric(template.sourceRectY);
+        sprite.sourceRectWidth = SpritePool.resolveNumeric(template.sourceRectWidth);
+        sprite.sourceRectHeight = SpritePool.resolveNumeric(template.sourceRectHeight);
+        sprite.puzzleEdges = template.puzzleEdges;
+        sprite.puzzleTabDepth = SpritePool.resolveNumeric((template as any).puzzleTabDepth);
+        sprite.matchValue = template.matchValue;
+        if (template.backgroundImage || template.appearanceMode === 'sourceRect') {
+            sprite.backgroundImage = template.backgroundImage;
+            sprite.objectFit = template.objectFit;
+        }
+        sprite.visible = true;
+
+        entry.busy = true;
+        entry.acquiredAt = performance.now();
+        console.log(`[PUZZLE-DIAG] acquire "${pool.templateName}" → ${sprite.name} @ (${x},${y}) visible=${sprite.visible} imageIndex=${sprite.imageIndex} proxy=${!!(entry.sprite as any).__proxy__}`);
+
+        logger.debug(
+            `Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) imageIndex=${sprite.imageIndex}`
+        );
+        return sprite;
+    }
+
+    /**
+     * Eine Instanz zurück in den Pool geben.
+     * Setzt visible=false, Position offscreen.
+     */
+    public release(instanceId: string): boolean {
+        for (const pool of this.pools.values()) {
+            const entry = pool.entries.find(e => e.sprite.id === instanceId);
+            if (entry && entry.busy) {
+                this.releaseEntry(entry);
+                logger.info(`Pool "${pool.templateName}": release → ${entry.sprite.name}`);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Release über Sprite-Name (für %Self%-Auflösung)
+     */
+    public releaseByName(name: string): boolean {
+        for (const pool of this.pools.values()) {
+            const entry = pool.entries.find(e => e.sprite.name === name);
+            if (entry && entry.busy) {
+                this.releaseEntry(entry);
+                logger.info(`Pool "${pool.templateName}": release (by name) → ${entry.sprite.name}`);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Alle Instanzen aller Pools freigeben (Run-Stop).
+     */
+    public releaseAll(): void {
+        for (const pool of this.pools.values()) {
+            pool.entries.forEach(entry => {
+                if (entry.busy) {
+                    this.releaseEntry(entry);
+                }
+            });
+        }
+        logger.info('Alle Pools released');
+    }
+
+    /**
+     * Prüfe ob eine Instanz-ID zu einem Pool gehört.
+     */
+    public isPoolInstance(instanceId: string): boolean {
+        for (const pool of this.pools.values()) {
+            if (pool.entries.some(e => e.sprite.id === instanceId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Prüfe ob ein Template-ID einen Pool hat.
+     */
+    public hasPool(templateId: string): boolean {
+        return this.pools.has(templateId);
+    }
+
+    /**
+     * Alle aktiven (busy) Instanzen über alle Pools.
+     */
+    public getActiveInstances(): TSprite[] {
+        const result: TSprite[] = [];
+        for (const pool of this.pools.values()) {
+            pool.entries.forEach(e => {
+                if (e.busy) result.push(e.sprite);
+            });
+        }
+        return result;
+    }
+
+    /**
+     * Lifetime-Check für alle Pools (wird pro Frame vom GameLoopManager aufgerufen).
+     */
+    public checkLifetimes(): void {
+        const now = performance.now();
+        for (const pool of this.pools.values()) {
+            if (pool.lifetime <= 0) continue;
+            const lifetimeMs = pool.lifetime * 1000;
+            pool.entries.forEach(entry => {
+                if (entry.busy && (now - entry.acquiredAt) > lifetimeMs) {
+                    this.releaseEntry(entry);
+                    logger.info(`Pool "${pool.templateName}": Lifetime abgelaufen → ${entry.sprite.name}`);
+                }
+            });
+        }
+    }
+
+    /**
+     * Entfernt den Pool eines einzelnen Templates und liefert dessen
+     * bisherige Instanzen zurueck (zum Entfernen aus der Objektliste/DOM).
+     * Andere Template-Pools bleiben unveraendert.
+     */
+    public removePool(templateId: string): TSprite[] {
+        const pool = this.pools.get(templateId);
+        if (!pool) return [];
+        this.pools.delete(templateId);
+        logger.info(`Pool "${pool.templateName}" entfernt (${pool.entries.length} Instanzen)`);
+        return pool.entries.map(e => e.sprite);
+    }
+
+    /**
+     * Pool komplett verwerfen (Cleanup bei Runtime-Destroy).
+     */
+    public destroy(): void {
+        this.pools.clear();
+    }
+
+    // ─────────────────────────────────────────────
+    // Private
+    // ─────────────────────────────────────────────
+
+    private releaseEntry(entry: PoolEntry): void {
+        const sprite = (entry.sprite as any).__proxy__ || entry.sprite;
+        sprite.visible = false;
+        sprite.x = -100;
+        sprite.y = -100;
+        sprite.velocityX = 0;
+        sprite.velocityY = 0;
+        entry.busy = false;
+        entry.acquiredAt = 0;
+
+        // Kollisions-/Boundary-Cooldowns der wiederverwendeten ID zuruecksetzen,
+        // sonst verschluckt die naechste gespawnte Instanz ihre erste Kollision.
+        // Lazy-Import verhindert eine zirkulaere Abhaengigkeit.
+        const spriteId = entry.sprite.id;
+        import('./GameLoopManager').then(({ GameLoopManager }) => {
+            GameLoopManager.getInstance().clearTrackingFor(spriteId);
+        }).catch(err => logger.error('[SpritePool] Fehler beim Lazy-Import von GameLoopManager:', err));
+    }
+}

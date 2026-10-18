@@ -126,8 +126,17 @@ andere Weise:
 
 ## D) Der Inspector (rechts)
 
-Der Inspector zeigt immer **das gerade angeklickte Objekt**. Ist nichts
+Der Inspector zeigt immer **das gerade ausgewählte Objekt**. Ist nichts
 ausgewählt, steht dort „Kein Objekt ausgewählt".
+
+**Zwei Wege zur Auswahl:** Objekt auf der Stage anklicken — oder oben im
+Inspector die **Objektauswahl-Dropdown** nutzen (dort stehen alle Objekte
+der Stage). Der zweite Weg hilft, wenn ein Objekt von einem anderen
+überdeckt wird.
+
+> **Hinweis:** In Projekten, die vor dem Fix TD-015 angelegt wurden,
+> kann ein Hintergrund-Panel den Button noch überdecken — dann hilft die
+> Objektauswahl-Dropdown. Neu angelegte Projekte sind nicht betroffen.
 
 Oben im Inspector gibt es bis zu **drei Tabs**:
 
@@ -155,8 +164,10 @@ Nimm dir zwei Minuten für diesen Rundgang:
    Menü wieder schließen (irgendwo ins Leere klicken).
 2. **Toolbox:** Klappe die Kategorie **Game** auf und wieder zu —
    ein Klick auf den Kategorienamen genügt.
-3. **Stage:** Klicke den **„Start"-Button** an. Er bekommt eine Markierung
-   (Auswahlrahmen/Anfasser).
+3. **Stage:** Klicke den **„Start"-Button** an. Er bekommt eine
+   Markierung (Auswahlrahmen/Anfasser). *(Klappt der Klick in einem
+   älteren Projekt nicht, wähle ihn über die Objektauswahl-Dropdown:
+   dort heißt er `ActionButton`.)*
 4. **Inspector:** Rechts steht jetzt **„Eigenschaften"** mit den Daten des
    Buttons — suche die Zeile mit seinem Text („Start").
 5. **Inspector-Tabs:** Klicke oben im Inspector auf **Events**, dann zurück

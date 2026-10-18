@@ -1,0 +1,2154 @@
+{
+  "meta": {
+    "id": "gcs-sql-tool",
+    "name": "GCS-SQL-Tool",
+    "version": "1.1.0",
+    "description": "Lesende SQL-Konsole für den CMS-SQLite-Bestand. Nur für die aktive SuperAdmin-Rolle; der Server erzwingt readOnly. Mit Reports für Karteikästen, Lernaktivität, Belohnungen und Spielnutzung.",
+    "_sourcePath": "projects/GCS-SQL-Tool.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 44,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#0a151d"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_main",
+      "name": "SQL-Konsole",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 44,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": false,
+        "backgroundColor": "#0a151d"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_title",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 46,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "CMS-Datenbank — SQL-Konsole (nur lesend)"
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_hint",
+          "name": "Hinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 3,
+          "width": 60,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#7fa9b8",
+            "fontSize": 12,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Links einen Report wählen, dann Ausführen. Reports zeigen gespeicherte Bestände; Ziehungszähler sind noch nicht erfasst. Belohnungspunkte gelten je Vereinbarung. Maximal 500 Ergebniszeilen."
+        },
+        {
+          "className": "TObjectList",
+          "id": "sql_obj_presets",
+          "name": "Vorlagen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "records",
+          "records": [
+            {
+              "id": "r01",
+              "name": "Report: Karteikästen je Kind",
+              "description": "Aktive Kind-Karten, einschließlich Fach 6. Stapelvorlagen und gelöschte Karten zählen nicht.",
+              "sql": "SELECT p.id AS kind_id, json_extract(p.payload,'$.name') AS kind, count(c.record_key) AS gesamt,\nsum(CASE WHEN json_extract(c.payload,'$.box')=1 THEN 1 ELSE 0 END) AS fach_1,\nsum(CASE WHEN json_extract(c.payload,'$.box')=2 THEN 1 ELSE 0 END) AS fach_2,\nsum(CASE WHEN json_extract(c.payload,'$.box')=3 THEN 1 ELSE 0 END) AS fach_3,\nsum(CASE WHEN json_extract(c.payload,'$.box')=4 THEN 1 ELSE 0 END) AS fach_4,\nsum(CASE WHEN json_extract(c.payload,'$.box')=5 THEN 1 ELSE 0 END) AS fach_5,\nsum(CASE WHEN json_extract(c.payload,'$.box')=6 THEN 1 ELSE 0 END) AS fach_6,\nsum(CASE WHEN c.record_key IS NOT NULL AND (json_extract(c.payload,'$.box') IS NULL OR json_extract(c.payload,'$.box') NOT IN (1,2,3,4,5,6)) THEN 1 ELSE 0 END) AS ohne_fach\nFROM people p LEFT JOIN flashcards c ON c.childId=p.id AND json_extract(c.payload,'$.active')=1\nWHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 GROUP BY p.id ORDER BY kind, kind_id;"
+            },
+            {
+              "id": "r02",
+              "name": "Report: Stapel im Karteikasten",
+              "description": "Tatsächlich importierte Kind-Karten je Herkunftsstapel und Fach; eigene Karten bilden eine eigene Gruppe.",
+              "sql": "SELECT c.childId AS kind_id, json_extract(p.payload,'$.name') AS kind,\njson_extract(c.payload,'$.sourceDeckId') AS stapel_id,\nCASE WHEN json_extract(c.payload,'$.sourceDeckId') IS NULL THEN 'Eigene Karten / ohne Stapel' ELSE coalesce(json_extract(d.payload,'$.name'),'Nicht mehr verfügbarer Stapel') END AS stapel,\ncount(*) AS gesamt, sum(CASE WHEN json_extract(c.payload,'$.box')=1 THEN 1 ELSE 0 END) AS fach_1,\nsum(CASE WHEN json_extract(c.payload,'$.box')=2 THEN 1 ELSE 0 END) AS fach_2,\nsum(CASE WHEN json_extract(c.payload,'$.box')=3 THEN 1 ELSE 0 END) AS fach_3,\nsum(CASE WHEN json_extract(c.payload,'$.box')=4 THEN 1 ELSE 0 END) AS fach_4,\nsum(CASE WHEN json_extract(c.payload,'$.box')=5 THEN 1 ELSE 0 END) AS fach_5,\nsum(CASE WHEN json_extract(c.payload,'$.box')=6 THEN 1 ELSE 0 END) AS fach_6,\nsum(CASE WHEN json_extract(c.payload,'$.box') IS NULL OR json_extract(c.payload,'$.box') NOT IN (1,2,3,4,5,6) THEN 1 ELSE 0 END) AS ohne_fach\nFROM flashcards c JOIN people p ON p.id=c.childId LEFT JOIN cardDecks d ON d.id=json_extract(c.payload,'$.sourceDeckId')\nWHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 AND json_extract(c.payload,'$.active')=1 GROUP BY c.childId, json_extract(c.payload,'$.sourceDeckId') ORDER BY kind, stapel;"
+            },
+            {
+              "id": "r03",
+              "name": "Report: Karten nach Fachgebiet",
+              "description": "Aktive Kind-Karten nach Fachgebiet und Thema, mit bereits gelernten Karten.",
+              "sql": "SELECT c.childId AS kind_id, json_extract(p.payload,'$.name') AS kind, coalesce(json_extract(c.payload,'$.subject'),'Ohne Fachgebiet') AS fachgebiet,\ncoalesce(json_extract(c.payload,'$.topic'),'Ohne Thema') AS thema, count(*) AS karten,\nsum(CASE WHEN json_extract(c.payload,'$.box')=6 THEN 1 ELSE 0 END) AS gelernt\nFROM flashcards c JOIN people p ON p.id=c.childId WHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 AND json_extract(c.payload,'$.active')=1\nGROUP BY c.childId, fachgebiet, thema ORDER BY kind, fachgebiet, thema;"
+            },
+            {
+              "id": "r04",
+              "name": "Report: Lernpunkte und gebuchte Versuche",
+              "description": "Nur ursprüngliche Karten-Lernereignisse. Keine Ziehungsstatistik: nicht gebuchte Versuche sind nicht enthalten. Gesamtlernstand bleibt unabhängig von Belohnungen.",
+              "sql": "SELECT p.id AS kind_id, json_extract(p.payload,'$.name') AS kind, coalesce(json_extract(p.payload,'$.cardPointMode'),'progress') AS zaehlregel,\ncount(e.record_key) AS gebuchte_lernereignisse,\ncoalesce(sum(json_extract(e.payload,'$.learningDelta')),0) AS netto_lernpunkte,\nsum(CASE WHEN json_extract(e.payload,'$.toBox')>json_extract(e.payload,'$.fromBox') THEN 1 ELSE 0 END) AS aufstiege,\nsum(CASE WHEN json_extract(e.payload,'$.fromBox')>1 AND json_extract(e.payload,'$.toBox')=1 THEN 1 ELSE 0 END) AS rueckfaelle,\nsum(CASE WHEN json_extract(e.payload,'$.verification')='reported' THEN 1 ELSE 0 END) AS selbst_gemeldet,\nmax(json_extract(e.payload,'$.occurredAt')) AS letzte_lernaktivitaet\nFROM people p LEFT JOIN performanceLedger e ON e.childId=p.id AND json_extract(e.payload,'$.cardLearningEvent')=1\nWHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 GROUP BY p.id ORDER BY kind, kind_id;"
+            },
+            {
+              "id": "r05",
+              "name": "Report: Lernaktivität pro Tag (30 Tage)",
+              "description": "UTC-Tage aus gespeicherten Ereignissen; ohne Aktivität gibt es keine Zeile. Aufstiege und Rückfälle sind keine vollständige Richtig/Falsch-Quote.",
+              "sql": "SELECT e.childId AS kind_id, json_extract(p.payload,'$.name') AS kind, date(json_extract(e.payload,'$.occurredAt')) AS tag_utc,\ncount(*) AS gebuchte_lernereignisse, sum(coalesce(json_extract(e.payload,'$.learningDelta'),0)) AS netto_lernpunkte,\nsum(CASE WHEN json_extract(e.payload,'$.toBox')>json_extract(e.payload,'$.fromBox') THEN 1 ELSE 0 END) AS aufstiege\nFROM performanceLedger e JOIN people p ON p.id=e.childId WHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 AND json_extract(e.payload,'$.cardLearningEvent')=1\nAND datetime(json_extract(e.payload,'$.occurredAt')) >= datetime('now','-30 days')\nGROUP BY e.childId, tag_utc ORDER BY tag_utc DESC, kind;"
+            },
+            {
+              "id": "r06",
+              "name": "Report: Belohnungen je Begleitung",
+              "description": "Erfüllte und offene Kartenbelohnungsansprüche getrennt. Punkte je Vereinbarung, niemals sponsorübergreifend als einzigartige Lernpunkte addieren.",
+              "sql": "SELECT s.id AS begleitung_id, s.childId AS kind_id, json_extract(p.payload,'$.name') AS kind,\njson_extract(sp.payload,'$.name') AS sponsor, json_extract(s.payload,'$.status') AS begleitstatus,\njson_extract(c.payload,'$.agreementId') AS vereinbarung_id,\nsum(CASE WHEN json_extract(c.payload,'$.status')='fulfilled' THEN 1 ELSE 0 END) AS erfuellte_runden,\nsum(CASE WHEN json_extract(c.payload,'$.status')='fulfilled' THEN coalesce(json_extract(c.payload,'$.consumedPoints'),0) ELSE 0 END) AS belohnte_punkte,\nsum(CASE WHEN json_extract(c.payload,'$.status')='earned' THEN 1 ELSE 0 END) AS erreicht,\nsum(CASE WHEN json_extract(c.payload,'$.status')='requested' THEN 1 ELSE 0 END) AS angefragt,\nsum(CASE WHEN json_extract(c.payload,'$.status')='released' THEN 1 ELSE 0 END) AS uebergabe_ausstehend,\nsum(CASE WHEN json_extract(c.payload,'$.status')='cancelled' THEN 1 ELSE 0 END) AS storniert\nFROM rewardClaims c JOIN sponsorships s ON s.id=c.sponsorshipId JOIN people p ON p.id=s.childId JOIN people sp ON sp.id=s.sponsorId\nWHERE json_extract(c.payload,'$.rewardMode')='cardRounds' OR json_extract(c.payload,'$.snapshot.rewardMode')='cardRounds'\nGROUP BY s.id, json_extract(c.payload,'$.agreementId') ORDER BY kind, sponsor;"
+            },
+            {
+              "id": "r07",
+              "name": "Report: Offene Belohnungen",
+              "description": "Alle erreichten, angefragten und freigegebenen Ansprüche einschließlich beendeter Begleitungen; noch nicht erfüllt.",
+              "sql": "SELECT c.childId AS kind_id, json_extract(p.payload,'$.name') AS kind, json_extract(sp.payload,'$.name') AS sponsor,\njson_extract(c.payload,'$.entitlementKey') AS anspruch, json_extract(c.payload,'$.status') AS status,\njson_extract(c.payload,'$.snapshot.rewardText') AS belohnung, json_extract(c.payload,'$.snapshot.pointsTarget') AS punkteziel,\njson_extract(c.payload,'$.createdAt') AS erreicht_am, json_extract(c.payload,'$.fulfillmentReportedAt') AS uebergabe_gemeldet_am\nFROM rewardClaims c JOIN people p ON p.id=c.childId LEFT JOIN people sp ON sp.id=json_extract(c.payload,'$.sponsorId')\nWHERE json_extract(c.payload,'$.status') IN ('earned','requested','released') ORDER BY erreicht_am, kind;"
+            },
+            {
+              "id": "r08",
+              "name": "Report: Spielnutzung (30 Tage)",
+              "description": "Sitzungen je Kind und Spiel, unabhängig von heutigen Katalogfreigaben. UTC-Zeitfenster.",
+              "sql": "SELECT ps.childId AS kind_id, json_extract(p.payload,'$.name') AS kind, ps.gameId AS spiel_id, json_extract(g.payload,'$.name') AS spiel,\ncount(*) AS sitzungen, sum(CASE WHEN json_extract(ps.payload,'$.status')='ended' THEN 1 ELSE 0 END) AS beendet,\nmax(json_extract(ps.payload,'$.startedAt')) AS letzter_start\nFROM playSessions ps JOIN people p ON p.id=ps.childId LEFT JOIN games g ON g.id=ps.gameId\nWHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 AND datetime(json_extract(ps.payload,'$.startedAt')) >= datetime('now','-30 days')\nGROUP BY ps.childId, ps.gameId ORDER BY sitzungen DESC, kind, spiel;"
+            },
+            {
+              "id": "r09",
+              "name": "Report: Bestätigte Eltern je Kind",
+              "description": "Bestätigte, aktive Elternbeziehungen; Kinder ohne bestätigte Eltern sind sichtbar.",
+              "sql": "SELECT p.id AS kind_id, json_extract(p.payload,'$.name') AS kind, count(g.record_key) AS bestaetigte_eltern,\ngroup_concat(json_extract(ep.payload,'$.name'),', ') AS eltern\nFROM people p LEFT JOIN guardians g ON g.childId=p.id AND json_extract(g.payload,'$.status')='confirmed'\nAND EXISTS (SELECT 1 FROM people parent WHERE parent.id=g.guardianId AND json_extract(parent.payload,'$.active')=1)\nLEFT JOIN people ep ON ep.id=g.guardianId WHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 GROUP BY p.id ORDER BY kind;"
+            },
+            {
+              "id": "r10",
+              "name": "Report: Karten mit Datenproblemen",
+              "description": "Aktive Kind-Karten mit ungültigem Fach oder fehlendem Herkunftsstapel. Ohne-Stapel-Karten sind zulässig.",
+              "sql": "SELECT c.id AS karte_id, c.childId AS kind_id, json_extract(p.payload,'$.name') AS kind, json_extract(c.payload,'$.box') AS fach,\njson_extract(c.payload,'$.sourceDeckId') AS stapel_id,\nCASE WHEN json_extract(c.payload,'$.box') IS NULL OR json_extract(c.payload,'$.box') NOT IN (1,2,3,4,5,6) THEN 'Ungültiges Lernfach' ELSE 'Herkunftsstapel fehlt' END AS hinweis\nFROM flashcards c JOIN people p ON p.id=c.childId LEFT JOIN cardDecks d ON d.id=json_extract(c.payload,'$.sourceDeckId')\nWHERE json_extract(p.payload,'$.kind')='child' AND json_extract(p.payload,'$.active')=1 AND json_extract(c.payload,'$.active')=1 AND (json_extract(c.payload,'$.box') IS NULL OR json_extract(c.payload,'$.box') NOT IN (1,2,3,4,5,6) OR (json_extract(c.payload,'$.sourceDeckId') IS NOT NULL AND d.id IS NULL))\nORDER BY kind, karte_id;"
+            },
+            {
+              "id": "l01",
+              "name": "Lernen: Alle Tabellen",
+              "sql": "SELECT name AS tabelle FROM sqlite_master WHERE type='table' ORDER BY name;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l02",
+              "name": "Lernen: Tabellenstruktur (Beispiel roles)",
+              "sql": "SELECT sql AS definition FROM sqlite_master WHERE name='roles';",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l03",
+              "name": "Lernen: Felder aus payload lesen",
+              "sql": "SELECT id, json_extract(payload,'$.name') AS name, json_extract(payload,'$.active') AS aktiv FROM people ORDER BY ordinal;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l04",
+              "name": "Lernen: JOIN — Spiele pro Bereich",
+              "sql": "SELECT json_extract(ar.payload,'$.name') AS bereich, json_extract(ga.payload,'$.name') AS spiel, json_extract(ga.payload,'$.file') AS datei FROM grants g JOIN games ga ON ga.id=g.gameId JOIN areas ar ON ar.id=g.areaId ORDER BY bereich;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l05",
+              "name": "Lernen: JOIN — Kinder und Begleitpersonen",
+              "sql": "SELECT json_extract(k.payload,'$.name') AS kind, json_extract(e.payload,'$.name') AS begleitperson FROM guardians g JOIN people k ON k.id=g.childId JOIN people e ON e.id=g.guardianId;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l06",
+              "name": "Lernen: JOIN — Rollen mit Personennamen",
+              "sql": "SELECT json_extract(p.payload,'$.name') AS person, r.role, r.areaId, json_extract(r.payload,'$.active') AS aktiv FROM roles r JOIN people p ON p.id=r.personId ORDER BY person;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l07",
+              "name": "Lernen: GROUP BY — Karten je Leitner-Fach",
+              "sql": "SELECT json_extract(payload,'$.box') AS fach, count(*) AS karten FROM flashcards GROUP BY fach ORDER BY fach;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l08",
+              "name": "Lernen: Spielsitzungen pro Tag",
+              "sql": "SELECT substr(json_extract(payload,'$.startedAt'),1,10) AS tag, count(*) AS sitzungen FROM playSessions GROUP BY tag ORDER BY tag DESC;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l09",
+              "name": "Lernen: Audit — letzte Aktivitäten",
+              "sql": "SELECT json_extract(payload,'$.at') AS zeit, json_extract(payload,'$.actor') AS akteur, json_extract(payload,'$.action') AS aktion FROM cms_audit ORDER BY ordinal DESC LIMIT 50;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l10",
+              "name": "Lernen: UNION — Zeilen je Tabelle",
+              "sql": "SELECT 'people' AS tabelle, count(*) AS zeilen FROM people UNION ALL SELECT 'areas', count(*) FROM areas UNION ALL SELECT 'flashcards', count(*) FROM flashcards UNION ALL SELECT 'playSessions', count(*) FROM playSessions UNION ALL SELECT 'performanceLedger', count(*) FROM performanceLedger;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l11",
+              "name": "Lernen: WHERE — ungelesene Benachrichtigungen",
+              "sql": "SELECT json_extract(payload,'$.type') AS typ, recipientPersonId, json_extract(payload,'$.createdAt') AS erstellt FROM notifications WHERE json_extract(payload,'$.readAt') IS NULL;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l12",
+              "name": "Lernen: Ledger — gebuchte Lernpunkte",
+              "sql": "SELECT childId, json_extract(payload,'$.cardSubject') AS thema, json_extract(payload,'$.learningDelta') AS delta, json_extract(payload,'$.fromBox') AS von_fach, json_extract(payload,'$.eventId') AS ereignis FROM performanceLedger ORDER BY ordinal DESC LIMIT 50;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l13",
+              "name": "Lernen: Zugänge — Hash bleibt im payload",
+              "sql": "SELECT personId, username FROM cms_credentials ORDER BY username;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l14",
+              "name": "Lernen: Temporäre Raumzutritte",
+              "sql": "SELECT personId, roomId, sessionId, json_extract(payload,'$.active') AS aktiv FROM temporaryRoomAccess ORDER BY ordinal DESC LIMIT 50;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l15",
+              "name": "Lernen: Karteikarten mit Antwortvorschau",
+              "sql": "SELECT id, json_extract(payload,'$.question') AS frage, json_extract(payload,'$.box') AS fach, json_extract(payload,'$.active') AS aktiv FROM flashcards ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "l16",
+              "name": "Lernen: Parties und Einladungen",
+              "sql": "SELECT p.id AS party, json_extract(p.payload,'$.status') AS status, json_extract(i.payload,'$.invitedPersonId') AS eingeladen FROM parties p LEFT JOIN gameInvitations i ON i.sessionId=p.id;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t01",
+              "name": "Tabelle: people (Personen)",
+              "sql": "SELECT * FROM people ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t02",
+              "name": "Tabelle: areas (Häuser/Räume)",
+              "sql": "SELECT * FROM areas ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t03",
+              "name": "Tabelle: memberships",
+              "sql": "SELECT * FROM memberships ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t04",
+              "name": "Tabelle: roles",
+              "sql": "SELECT * FROM roles ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t05",
+              "name": "Tabelle: guardians",
+              "sql": "SELECT * FROM guardians ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t06",
+              "name": "Tabelle: codes (Anmeldecodes)",
+              "sql": "SELECT * FROM codes ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t07",
+              "name": "Tabelle: games (Spielekatalog)",
+              "sql": "SELECT * FROM games ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t08",
+              "name": "Tabelle: grants (Spiel-Freigaben)",
+              "sql": "SELECT * FROM grants ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t09",
+              "name": "Tabelle: profileRequests",
+              "sql": "SELECT * FROM profileRequests ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t10",
+              "name": "Tabelle: invites",
+              "sql": "SELECT * FROM invites ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t11",
+              "name": "Tabelle: timeBudgets",
+              "sql": "SELECT * FROM timeBudgets ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t12",
+              "name": "Tabelle: deviceGrants",
+              "sql": "SELECT * FROM deviceGrants ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t13",
+              "name": "Tabelle: playSessions",
+              "sql": "SELECT * FROM playSessions ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t14",
+              "name": "Tabelle: progress",
+              "sql": "SELECT * FROM progress ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t15",
+              "name": "Tabelle: parties",
+              "sql": "SELECT * FROM parties ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t16",
+              "name": "Tabelle: gameInvitations",
+              "sql": "SELECT * FROM gameInvitations ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t17",
+              "name": "Tabelle: notifications",
+              "sql": "SELECT * FROM notifications ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t18",
+              "name": "Tabelle: temporaryRoomAccess",
+              "sql": "SELECT * FROM temporaryRoomAccess ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t19",
+              "name": "Tabelle: flashcards",
+              "sql": "SELECT * FROM flashcards ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t20",
+              "name": "Tabelle: cardDecks",
+              "sql": "SELECT * FROM cardDecks ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t21",
+              "name": "Tabelle: sponsorshipRequestCapabilities",
+              "sql": "SELECT * FROM sponsorshipRequestCapabilities ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t22",
+              "name": "Tabelle: sponsorships",
+              "sql": "SELECT * FROM sponsorships ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t23",
+              "name": "Tabelle: sponsorAccessVersions",
+              "sql": "SELECT * FROM sponsorAccessVersions ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t24",
+              "name": "Tabelle: sponsorAgreements",
+              "sql": "SELECT * FROM sponsorAgreements ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t25",
+              "name": "Tabelle: sponsorAgreementVersions",
+              "sql": "SELECT * FROM sponsorAgreementVersions ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t26",
+              "name": "Tabelle: sponsorApprovals",
+              "sql": "SELECT * FROM sponsorApprovals ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t27",
+              "name": "Tabelle: performanceRuleVersions",
+              "sql": "SELECT * FROM performanceRuleVersions ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t28",
+              "name": "Tabelle: performanceLedger",
+              "sql": "SELECT * FROM performanceLedger ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t29",
+              "name": "Tabelle: rewardClaims",
+              "sql": "SELECT * FROM rewardClaims ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t30",
+              "name": "Tabelle: rewardPointEntries",
+              "sql": "SELECT * FROM rewardPointEntries ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t31",
+              "name": "Tabelle: sponsorEvents",
+              "sql": "SELECT * FROM sponsorEvents ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t32",
+              "name": "Tabelle: sponsorCommandReceipts",
+              "sql": "SELECT * FROM sponsorCommandReceipts ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "t33",
+              "name": "Tabelle: sponsorMessages",
+              "sql": "SELECT * FROM sponsorMessages ORDER BY ordinal LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "m01",
+              "name": "Meta: cms_metadata",
+              "sql": "SELECT * FROM cms_metadata;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "m02",
+              "name": "Meta: cms_settings",
+              "sql": "SELECT * FROM cms_settings;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "m03",
+              "name": "Meta: cms_audit (letzte 100)",
+              "sql": "SELECT * FROM cms_audit ORDER BY ordinal DESC LIMIT 100;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "m04",
+              "name": "Meta: cms_deletions",
+              "sql": "SELECT * FROM cms_deletions;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            },
+            {
+              "id": "m05",
+              "name": "Meta: cms_credentials",
+              "sql": "SELECT * FROM cms_credentials;",
+              "description": "SQL-Vorlage übernommen — anpassen und ausführen."
+            }
+          ],
+          "recordKey": "id",
+          "fields": [],
+          "items": [],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {}
+        },
+        {
+          "className": "TTable",
+          "id": "sql_tbl_presets",
+          "name": "VorlagenTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onRowClick": "Vorlage_Laden"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 6,
+          "width": 21,
+          "height": 34,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 13,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "Vorlagen",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Vorlagen",
+              "width": "1fr"
+            }
+          ],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 26,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
+        },
+        {
+          "className": "TMemo",
+          "id": "sql_memo_query",
+          "name": "Sql",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 6,
+          "width": 38,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#9cdcfe",
+            "fontSize": 14,
+            "fontFamily": "Consolas, monospace",
+            "backgroundColor": "#0e1d28",
+            "borderColor": "#1b3446",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "SELECT * FROM people ORDER BY ordinal LIMIT 100;",
+          "placeholder": "SELECT … — nur lesende Anweisungen",
+          "readOnly": false
+        },
+        {
+          "className": "TButton",
+          "id": "sql_btn_run",
+          "name": "Ausfuehren",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sql_Ausfuehren"
+          },
+          "visible": true,
+          "x": 24,
+          "y": 17,
+          "width": 10,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#0a151d",
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "backgroundColor": "#65b9b1",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "▶ Ausführen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "sql_btn_clear",
+          "name": "Leeren",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sql_Leeren"
+          },
+          "visible": true,
+          "x": 35,
+          "y": 17,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 16,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Leeren",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_msg",
+          "name": "Meldung",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 21,
+          "width": 38,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#ffd166",
+            "fontSize": 14,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Bereit. Vorlage wählen oder SQL eingeben."
+        },
+        {
+          "className": "TObjectList",
+          "id": "sql_obj_result",
+          "name": "ErgebnisDaten",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "records",
+          "records": [],
+          "recordKey": "__nr",
+          "fields": [],
+          "items": [],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {}
+        },
+        {
+          "className": "TTable",
+          "id": "sql_tbl_result",
+          "name": "Ergebnis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 24,
+          "width": 38,
+          "height": 16,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 12,
+            "fontFamily": "Consolas, monospace",
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "ErgebnisDaten",
+          "keyField": "__nr",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 24,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
+        }
+      ],
+      "variables": [
+        {
+          "className": "TObjectVariable",
+          "id": "sql_var_antwort",
+          "name": "Antwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        }
+      ],
+      "tasks": [
+        {
+          "id": "sql_task_load",
+          "name": "Vorlage_Laden",
+          "scope": "stage",
+          "description": "Gewählte Vorlage in das SQL-Feld übernehmen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_VorlageUebernehmen"
+            }
+          ]
+        },
+        {
+          "id": "sql_task_clear",
+          "name": "Sql_Leeren",
+          "scope": "stage",
+          "description": "Eingabe und Ergebnis zurücksetzen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Leeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_ErgebnisLeeren"
+            }
+          ]
+        },
+        {
+          "id": "sql_task_run",
+          "name": "Sql_Ausfuehren",
+          "scope": "stage",
+          "description": "SQL an den CMS-Endpunkt senden, Ergebnis oder Fehlermeldung zeigen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_MeldungLaeuft"
+            },
+            {
+              "type": "action",
+              "name": "Act_SqlAbfrage"
+            },
+            {
+              "type": "condition",
+              "name": "Antwort ok?",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_ErgebnisZeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_MeldungOk"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_MeldungFehler"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ErgebnisLeeren"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "sql_act_http",
+          "name": "Act_SqlAbfrage",
+          "type": "http",
+          "scope": "stage",
+          "url": "/api/cms/admin/sql",
+          "method": "POST",
+          "body": {
+            "sql": "${Sql.text}"
+          },
+          "resultVariable": "Antwort",
+          "queryOperator": "==",
+          "resultVariable_ref": "sql_var_antwort"
+        },
+        {
+          "id": "sql_act_result",
+          "name": "Act_ErgebnisZeigen",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "ErgebnisDaten",
+          "method": "replaceRecords",
+          "params": [
+            "${Antwort.rows}"
+          ],
+          "target_ref": "sql_obj_result"
+        },
+        {
+          "id": "sql_act_clear_result",
+          "name": "Act_ErgebnisLeeren",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "ErgebnisDaten",
+          "method": "replaceRecords",
+          "params": [
+            "[]"
+          ],
+          "target_ref": "sql_obj_result"
+        },
+        {
+          "id": "sql_act_msg_ok",
+          "name": "Act_MeldungOk",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "Meldung.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "sql_act_msg_run",
+          "name": "Act_MeldungLaeuft",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "Meldung.text": "Abfrage läuft …"
+          }
+        },
+        {
+          "id": "sql_act_msg_err",
+          "name": "Act_MeldungFehler",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "Meldung.text": "⚠ ${Antwort.message}"
+          }
+        },
+        {
+          "id": "sql_act_load",
+          "name": "Act_VorlageUebernehmen",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "Sql.text": "${VorlagenTabelle.selectedRecord.sql}",
+            "Meldung.text": "${VorlagenTabelle.selectedRecord.description}"
+          }
+        },
+        {
+          "id": "sql_act_clear",
+          "name": "Act_Leeren",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "Sql.text": "",
+            "Meldung.text": ""
+          }
+        }
+      ],
+      "flowCharts": {},
+      "events": {}
+    },
+    {
+      "id": "stage_login",
+      "name": "Anmeldung",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 44,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": false,
+        "backgroundColor": "#0a151d"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_ltitle",
+          "name": "LoginTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 10,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Anmeldung — SQL-Konsole"
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_lhint",
+          "name": "LoginHinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 12,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#7fa9b8",
+            "fontSize": 13,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Verwaltungszugang mit SuperAdmin-Rolle erforderlich."
+        },
+        {
+          "className": "TEdit",
+          "id": "sql_edt_user",
+          "name": "username",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onEnter": "Anmelden"
+          },
+          "visible": true,
+          "x": 14,
+          "y": 16,
+          "width": 36,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#e2e8f0",
+            "backgroundColor": "#142837",
+            "borderColor": "#21435c",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "",
+          "inputType": "text",
+          "autocomplete": "username",
+          "placeholder": "Benutzername",
+          "maxLength": 40
+        },
+        {
+          "className": "TEdit",
+          "id": "sql_edt_pass",
+          "name": "password",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onEnter": "Anmelden"
+          },
+          "visible": true,
+          "x": 14,
+          "y": 20,
+          "width": 36,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#e2e8f0",
+            "backgroundColor": "#142837",
+            "borderColor": "#21435c",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "",
+          "inputType": "password",
+          "autocomplete": "current-password",
+          "placeholder": "Passwort",
+          "maxLength": 200
+        },
+        {
+          "className": "TButton",
+          "id": "sql_btn_login",
+          "name": "Anmelden",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Anmelden"
+          },
+          "visible": true,
+          "x": 14,
+          "y": 25,
+          "width": 36,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#0a151d",
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "backgroundColor": "#65b9b1",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Anmelden",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_lmsg",
+          "name": "LoginMeldung",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 29,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#ffd166",
+            "fontSize": 14,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Bitte anmelden."
+        }
+      ],
+      "variables": [
+        {
+          "className": "TObjectVariable",
+          "id": "sql_var_lantwort",
+          "name": "Antwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        }
+      ],
+      "tasks": [
+        {
+          "id": "sql_task_login",
+          "name": "Anmelden",
+          "scope": "stage",
+          "description": "Verwaltungsanmeldung senden und je nach Rolle zur Konsole oder Rollenwahl wechseln.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LoginSenden"
+            },
+            {
+              "type": "condition",
+              "name": "Anmeldung ok?",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Rollenwahl nötig?",
+                  "condition": {
+                    "variable": "Antwort.needRole",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_Nav_Rollen"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "condition",
+                      "name": "SuperAdmin?",
+                      "condition": {
+                        "variable": "Antwort.super",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_Nav_Konsole"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "action",
+                          "name": "Act_LoginKeineRolle"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_LoginFehler"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "sql_act_login",
+          "name": "Act_LoginSenden",
+          "type": "http",
+          "scope": "stage",
+          "url": "/api/cms/admin-login",
+          "method": "POST",
+          "body": {
+            "username": "${username.text}",
+            "password": "${password.text}"
+          },
+          "resultVariable": "Antwort",
+          "queryOperator": "==",
+          "resultVariable_ref": "sql_var_lantwort"
+        },
+        {
+          "id": "sql_act_nav_roles",
+          "name": "Act_Nav_Rollen",
+          "type": "navigate_stage",
+          "scope": "stage",
+          "stageId": "stage_roles",
+          "reset": false
+        },
+        {
+          "id": "sql_act_nav_main",
+          "name": "Act_Nav_Konsole",
+          "type": "navigate_stage",
+          "scope": "stage",
+          "stageId": "stage_main",
+          "reset": false
+        },
+        {
+          "id": "sql_act_login_norole",
+          "name": "Act_LoginKeineRolle",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "LoginMeldung.text": "⚠ Angemeldet, aber ohne SuperAdmin-Rolle — die Konsole bleibt gesperrt.",
+            "password.text": ""
+          }
+        },
+        {
+          "id": "sql_act_login_fail",
+          "name": "Act_LoginFehler",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "LoginMeldung.text": "⚠ ${Antwort.message}",
+            "password.text": ""
+          }
+        }
+      ],
+      "flowCharts": {},
+      "events": {}
+    },
+    {
+      "id": "stage_roles",
+      "name": "Rollenwahl",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 44,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": false,
+        "backgroundColor": "#0a151d"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_rtitle",
+          "name": "RollenTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 8,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Verwaltungsrolle wählen"
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_rhint",
+          "name": "RollenHinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 10,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#7fa9b8",
+            "fontSize": 13,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Mehrere Rollen vorhanden — 'Super-Administration' wählen, um die Konsole zu öffnen."
+        },
+        {
+          "className": "TTimer",
+          "id": "sql_tmr_roles",
+          "name": "RollenInit",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "RollenInit"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 41,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 350,
+          "enabled": true,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TObjectList",
+          "id": "sql_obj_roles",
+          "name": "RollenListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "records",
+          "records": [],
+          "recordKey": "areaId",
+          "fields": [],
+          "items": [],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {}
+        },
+        {
+          "className": "TTable",
+          "id": "sql_tbl_roles",
+          "name": "RollenTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onRowClick": "Rolle_Waehlen"
+          },
+          "visible": true,
+          "x": 14,
+          "y": 14,
+          "width": 36,
+          "height": 14,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 15,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "RollenListe",
+          "keyField": "areaId",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "property": "label",
+              "label": "Verfügbare Rolle",
+              "width": "1fr"
+            }
+          ],
+          "displayMode": "table",
+          "flippable": false,
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 30,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
+        },
+        {
+          "className": "TLabel",
+          "id": "sql_lbl_rmsg",
+          "name": "RollenMeldung",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 30,
+          "width": 36,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#ffd166",
+            "fontSize": 14,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Rollen werden geladen …"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TObjectVariable",
+          "id": "sql_var_rantwort",
+          "name": "Antwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        }
+      ],
+      "tasks": [
+        {
+          "id": "sql_task_rolesinit",
+          "name": "RollenInit",
+          "scope": "stage",
+          "description": "Verfügbare Verwaltungsrollen der Sitzung laden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RollenLaden"
+            },
+            {
+              "type": "condition",
+              "name": "Rollen ok?",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_RollenFuellen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_RollenFehler"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sql_task_rolepick",
+          "name": "Rolle_Waehlen",
+          "scope": "stage",
+          "description": "Gewählte Rolle aktivieren; nur SuperAdmin öffnet die Konsole.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WahlSenden"
+            },
+            {
+              "type": "condition",
+              "name": "Wahl ok?",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "SuperAdmin gewählt?",
+                  "condition": {
+                    "variable": "RollenTabelle.selectedRecord.role",
+                    "operator": "==",
+                    "value": "superAdmin"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_Nav_Konsole"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "action",
+                      "name": "Act_WahlKeineRolle"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_WahlFehler"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "sql_act_rolesload",
+          "name": "Act_RollenLaden",
+          "type": "http",
+          "scope": "stage",
+          "url": "/api/cms/admin/roles",
+          "method": "POST",
+          "body": {},
+          "resultVariable": "Antwort",
+          "queryOperator": "==",
+          "resultVariable_ref": "sql_var_rantwort"
+        },
+        {
+          "id": "sql_act_rolesfill",
+          "name": "Act_RollenFuellen",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "RollenListe",
+          "method": "replaceRecords",
+          "params": [
+            "${Antwort.roles}"
+          ],
+          "target_ref": "sql_obj_roles"
+        },
+        {
+          "id": "sql_act_rolesfail",
+          "name": "Act_RollenFehler",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "RollenMeldung.text": "⚠ ${Antwort.message}"
+          }
+        },
+        {
+          "id": "sql_act_rolesend",
+          "name": "Act_WahlSenden",
+          "type": "http",
+          "scope": "stage",
+          "url": "/api/cms/admin/role",
+          "method": "POST",
+          "body": {
+            "role": "${RollenTabelle.selectedRecord.role}",
+            "areaId": "${RollenTabelle.selectedRecord.areaId}"
+          },
+          "resultVariable": "Antwort",
+          "queryOperator": "==",
+          "resultVariable_ref": "sql_var_rantwort"
+        },
+        {
+          "id": "sql_act_nav_main2",
+          "name": "Act_Nav_Konsole",
+          "type": "navigate_stage",
+          "scope": "stage",
+          "stageId": "stage_main",
+          "reset": false
+        },
+        {
+          "id": "sql_act_wahl_norole",
+          "name": "Act_WahlKeineRolle",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "RollenMeldung.text": "⚠ Nur die SuperAdmin-Rolle öffnet die Konsole."
+          }
+        },
+        {
+          "id": "sql_act_wahl_fail",
+          "name": "Act_WahlFehler",
+          "type": "property",
+          "scope": "stage",
+          "changes": {
+            "RollenMeldung.text": "⚠ ${Antwort.message}"
+          }
+        }
+      ],
+      "flowCharts": {},
+      "events": {}
+    },
+    {
+      "id": "stage_server_sql",
+      "name": "Server · SQL-Endpunkt",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#142d3b"
+      },
+      "objects": [
+        {
+          "className": "TServerEndpoint",
+          "id": "sql_ep_1",
+          "name": "SqlEmpfangen",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRequest": "Server_Sql_Verarbeiten"
+          },
+          "executionSide": "server",
+          "endpointPath": "/api/cms/admin/sql",
+          "httpMethod": "POST",
+          "traceEnabled": true,
+          "x": 2,
+          "y": 2,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerSession",
+          "id": "sql_sess_1",
+          "name": "SqlZugriff",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "sessionPolicy": "HttpOnly; SameSite=Strict; 30 Minuten",
+          "x": 2,
+          "y": 6,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerSql",
+          "id": "sql_db_1",
+          "name": "SqlDatenbank",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "queryPolicy": "Nur lesende Anweisungen (SELECT/WITH/EXPLAIN); Engine-Readonly erzwingt den Schreibschutz; Ergebnis auf 500 Zeilen begrenzt. Berechtigung wird vorgeschaltet (TServerSession).",
+          "x": 2,
+          "y": 10,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerResponse",
+          "id": "sql_resp_1",
+          "name": "SqlAntwort",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "successMessage": "✓",
+          "responseFormat": "JSON",
+          "secretPolicy": "Passwörter, Emoji-Code, Cookies und Tokens maskieren",
+          "x": 2,
+          "y": 14,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "variables": [
+        {
+          "className": "TObjectVariable",
+          "id": "sql_var_rolle",
+          "name": "Rolle",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "sql_var_ergebnis",
+          "name": "Ergebnis",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        }
+      ],
+      "tasks": [
+        {
+          "id": "sql_srv_task",
+          "name": "Server_Sql_Verarbeiten",
+          "scope": "stage",
+          "description": "SuperAdmin prüfen → lesende SQL-Abfrage ausführen → Antwort senden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Sql_ZugriffPruefen"
+            },
+            {
+              "type": "condition",
+              "name": "Rolle fehlt?",
+              "condition": {
+                "variable": "Rolle.ok",
+                "operator": "==",
+                "value": false
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Sql_FehlerRolle"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Sql_AbfrageAusfuehren"
+            },
+            {
+              "type": "condition",
+              "name": "Abfrage fehlgeschlagen?",
+              "condition": {
+                "variable": "Ergebnis.ok",
+                "operator": "==",
+                "value": false
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Sql_FehlerAbfrage"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Sql_Erfolg"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "sql_srv_act_auth",
+          "name": "Sql_ZugriffPruefen",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "SqlZugriff",
+          "method": "requireRole",
+          "params": [
+            "superAdmin"
+          ],
+          "resultVariable": "Rolle",
+          "target_ref": "sql_sess_1",
+          "resultVariable_ref": "sql_var_rolle"
+        },
+        {
+          "id": "sql_srv_act_authfail",
+          "name": "Sql_FehlerRolle",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "SqlAntwort",
+          "method": "fail",
+          "params": [
+            "${Rolle.status}",
+            "${Rolle.message}"
+          ],
+          "target_ref": "sql_resp_1"
+        },
+        {
+          "id": "sql_srv_act_query",
+          "name": "Sql_AbfrageAusfuehren",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "SqlDatenbank",
+          "method": "query",
+          "params": [],
+          "resultVariable": "Ergebnis",
+          "target_ref": "sql_db_1",
+          "resultVariable_ref": "sql_var_ergebnis"
+        },
+        {
+          "id": "sql_srv_act_qfail",
+          "name": "Sql_FehlerAbfrage",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "SqlAntwort",
+          "method": "fail",
+          "params": [
+            "${Ergebnis.status}",
+            "${Ergebnis.message}"
+          ],
+          "target_ref": "sql_resp_1"
+        },
+        {
+          "id": "sql_srv_act_ok",
+          "name": "Sql_Erfolg",
+          "type": "call_method",
+          "scope": "stage",
+          "target": "SqlAntwort",
+          "method": "send",
+          "params": [
+            {
+              "merge": "${Ergebnis}"
+            }
+          ],
+          "target_ref": "sql_resp_1"
+        }
+      ],
+      "flowCharts": {},
+      "events": {}
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_login",
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "userStories": {
+    "userStories": []
+  }
+}

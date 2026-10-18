@@ -45,7 +45,7 @@ export function collectShelfItems(project: GameProject, active: StageDefinition 
                 const isVariable = variable || isShelfVariable(object);
                 const className = object.className || (isVariable ? 'TVariable' : 'TComponent');
                 let detail = className;
-                if (isVariable) detail = (object.variableType || object.type || className) + ' · ' + valuePreview(object.defaultValue ?? object.value ?? object.items ?? object.entries);
+                if (isVariable) detail = (object.variableType || object.type || className) + ' · ' + valuePreview(object.value ?? object.defaultValue ?? object.items ?? object.entries);
                 else if (object.interval !== undefined) detail += ' · ' + object.interval + ' ms';
                 items.set(id, {id, name:object.name || id, className, origin, detail, automatic,
                     group:global ? 'Global / geerbt' : isVariable ? 'Variablen' : resources.has(className) ? 'Ressourcen' : automatic ? 'Dienste' : 'Manuell zugeordnet', object});

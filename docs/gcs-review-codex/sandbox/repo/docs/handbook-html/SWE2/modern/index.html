@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCS Autoren-Handbuch — Modern Edition</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <header class="topbar">
+        <button id="menuToggle" class="icon-btn" aria-label="Menü">☰</button>
+        <span class="brand">📖 GCS <strong>Autoren-Handbuch</strong></span>
+        <div class="topbar-search">
+            <input id="searchInput" type="search" placeholder="🔍 In allen 23 Kapiteln suchen …" autocomplete="off">
+            <div id="searchResults" class="search-results" hidden></div>
+        </div>
+        <button id="themeToggle" class="icon-btn" aria-label="Hell/Dunkel umschalten">🌙</button>
+    </header>
+
+    <div class="layout">
+        <aside id="sidebar" class="sidebar">
+            <div class="progress-card">
+                <div class="progress-label">Dein Fortschritt <strong id="progressText">0 / 23</strong></div>
+                <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+                <button id="progressReset" class="link-btn">Fortschritt zurücksetzen</button>
+            </div>
+            <nav id="chapterNav" class="chapter-nav" aria-label="Kapitel"></nav>
+        </aside>
+
+        <main class="content">
+            <div id="home" class="home-view">
+                <h1>Willkommen im GCS Autoren-Handbuch</h1>
+                <p class="lead">Lerne Schritt für Schritt, eigene Spiele zu bauen — ohne Programmieren.
+                Zwei Kurse warten auf dich: das Einsteiger-Tutorial <em>„Mein erster interaktiver Baum"</em>
+                und die Fortgeschrittenen-Lernwelt <em>„Der wachsende Baum"</em>.</p>
+                <div id="homeCards" class="card-grid"></div>
+            </div>
+
+            <article id="chapterView" class="chapter-view" hidden>
+                <div class="chapter-head">
+                    <span id="chapterBadge" class="badge"></span>
+                    <h1 id="chapterTitle"></h1>
+                    <p id="chapterGoal" class="lead"></p>
+                </div>
+                <div id="chapterBody" class="chapter-body"></div>
+                <footer class="chapter-footer">
+                    <button id="prevBtn" class="nav-btn">◀ Zurück</button>
+                    <label class="done-toggle">
+                        <input type="checkbox" id="doneCheck"> Kapitel gelesen
+                    </label>
+                    <button id="nextBtn" class="nav-btn primary">Weiter ▶</button>
+                </footer>
+            </article>
+        </main>
+    </div>
+
+    <div id="sidebarOverlay" class="sidebar-overlay" hidden></div>
+    <script src="../shared/handbook-content.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>

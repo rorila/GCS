@@ -83,7 +83,7 @@ export class SpriteRenderer {
             });
         }
 
-        el.style.backgroundColor = effectiveHasMedia ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
+        el.style.backgroundColor = effectiveHasMedia ? 'transparent' : (obj.spriteColor || obj.style?.backgroundColor || '#ff6b6b');
 
         if (effectiveHasMedia) {
             el.style.borderColor = 'transparent';

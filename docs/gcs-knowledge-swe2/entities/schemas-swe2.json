@@ -1,0 +1,691 @@
+[
+ {
+  "id": "SCM-0013",
+  "kind": "schema",
+  "name": "base",
+  "title": "Basis-Definitionen (actionTypes, variableTypes, baseProperties) für alle GCS-Komponenten. Komponenten sind in separaten Modulen ausgelagert.",
+  "category": "schema",
+  "description": "Basis-Definitionen (actionTypes, variableTypes, baseProperties) für alle GCS-Komponenten. Komponenten sind in separaten Modulen ausgelagert. (0 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_base.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:573869cd94ae5b00"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0008",
+  "kind": "schema",
+  "name": "containers",
+  "title": "Container-Komponenten (Panels, Gruppen)",
+  "category": "schema",
+  "description": "Container-Komponenten (Panels, Gruppen) (2 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0058"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0032"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_containers.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2523c872e8028a0d"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0005",
+  "kind": "schema",
+  "name": "dialogs",
+  "title": "Dialog-Container (Modal, Side-Panel)",
+  "category": "schema",
+  "description": "Dialog-Container (Modal, Side-Panel) (4 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0018"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0089"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0057"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0040"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_dialogs.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:62080877886ad51e"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0003",
+  "kind": "schema",
+  "name": "display",
+  "title": "Anzeige-Komponenten (Shape, ProgressBar, RichText, Image, NumberLabel)",
+  "category": "schema",
+  "description": "Anzeige-Komponenten (Shape, ProgressBar, RichText, Image, NumberLabel) (8 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0088"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0008"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0046"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0060"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0065"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0035"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0054"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0047"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_display.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f793e3a563b82395"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0011",
+  "kind": "schema",
+  "name": "game",
+  "title": "Spielspezifische Komponenten (Sprites, Physics)",
+  "category": "schema",
+  "description": "Spielspezifische Komponenten (Sprites, Physics) (3 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0098"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0061"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_game.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b552280ba4610d7a"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0004",
+  "kind": "schema",
+  "name": "inputs",
+  "title": "Eingabe-Komponenten (Textfeld, Zahl, Checkbox, Dropdown, Farbwahl, Memo)",
+  "category": "schema",
+  "description": "Eingabe-Komponenten (Textfeld, Zahl, Checkbox, Dropdown, Farbwahl, Memo) (6 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0053"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0020"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0011"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0019"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0013"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0051"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_inputs.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f4eed8b7a949ed84"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0001",
+  "kind": "schema",
+  "name": "media",
+  "title": "Media-Komponenten (Audio, Video, ImageList)",
+  "category": "schema",
+  "description": "Media-Komponenten (Audio, Video, ImageList) (8 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0038"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0036"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0003"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0093"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0092"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0119"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0037"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_media.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9cc3435030307245"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0006",
+  "kind": "schema",
+  "name": "server",
+  "title": "Server-Workflow-Pilot: Anmeldung und nachvollziehbare Request-/Response-Diagnose",
+  "category": "schema",
+  "description": "Server-Workflow-Pilot: Anmeldung und nachvollziehbare Request-/Response-Diagnose (11 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0070"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0087"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0067"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0079"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0081"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0077"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0022"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0023"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0084"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0086"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0066"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_server.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:007b3e93f496d1c9"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0012",
+  "kind": "schema",
+  "name": "server-cms",
+  "title": "Server-Komponentenverträge für das CMS (Phase 1). Jede Komponente garantiert ihre Sicherheitsregeln selbst — der sichtbare GCS-Flow zeigt den fachlichen Ablauf, aber das Entfernen eines Flow-Schritts darf nie ungeschützten Zugriff ermöglichen. Status: Vertrag; Umsetzung schrittweise in Phase 2/3.",
+  "category": "schema",
+  "description": "Server-Komponentenverträge für das CMS (Phase 1). Jede Komponente garantiert ihre Sicherheitsregeln selbst — der sichtbare GCS-Flow zeigt den fachlichen Ablauf, aber das Entfernen eines Flow-Schritts darf nie ungeschützten Zugriff ermöglichen. Status: Vertrag; Umsetzung schrittweise in Phase 2/3. (15 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0122"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0123"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0124"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0076"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0125"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0074"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0072"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0126"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0127"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0128"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0073"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0083"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0082"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0080"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0075"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_server_cms.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ee6869e99a2c4dd0"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0007",
+  "kind": "schema",
+  "name": "services",
+  "title": "Infrastruktur- und Service-Komponenten (GameLoop, GameState, Controller)",
+  "category": "schema",
+  "description": "Infrastruktur- und Service-Komponenten (GameLoop, GameState, Controller) (3 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0028"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0030"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_services.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:062865cacc49087e"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0010",
+  "kind": "schema",
+  "name": "table_data",
+  "title": "Objektlisten als Datenquelle für Tabellen",
+  "category": "schema",
+  "description": "Objektlisten als Datenquelle für Tabellen (2 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0108"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0055"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_table_data.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a51f7f10d42d5986"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0009",
+  "kind": "schema",
+  "name": "timers",
+  "title": "Timer-Komponenten",
+  "category": "schema",
+  "description": "Timer-Komponenten (2 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0044"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0114"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_timers.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4bc2651536c3aae9"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "SCM-0002",
+  "kind": "schema",
+  "name": "variables",
+  "title": "Erweiterte Variablen-Typen (zusätzlich zu den bestehenden TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable)",
+  "category": "schema",
+  "description": "Erweiterte Variablen-Typen (zusätzlich zu den bestehenden TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable) (11 Komponenten mit Eigenschaftsdefinitionen).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "hasSchema",
+    "target": "COMP-0043"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0007"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0104"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0062"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0064"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0056"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0050"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0116"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0113"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0063"
+   },
+   {
+    "type": "hasSchema",
+    "target": "COMP-0103"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_variables.json"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ada0ca3d211ae633"
+  },
+  "provenance": {
+   "method": [
+    "schema"
+   ],
+   "confidence": "verified"
+  }
+ }
+]

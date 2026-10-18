@@ -1,0 +1,14 @@
+{
+  "beforeDrag": {
+    "x": 28,
+    "y": 20
+  },
+  "afterDrag": {
+    "x": 29,
+    "y": 21
+  },
+  "inspectorAfterDrag": {
+    "x": 28,
+    "y": 20
+  }
+}

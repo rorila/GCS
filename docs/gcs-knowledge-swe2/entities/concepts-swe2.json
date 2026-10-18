@@ -1,0 +1,512 @@
+[
+ {
+  "id": "CON-0001",
+  "kind": "concept",
+  "name": "actions",
+  "title": "Referenz: Action-Typen (Runtime)",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: Action-Typen (Runtime)",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0156"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d70ec6d9bb1ed176"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0002",
+  "kind": "concept",
+  "name": "events",
+  "title": "Referenz: Event-System",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: Event-System",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0157"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c9b0dd83cc768ff3"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0003",
+  "kind": "concept",
+  "name": "expressions",
+  "title": "Referenz: ExpressionParser",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: ExpressionParser",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0158"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/expressions.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:22ae4e506606c94d"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0004",
+  "kind": "concept",
+  "name": "multiplayer-runtime",
+  "title": "Referenz: Multiplayer-Runtime",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: Multiplayer-Runtime",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0159"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/multiplayer-runtime.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e30d16235d45dd25"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0005",
+  "kind": "concept",
+  "name": "tasks-conditions",
+  "title": "Referenz: Tasks, Bedingungen &amp; Schleifen",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: Tasks, Bedingungen &amp; Schleifen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0160"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/tasks-conditions.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:44045d6599af4736"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0006",
+  "kind": "concept",
+  "name": "variables",
+  "title": "Referenz: Variablensystem",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Referenz: Variablensystem",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0161"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/reference/variables.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0aaf5c7e37c06b3d"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0007",
+  "kind": "concept",
+  "name": "architecture-execution-flow",
+  "title": "Architektur: Ausführungsfluss (Event → Task → Action → Stage)",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: Architektur: Ausführungsfluss (Event → Task → Action → Stage)",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0115"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/architecture/execution-flow.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:adae5fad45590089"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0008",
+  "kind": "concept",
+  "name": "architecture-module-map",
+  "title": "GCS-Modulkarte",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: GCS-Modulkarte",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0116"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/architecture/module-map.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a9bde867cf2f5d58"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0009",
+  "kind": "concept",
+  "name": "architecture-overview",
+  "title": "GCS-Systemarchitektur — Gesamtbild",
+  "category": "konzept",
+  "description": "Referenz-/Konzeptdokument: GCS-Systemarchitektur — Gesamtbild",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0117"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/architecture/overview.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7604ac636197c7be"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0010",
+  "kind": "concept",
+  "name": "README",
+  "title": "CMS — Benutzerperspektive und Funktionsumfang",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: CMS — Benutzerperspektive und Funktionsumfang",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0143"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/cms/README.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a8e5f87b30c8380c"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0011",
+  "kind": "concept",
+  "name": "README",
+  "title": "Lernwelten &amp; Beispielprojekte",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: Lernwelten &amp; Beispielprojekte",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0150"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/lernwelten/README.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a5e214b3cec37a62"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0012",
+  "kind": "concept",
+  "name": "README",
+  "title": "Multiplayer — Game Server, Räume, Synchronisation",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: Multiplayer — Game Server, Räume, Synchronisation",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0151"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/multiplayer/README.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:157ec382c40d2147"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0013",
+  "kind": "concept",
+  "name": "sicherheit",
+  "title": "CMS-Anbindung, Berechtigungen und Sicherheitsmechanismen",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: CMS-Anbindung, Berechtigungen und Sicherheitsmechanismen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0152"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/multiplayer/sicherheit.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a17d00b1f8c097ed"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0014",
+  "kind": "concept",
+  "name": "README",
+  "title": "docs/features — Feature-Katalog",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: docs/features — Feature-Katalog",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0142"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/README.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2872f4b5691ac0d9"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "CON-0015",
+  "kind": "concept",
+  "name": "spielablauf",
+  "title": "Spielablauf — Game Loop, Stages, Kollisionen",
+  "category": "feature-doc",
+  "description": "Feature-Dokument: Spielablauf — Game Loop, Stages, Kollisionen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0153"
+   }
+  ],
+  "sources": {
+   "docs": [
+    "docs/features/runtime/spielablauf.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f601a7e126c02b9a"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ }
+]

@@ -1,0 +1,38 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto');
+const {loadRuntime}=require('./cms/cms-runtime.cjs');
+const {enroll}=require('./cms/cms-super.cjs');
+const projectPath=path.join(__dirname,'../game-server/public/projects/GCS-CMS.json');
+const runtime=loadRuntime(projectPath),dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-admin-management-'));
+const credentialPath=path.join(dir,'cms-admin-auth.json');
+const salt='synthetic-test-salt',oldHash=crypto.scryptSync('synthetic-old-password',salt,64).toString('hex');
+const db={areas:[{id:'root',type:'root',active:true},{id:'house',type:'house',parentId:'root',name:'Testhaus',active:true}],people:[{id:'super',kind:'adult',name:'Test Super',active:true},{id:'admin',kind:'adult',name:'Test Admin',avatar:'\u{1F464}',active:true},{id:'other',kind:'adult',name:'Andere Person',active:true},{id:'child',kind:'child',name:'Test Kind',active:true}],roles:[{personId:'super',areaId:'root',role:'superAdmin',active:true},{personId:'admin',areaId:'house',role:'areaAdmin',active:true}],invites:[]};
+const core={db},audit=[];
+const commit=(actor,action,areaId,change)=>{change(db);audit.push({actor:actor.personId,action,areaId});};
+const session={personId:'super',assurance:'admin'};
+const run=(route,body,actor=session)=>{const ep=runtime.find('/api/cms/admin/'+route,'POST');assert.ok(ep,route+' vorhanden');return runtime.run(ep,{core,session:actor,body,credentialPath,commit},{strict:true});};
+let checks=0;
+const check=(name,fn)=>{fn();checks++;console.log('OK '+name);};
+try{
+ fs.writeFileSync(credentialPath,JSON.stringify([{personId:'admin',username:'testadmin',salt,hash:oldHash}]));
+ check('Detailvertrag und Zustand',()=>{const r=run('super-person-detail',{houseId:'house',personId:'admin'});assert.equal(r.status,200);assert.equal(r.data.person.name,'Test Admin');assert.equal(r.data.person.active,true);assert.equal(r.data.person.assigned,true);assert.equal(r.data.person.accessLabel,'Benutzername: testadmin');assert.equal(r.data.person.andere,'—');assert.ok(!JSON.stringify(r.data).includes(oldHash));});
+ check('Nur zugeordnete Admins und explizite Personenauswahl',()=>{assert.deepEqual(run('super-admins',{houseId:'house',listMode:'assigned'}).data.items.map(p=>p.id),['admin']);assert.equal(run('super-admins',{houseId:'house',listMode:'all'}).data.items.length,3);});
+ check('Berechtigung und ungültiger Hauskontext',()=>{assert.equal(run('super-person-detail',{houseId:'house',personId:'admin'},{personId:'admin',assurance:'admin'}).status,403);assert.equal(run('super-person-update',{houseId:'missing',personId:'admin',name:'Neu',avatar:'\u{1F464}'}).status,404);assert.equal(run('super-person-active',{houseId:'missing',personId:'admin',active:false,confirm:true}).status,404);});
+ check('Avatar-Validierung und Profil speichern',()=>{assert.equal(run('super-person-update',{houseId:'house',personId:'admin',name:'Neu',avatar:'abc'}).status,400);assert.equal(run('super-person-update',{houseId:'house',personId:'admin',name:'Neuer Name',avatar:'\u{1F989}'}).status,200);assert.equal(db.people[1].name,'Neuer Name');});
+ check('Inaktiv bleibt sichtbar und kann reaktiviert werden',()=>{assert.equal(run('super-person-active',{houseId:'house',personId:'admin',active:false,confirm:true}).status,200);assert.equal(run('super-admins',{houseId:'house',listMode:'assigned'}).data.items[0].aktiv,false);assert.equal(run('super-person-active',{houseId:'house',personId:'admin',active:true,confirm:true}).status,200);assert.equal(run('super-person-active',{houseId:'house',personId:'super',active:false,confirm:true}).status,409);});
+ check('Reset-Flow: Rolle, Zugang, Aktivstatus und Bestätigung werden geprüft',()=>{const before=fs.readFileSync(credentialPath,'utf8');
+  assert.equal(run('super-person-reset',{houseId:'house',personId:'other',confirm:true}).status,403);
+  db.roles.push({personId:'other',areaId:'house',role:'areaAdmin',active:true});
+  assert.equal(run('super-person-reset',{houseId:'house',personId:'other',confirm:true}).status,409,'ohne Zugang');
+  db.roles.pop();
+  assert.equal(run('super-person-reset',{houseId:'house',personId:'admin'}).status,400);
+  run('super-person-active',{houseId:'house',personId:'admin',active:false,confirm:true});
+  assert.equal(run('super-person-reset',{houseId:'house',personId:'admin',confirm:true}).status,409,'inaktiv');
+  run('super-person-active',{houseId:'house',personId:'admin',active:true,confirm:true});
+  assert.equal(fs.readFileSync(credentialPath,'utf8'),before);assert.equal(db.invites.length,0);});
+ check('Deaktivieren entwertet offene Links und alte Sitzungen',()=>{db.invites.push({personId:'admin',purpose:'admin-setup',hash:'x',expires:Date.now()+1000});const v=db.people[1].authVersion||0;run('super-person-active',{houseId:'house',personId:'admin',active:false,confirm:true});assert.equal(db.invites.length,0);assert.equal(db.people[1].authVersion,v+1);run('super-person-active',{houseId:'house',personId:'admin',active:true,confirm:true});});
+ let ticket;
+ check('Reset-Link erhält Zugang und speichert nur Tokenhash',()=>{const r=run('super-person-reset',{houseId:'house',personId:'admin',confirm:true});assert.equal(r.status,200);ticket=r.data.link.split('ticket=')[1];assert.match(ticket,/^[a-f0-9]{64}$/);assert.equal(JSON.parse(fs.readFileSync(credentialPath))[0].hash,oldHash);assert.ok(!JSON.stringify(db).includes(ticket));});
+ check('Neuer Link entwertet vorherigen',()=>{const r=run('super-person-reset',{houseId:'house',personId:'admin',confirm:true});assert.equal(enroll(core,credentialPath,ticket,'testadmin','synthetic-new-password',commit).ok,false);ticket=r.data.link.split('ticket=')[1];});
+ check('Passwortwechsel erhält Namen, ist einmalig und auditiert',()=>{assert.equal(enroll(core,credentialPath,ticket,'renamed','synthetic-new-password',commit).ok,false);assert.equal(enroll(core,credentialPath,ticket,'testadmin','synthetic-new-password',commit).ok,true);const c=JSON.parse(fs.readFileSync(credentialPath))[0];assert.equal(c.username,'testadmin');assert.notEqual(c.hash,oldHash);assert.equal(c.hash,crypto.scryptSync('synthetic-new-password',c.salt,64).toString('hex'));assert.equal(enroll(core,credentialPath,ticket,'testadmin','synthetic-other-password',commit).ok,false);assert.ok(audit.some(x=>x.action==='admin-password-reset'));});
+ console.log(checks+' Vertragsprüfungen bestanden.');
+}finally{fs.rmSync(dir,{recursive:true,force:true});}

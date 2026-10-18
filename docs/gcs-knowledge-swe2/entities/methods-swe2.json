@@ -1,0 +1,1250 @@
+[
+ {
+  "id": "MTH-0001",
+  "kind": "method",
+  "name": "speak",
+  "title": "speak",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "text",
+    "type": "string",
+    "label": "Sprechtext",
+    "optional": true
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a1b2f591edff2ef9"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0002",
+  "kind": "method",
+  "name": "prefetch",
+  "title": "prefetch",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "text",
+    "type": "string",
+    "label": "Ansage vorladen",
+    "optional": true
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0c83e159dfd04f6a"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0003",
+  "kind": "method",
+  "name": "setVelocity",
+  "title": "setVelocity",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "vx",
+    "type": "number",
+    "label": "Velocity X"
+   },
+   {
+    "name": "vy",
+    "type": "number",
+    "label": "Velocity Y"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9394268db8c021bb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0004",
+  "kind": "method",
+  "name": "setText",
+  "title": "setText",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "text",
+    "type": "string",
+    "label": "New Text"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9888d2c6da4e1a2a"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0005",
+  "kind": "method",
+  "name": "setSrc",
+  "title": "setSrc",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "src",
+    "type": "string",
+    "label": "Image Source"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1b5b382b5bea0c5a"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0006",
+  "kind": "method",
+  "name": "show",
+  "title": "show",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Nachricht"
+   },
+   {
+    "name": "type",
+    "type": "select",
+    "label": "Typ",
+    "default": "info",
+    "options": [
+     "info",
+     "success",
+     "warning",
+     "error"
+    ]
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:53824ca797495fb4"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0007",
+  "kind": "method",
+  "name": "generatePieces",
+  "title": "generatePieces",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0008",
+  "kind": "method",
+  "name": "resetPool",
+  "title": "resetPool",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0009",
+  "kind": "method",
+  "name": "tryPlacePiece",
+  "title": "tryPlacePiece",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "piece",
+    "type": "string",
+    "label": "Puzzleteil (Objekt)"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5fe05e24d660d7bc"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0010",
+  "kind": "method",
+  "name": "resetBoard",
+  "title": "resetBoard",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0011",
+  "kind": "method",
+  "name": "shuffle",
+  "title": "shuffle",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0012",
+  "kind": "method",
+  "name": "play",
+  "title": "play",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0013",
+  "kind": "method",
+  "name": "hide",
+  "title": "hide",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0014",
+  "kind": "method",
+  "name": "toggle",
+  "title": "toggle",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0015",
+  "kind": "method",
+  "name": "enable",
+  "title": "enable",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0016",
+  "kind": "method",
+  "name": "disable",
+  "title": "disable",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0017",
+  "kind": "method",
+  "name": "reset",
+  "title": "reset",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0018",
+  "kind": "method",
+  "name": "start",
+  "title": "start",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0019",
+  "kind": "method",
+  "name": "stop",
+  "title": "stop",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0020",
+  "kind": "method",
+  "name": "pause",
+  "title": "pause",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0021",
+  "kind": "method",
+  "name": "resume",
+  "title": "resume",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0022",
+  "kind": "method",
+  "name": "flip",
+  "title": "flip",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0023",
+  "kind": "method",
+  "name": "open",
+  "title": "open",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0024",
+  "kind": "method",
+  "name": "close",
+  "title": "close",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0025",
+  "kind": "method",
+  "name": "createRoom",
+  "title": "createRoom",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "gameId",
+    "type": "string",
+    "label": "Game ID"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:43d7171485ed83a3"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0026",
+  "kind": "method",
+  "name": "joinRoom",
+  "title": "joinRoom",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "roomId",
+    "type": "string",
+    "label": "Room Code"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b190ef28ee840bcb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0027",
+  "kind": "method",
+  "name": "sendMessage",
+  "title": "sendMessage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "type",
+    "type": "string",
+    "label": "Message Type"
+   },
+   {
+    "name": "payload",
+    "type": "string",
+    "label": "Payload (JSON)"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:8533a030739d1e82"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0028",
+  "kind": "method",
+  "name": "info",
+  "title": "info",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Message"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35190e45384612eb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0029",
+  "kind": "method",
+  "name": "success",
+  "title": "success",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Message"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35190e45384612eb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0030",
+  "kind": "method",
+  "name": "warning",
+  "title": "warning",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Message"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35190e45384612eb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0031",
+  "kind": "method",
+  "name": "error",
+  "title": "error",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Message"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35190e45384612eb"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0032",
+  "kind": "method",
+  "name": "timerReset",
+  "title": "timerReset",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0033",
+  "kind": "method",
+  "name": "moveTo",
+  "title": "moveTo",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "x",
+    "type": "number",
+    "label": "X",
+    "default": 0
+   },
+   {
+    "name": "y",
+    "type": "number",
+    "label": "Y",
+    "default": 0
+   },
+   {
+    "name": "duration",
+    "type": "number",
+    "label": "Dauer (ms)",
+    "default": 500
+   },
+   {
+    "name": "easing",
+    "type": "select",
+    "label": "Easing",
+    "default": "easeOut",
+    "options": [
+     "linear",
+     "easeIn",
+     "easeOut",
+     "easeInOut"
+    ]
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:63f3ef290a5d5627"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0034",
+  "kind": "method",
+  "name": "goToStage",
+  "title": "goToStage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "stageId",
+    "type": "select",
+    "label": "Seite",
+    "options": "${getStageOptions()}"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4c76f511edb25735"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0035",
+  "kind": "method",
+  "name": "goToMainStage",
+  "title": "goToMainStage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0036",
+  "kind": "method",
+  "name": "goToFirstStage",
+  "title": "goToFirstStage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0037",
+  "kind": "method",
+  "name": "nextStage",
+  "title": "nextStage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "MTH-0038",
+  "kind": "method",
+  "name": "previousStage",
+  "title": "previousStage",
+  "category": "component-method",
+  "description": "Registrierte Methode aus MethodRegistry (src/editor/MethodRegistry.ts).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "sources": {
+   "code": [
+    "src/editor/MethodRegistry.ts"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:19021c415c11ef74"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ }
+]

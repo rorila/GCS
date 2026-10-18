@@ -1,5 +1,5 @@
 {
-  "unchanged": true,
+  "unchanged": false,
   "files": {
     "src/adapters/BrowserSpeechRecognitionAdapter.ts": "9a39f195ed37e975a4dd584df58a704f2f76574a57a2df28f60d4ccad153da0d",
     "src/adapters/BrowserUploadAdapter.ts": "abca162955a6b915a71ae004f9753c0b1211a17225a73fa57bc7aea1368bd10c",
@@ -583,7 +583,25 @@
     "docs/user-guide/kapitel-04-variablen-wasser.md": "728650303dc0dff82e5b4deef01a98598b8b7772d22f60b3516031265a8e8663",
     "docs/user-guide/kapitel-05-tasks-verstehen.md": "cabe623273641365e6ba4b66df4d7daf7e7bf30db1dc3718f12cddee6fdf7cce",
     "docs/user-guide/kapitel-06-giess-knopf.md": "adea5f9e509ffa04e3be47e0aef9591916c77d71b594f1e80972b1e4a07f4d09",
+    "docs/user-guide/kapitel-07-bedingungen.md": "2d9c2b9ed39dc9d962b24a93e8d2a8de318904a45e017b55b1152e9de05cb031",
     "docs/user-guide/README.md": "a5e409e5bafa27a4794ba170c20cc25467b7d16cccb2d1397ef677d66006da61",
     "docs/user-guide/_vorlage.md": "fbe771e5599da5ed3a9d555d88ec858d998f1df756c8c349ff33cd6138c891f7"
-  }
+  },
+  "changedExisting": [
+    "docs/user-guide/README.md"
+  ],
+  "removed": [],
+  "added": [
+    "docs/user-guide/kapitel-08-flow-editor.md",
+    "docs/user-guide/kapitel-09-wachstumsstufen.md",
+    "docs/user-guide/kapitel-10-durst-timer.md",
+    "docs/user-guide/kapitel-11-bilder-media.md",
+    "docs/user-guide/kapitel-12-game-state.md",
+    "docs/user-guide/kapitel-13-run-test.md",
+    "docs/user-guide/kapitel-14-export.md",
+    "docs/user-guide/kapitel-15-feintuning.md"
+  ],
+  "existingUnchanged": false,
+  "requestedScopeChanged": [],
+  "requestedScopeUnchanged": true
 }

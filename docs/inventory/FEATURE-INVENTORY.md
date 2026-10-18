@@ -15,7 +15,7 @@
 |---|---|
 | Features gesamt | 12 |
 | Komponenten erfasst | 128 |
-| Dokumente bewertet | 213 |
+| Dokumente bewertet | 242 |
 
 ### Entwicklungsstatus
 - geplant: 0
@@ -302,4 +302,4 @@ Referenzkarten: [docs/reference/components/](../reference/components/README.md)
 | variablen | 1 |
 
 ---
-_Letzter Build: 2026-10-17_
+_Letzter Build: 2026-10-18_

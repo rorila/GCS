@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcs.local/schemas/knowledge-entity-swe2.json",
+  "title": "GCS Knowledge Entity (SWE-2)",
+  "description": "Einheitliches Datenformat für Wissenseinheiten der GCS-Wissensbasis. Unbekannte Felder werden weggelassen, nie erfunden.",
+  "type": "object",
+  "required": ["id", "kind", "name", "status", "sources", "provenance", "version"],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(COMP|FEAT|DOC|ACT|MTH|EVT|SCM|GUIDE|CON)-[A-Za-z0-9_-]+$",
+      "description": "Stabile, niemals wiederverwendete ID. Zuordnung technischer Schlüssel → ID liegt in id-map-swe2.json."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["component", "feature", "action-type", "method", "event", "schema", "guide-chapter", "document", "concept"]
+    },
+    "name": { "type": "string" },
+    "title": { "type": "string" },
+    "category": { "type": "string" },
+    "subcategory": { "type": "string" },
+    "description": { "type": "string" },
+    "status": {
+      "type": "object",
+      "required": ["dev", "test", "doc"],
+      "properties": {
+        "dev": { "type": "string", "enum": ["geplant", "experimentell", "implementiert", "veraltet"] },
+        "test": { "type": "string", "enum": ["nicht getestet", "test vorhanden", "test fehlgeschlagen", "automatisiert erfolgreich", "manuell geprüft"] },
+        "doc": { "type": "string", "enum": ["entwurf", "technisch geprüft", "fachlich freigegeben"] }
+      }
+    },
+    "properties": {
+      "type": "object",
+      "description": "Zulässige Eigenschaften für Spielgenerierung: {propName: {type, label?, default?, options?, description?, group?, source}}",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string" },
+          "label": { "type": "string" },
+          "default": {},
+          "options": {},
+          "description": { "type": "string" },
+          "group": { "type": "string" },
+          "source": { "type": "string", "enum": ["schema", "inspector-card", "source-scan"] }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "origin": { "type": "string", "enum": ["own", "inherited", "runtime", "documented"] },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "methods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "params": { "type": "array" },
+          "hasReturn": { "type": "boolean" },
+          "origin": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "parameters": {
+      "type": "array",
+      "description": "Für action-type/method: Parameterliste aus Registry-Metadaten",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "label": { "type": "string" },
+          "hint": { "type": "string" },
+          "default": {},
+          "options": {},
+          "optional": { "type": "boolean" }
+        }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "description": "Action-Type-Flags aus ActionRegistry-Metadaten",
+      "properties": {
+        "hidden": { "type": "boolean" },
+        "requiresServer": { "type": "boolean" },
+        "requiresMultiplayer": { "type": "boolean" },
+        "isAlias": { "type": "boolean" }
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["global", "stage", "local", "task"] },
+      "description": "Zulässige Gültigkeitsbereiche"
+    },
+    "inheritanceChain": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Vererbungskette als Klassennamen, z. B. ['TButton','TTextControl','TWindow','TComponent']"
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "target"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["inherits", "hasSchema", "dependsOn", "documentedIn", "seeAlso", "declaresEvent", "hasMethod", "usedIn"]
+          },
+          "target": { "type": "string", "pattern": "^(COMP|FEAT|DOC|ACT|MTH|EVT|SCM|GUIDE|CON)-[A-Za-z0-9_-]+$" }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "openQuestions": { "type": "array", "items": { "type": "string" } },
+    "sources": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "array", "items": { "type": "string" } },
+        "docs": { "type": "array", "items": { "type": "string" } },
+        "tests": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "version": {
+      "type": "object",
+      "required": ["extractedAt", "contentHash"],
+      "properties": {
+        "lastChecked": { "type": "string" },
+        "commit": { "type": "string" },
+        "extractedAt": { "type": "string" },
+        "contentHash": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["method", "confidence"],
+      "properties": {
+        "method": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["inventory", "registry-extract", "schema", "markdown-parse", "source-scan"] }
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["verified", "documented", "inferred"],
+          "description": "verified = Quellcode/Registry belegt; documented = Doku-Selbstauskunft; inferred = abgeleitet, nicht vollständig verifiziert"
+        }
+      }
+    }
+  }
+}

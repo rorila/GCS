@@ -1,0 +1,16 @@
+{
+  "changedExisting": [
+    "docs/user-guide/README.md"
+  ],
+  "added": [
+    "docs/user-guide/kapitel-08-flow-editor.md",
+    "docs/user-guide/kapitel-09-wachstumsstufen.md",
+    "docs/user-guide/kapitel-10-durst-timer.md",
+    "docs/user-guide/kapitel-11-bilder-media.md",
+    "docs/user-guide/kapitel-12-game-state.md",
+    "docs/user-guide/kapitel-13-run-test.md",
+    "docs/user-guide/kapitel-14-export.md",
+    "docs/user-guide/kapitel-15-feintuning.md"
+  ],
+  "removed": []
+}

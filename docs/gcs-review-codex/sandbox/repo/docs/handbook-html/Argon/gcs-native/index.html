@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GCS Autoren-Handbuch — Argon GCS Native Edition (Version 2)</title>
+  <link rel="stylesheet" href="./gcs-handbook-overrides.css" />
+</head>
+<body>
+  <main id="run-stage" aria-label="GCS Autoren-Handbuch Stage"></main>
+  <script src="./project.js"></script>
+  <script src="./runtime-standalone.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        var navIds = ["a01","a02","a03","a04","a05","a06","a07","a08","a09","a10","a11","a12","a13","a14","a15","b01","b02","b03","b04","b05","b06","b07","b08"];
+        var bp = window.PROJECT && window.PROJECT.stages && window.PROJECT.stages[0];
+        if (bp && Array.isArray(bp.variables)) {
+          var doneCount = 0;
+          navIds.forEach(function (navId) {
+            if (localStorage.getItem('gcs_argon_done_' + navId) === 'true') {
+              doneCount++;
+              var v = bp.variables.find(function (x) { return x.name === 'Gelesen_' + navId; });
+              if (v) { v.value = true; v.defaultValue = true; }
+              var st = window.PROJECT.stages.find(function (s) { return s.id === 'stage_' + navId; });
+              var btn = st && st.objects && st.objects.find(function (o) { return o.name === 'BtnGelesen'; });
+              if (btn) btn.caption = '✔ Gelesen';
+            }
+          });
+          if (doneCount > 0) {
+            var fv = bp.variables.find(function (x) { return x.name === 'Fortschritt'; });
+            if (fv) { fv.value = doneCount; fv.defaultValue = doneCount; }
+            var lbl = bp.objects && bp.objects.find(function (o) { return o.name === 'FortschrittLabel'; });
+            if (lbl) lbl.text = doneCount + ' / 23 gelesen';
+            var bar = bp.objects && bp.objects.find(function (o) { return o.name === 'FortschrittBalken'; });
+            if (bar) bar.value = doneCount;
+          }
+          var savedTheme = localStorage.getItem('gcs-active-theme');
+          if (savedTheme === 'argon-workbench-dark') {
+            window.PROJECT.activeThemeId = 'argon-workbench-dark';
+            var dv = bp.variables.find(function (x) { return x.name === 'Dunkelmodus'; });
+            if (dv) { dv.value = true; dv.defaultValue = true; }
+          }
+        }
+      } catch (e) {}
+      window.startStandalone(window.PROJECT);
+    });
+  </script>
+</body>
+</html>

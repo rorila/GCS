@@ -1,0 +1,270 @@
+import { DebugLogService } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
+
+/**
+ * PropertyWatcher - Watches object properties and triggers callbacks on changes
+ * 
+ * Enables reactive programming by notifying listeners when properties change.
+ * Used as the foundation for automatic UI updates in the reactive system.
+ */
+export class PropertyWatcher {
+    private static logger = Logger.get('PropertyWatcher', 'Variable_Management');
+
+    // PERF: Diese Listen sind Konstanten und muessen einmalig existieren.
+    // Als lokale Variablen in notify() wurden sie bei JEDER Property-Aenderung
+    // neu allokiert — im Game-Loop sind das bei zwei bewegten Sprites rund
+    // 2000 Set-Allokationen pro Sekunde, obwohl sie nur fuer die Debug-Ausgabe
+    // gebraucht werden.
+
+    /** Interne Eigenschaften, die im Benutzer-Log nichts verloren haben. */
+    private static readonly INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'currentInterval', 'runtimeCallbacks', 'onEventCallback']);
+
+    /**
+     * Sprite-Eigenschaften, die der Game-Loop 60x pro Sekunde schreibt.
+     * Ihr Logging wuerde die Debug-Ausgabe fluten und den Hauptthread blockieren.
+     */
+    private static readonly HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+
+    /** Hochfrequente Animations-Eigenschaften (fade, shake, shrink/grow). */
+    private static readonly HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
+
+    /** Render-Koordinaten, die der GameLoop jeden Frame aktualisiert. */
+    private static readonly HIGH_FREQ_RENDER_PROPS = new Set(['renderX', 'renderY', 'previousX', 'previousY']);
+
+    // Map: Object -> Map: PropertyPath -> Set of Callbacks
+    private watchers = new Map<any, Map<string, Set<(newValue: any, oldValue: any) => void>>>();
+
+    // Global listeners called for ANY property change
+    private globalListeners = new Set<(object: any, propertyPath: string, newValue: any, oldValue: any) => void>();
+
+    /**
+     * Helper to get the raw object if it's a proxy
+     */
+    private unwrap(obj: any): any {
+        if (obj !== null && typeof obj === 'object' && (obj as any).__isProxy__) {
+            return (obj as any).__target__;
+        }
+        return obj;
+    }
+
+    /**
+     * Registers a watcher for a specific property
+     * @param object Object to watch
+     * @param propertyPath Property path (e.g., "score" or "style.color")
+     * @param callback Function to call when property changes
+     */
+    watch(
+        object: any,
+        propertyPath: string,
+        callback: (newValue: any, oldValue: any) => void
+    ): void {
+        const target = this.unwrap(object);
+        if (!target || typeof target !== 'object') {
+            PropertyWatcher.logger.warn(`Cannot watch non-object: ${target}`);
+            return;
+        }
+
+        // Initialize watchers for this object if needed
+        if (!this.watchers.has(target)) {
+            this.watchers.set(target, new Map());
+        }
+
+        const objectWatchers = this.watchers.get(target)!;
+
+        // Initialize watchers for this property if needed
+        if (!objectWatchers.has(propertyPath)) {
+            objectWatchers.set(propertyPath, new Set());
+        }
+
+        objectWatchers.get(propertyPath)!.add(callback);
+    }
+
+    /**
+     * Adds a global listener
+     */
+    addGlobalListener(callback: (object: any, propertyPath: string, newValue: any, oldValue: any) => void): void {
+        this.globalListeners.add(callback);
+    }
+
+    /**
+     * Removes a global listener
+     */
+    removeGlobalListener(callback: (object: any, propertyPath: string, newValue: any, oldValue: any) => void): void {
+        this.globalListeners.delete(callback);
+    }
+
+    /**
+     * Removes a specific watcher
+     * @param object Object being watched
+     * @param propertyPath Property path
+     * @param callback Callback to remove (if omitted, removes all callbacks for this property)
+     */
+    unwatch(
+        object: any,
+        propertyPath: string,
+        callback?: (newValue: any, oldValue: any) => void
+    ): void {
+        const target = this.unwrap(object);
+        const objectWatchers = this.watchers.get(target);
+        if (!objectWatchers) return;
+
+        const propertyWatchers = objectWatchers.get(propertyPath);
+        if (!propertyWatchers) return;
+
+        if (callback) {
+            propertyWatchers.delete(callback);
+        } else {
+            propertyWatchers.clear();
+        }
+
+        // Clean up empty maps
+        if (propertyWatchers.size === 0) {
+            objectWatchers.delete(propertyPath);
+        }
+        if (objectWatchers.size === 0) {
+            this.watchers.delete(target);
+        }
+    }
+
+    /**
+     * Removes all watchers for an object
+     * @param object Object to stop watching
+     */
+    unwatchAll(object: any): void {
+        this.watchers.delete(this.unwrap(object));
+    }
+
+    /**
+     * Notifies all watchers that a property has changed
+     * @param object Object that changed
+     * @param propertyPath Property that changed
+     * @param newValue New value
+     * @param oldValue Old value (optional)
+     */
+    notify(object: any, propertyPath: string, newValue: any, oldValue?: any): void {
+        const target = this.unwrap(object);
+
+        const objectWatchers = this.watchers.get(target);
+
+        // Log to DebugLogService — but ONLY for user-relevant, low-frequency changes.
+        // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
+        // function, preventing globalListeners and specific watchers from being called.
+        if (DebugLogService.getInstance().isEnabled()) {
+            const objName = target.name || target.id || 'Unknown';
+            const isInternal = PropertyWatcher.INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
+            const isHighFreqSprite = PropertyWatcher.HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
+            const isHighFreqRender = PropertyWatcher.HIGH_FREQ_RENDER_PROPS.has(propertyPath);
+
+            // Bei Animations-Eigenschaften loggen wir nur die ALLERERSTE Änderung (wenn oldValue undefined ist),
+            // damit im Log sichtbar ist, DASS eine Animation gestartet wurde. Das 60fps-Spamming danach wird ignoriert.
+            const isHighFreqAnimSpam = PropertyWatcher.HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
+
+            if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam && !isHighFreqRender) {
+                const safeStringify = (v: any): string | undefined => {
+                    if (typeof v !== 'object' || v === null) return v;
+                    try {
+                        return JSON.stringify(v)?.substring(0, 50);
+                    } catch {
+                        return '[Circular]';
+                    }
+                };
+                const displayNew = safeStringify(newValue);
+                const displayOld = safeStringify(oldValue);
+
+                DebugLogService.getInstance().log('Variable',
+                    `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
+                    {
+                        objectName: objName,
+                        data: { newValue, oldValue }
+                    }
+                );
+            }
+        }
+
+        if (!objectWatchers) {
+            // Still notify global listeners even if no specific object watchers exist
+            this.notifyGlobal(target, propertyPath, newValue, oldValue);
+            return;
+        }
+
+        const propertyWatchers = objectWatchers.get(propertyPath);
+        if (propertyWatchers && propertyWatchers.size > 0) {
+            // Call all callbacks
+            propertyWatchers.forEach(callback => {
+                try {
+                    callback(newValue, oldValue);
+                } catch (error) {
+                    PropertyWatcher.logger.error('Callback error:', error);
+                }
+            });
+        }
+
+        this.notifyGlobal(target, propertyPath, newValue, oldValue);
+    }
+
+    /**
+     * Gets the number of watchers for a specific property
+     */
+    getWatcherCount(object: any, propertyPath: string): number {
+        const target = this.unwrap(object);
+        const objectWatchers = this.watchers.get(target);
+        if (!objectWatchers) return 0;
+        const propertyWatchers = objectWatchers.get(propertyPath);
+        return propertyWatchers ? propertyWatchers.size : 0;
+    }
+
+    private notifyGlobal(object: any, propertyPath: string, newValue: any, oldValue?: any): void {
+        this.globalListeners.forEach(callback => {
+            try {
+                callback(object, propertyPath, newValue, oldValue);
+            } catch (error) {
+                PropertyWatcher.logger.error('Global callback error:', error);
+            }
+        });
+    }
+
+    /**
+     * Gets total number of watched objects
+     */
+    getTotalWatchedObjects(): number {
+        return this.watchers.size;
+    }
+
+    /**
+     * Gets total number of watchers across all objects
+     */
+    getTotalWatchers(): number {
+        let total = 0;
+        this.watchers.forEach(objectWatchers => {
+            objectWatchers.forEach(propertyWatchers => {
+                total += propertyWatchers.size;
+            });
+        });
+        return total;
+    }
+
+    /**
+     * Clears all property-specific watchers (useful for cleanup on stage change).
+     * IMPORTANT: globalListeners are NOT cleared! They are the stable rendering
+     * bridge between ReactiveRuntime and StageRenderer, registered once in the
+     * GameRuntime constructor and must survive stage changes.
+     */
+    clear(): void {
+        this.watchers.clear();
+        // DO NOT clear globalListeners here!
+        // See DEVELOPER_GUIDELINES: "PropertyWatcher.clear() darf globalListeners nicht löschen"
+    }
+
+    /**
+     * Debug: Lists all active watchers
+     */
+    debug(): void {
+        PropertyWatcher.logger.info('Active Watchers:');
+        this.watchers.forEach((objectWatchers, object) => {
+            const objName = object.name || object.id || 'Unknown';
+            objectWatchers.forEach((callbacks, propertyPath) => {
+                PropertyWatcher.logger.info(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
+            });
+        });
+    }
+}

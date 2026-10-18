@@ -633,3 +633,23 @@ Projekte, die eine `CMS_LAUNCH`-Variable deklarieren (z.B. `Karteikasten-Quiz.js
 - **Editor:** `src/editor/services/EditorCmsTest.ts` (Overlay + Bridge-Weiterleitung), Integration in `EditorRunManager.createOrShowStartButton`. `attachCmsSpeechHost`/`attachCmsTtsHost` akzeptieren einen optionalen `apiBase`-Parameter (Standard `/api/cms`).
 - **Deaktivierung:** `CMS_EDITOR_TEST=off` schaltet den Testkontext serverseitig ab.
 - **Tests:** `tests/editor_cms_test.test.ts` (in der Sprach-/Quiz-Suite des Test-Runners).
+
+---
+
+### Muster 31: Deklarative Standalone-Projekte & `TRichText`-Sanitizing (Handbuch-HTML V2)
+
+- **DOMPurify-Allowlist in `TRichText` (`SecurityUtils.sanitizeHTML`):** Erlaubt sind nur Basis-Texttags (`b, i, u, strong, em, a, br, p, span, div, h1–h6, ul, ol, li, blockquote, code, pre`) und Attribute (`href, target, title, class, style, data-*`). HTML-Elemente wie `<table>`, `<details>`, `<summary>` oder `<input>` werden zur Laufzeit entfernt und müssen bei der Projekt-Generierung in `div`-Strukturen (`div.hb-table`, `div.drehbuch`) überführt werden.
+- **Stage-Links in `TRichText`:** Interne Stage-Sprünge in `TRichText` müssen als `<a data-stage="stage:stage_xyz" href="#">` hinterlegt werden, da `href="stage:..."` von DOMPurify als unbekanntes URI-Schema bereinigt wird (`TextObjectRenderer` wertet `data-stage` prioritär aus).
+- **DO NOT (`type: 'main'` neben `stage_blueprint`):** In Mehr-Stage-Projekten mit einer `stage_blueprint` darf die Start-Stage NICHT als `type: 'main'` deklariert werden (stattdessen `type: 'standard'` + `activeStageId`). Andernfalls behandelt `RuntimeStageManager` (Fallback für Legacy-Main-Stages) sämtliche Objekte der `main`-Stage als global und merged sie in alle anderen `standard`-Stages.
+- **Lokaler Standalone-Betrieb ohne WebSocket-Fehler:** Durch Setzen der globalen Boolean-Variable `CMS_LAUNCH = true` auf `stage_blueprint` unterdrückt `player-standalone.ts` den automatischen Multiplayer-WebSocket-Verbindungsversuch beim lokalen Start über `file://`.
+
+---
+
+### Muster 32: GCS Documentation Portal (Argon Edition) & SWE-2-Datenschnittstelle
+
+- **Strikt isolierter Arbeitsbereich (`docs/gcs-doc-portal-argon/`):** Alle Dateien des Portals tragen das `-argon`-Suffix (`index-argon.html`, `styles-argon.css`, `app-argon.js`, `views-argon.js`, `build-argon.cjs`, `parser-argon.cjs`, `portal-config-argon.json`, `README-ARGON.md`, `ARCHITEKTUR-ARGON.md`, `data/portal-data-argon.json`, `data/portal-data-argon.js`).
+- **4-Schichten-Trennung & Read-Only-Build:** `build-argon.cjs` liest alle Bestandsdokumente (`docs/user-guide/`, `docs/reference/components/`, `docs/features/`, `docs/architecture/`, `docs/inventory/`) ausschließlich **read-only** ein und erzeugt daraus die Offline-Bundles (`data/portal-data-argon.json` & `data/portal-data-argon.js`).
+- **Zweistufiges Komponenten-Parsing (`build-argon.cjs`):** Da `docs/reference/components/` sowohl kuratierte Karten (`| Feld | Wert |` mit `Vererbungskette`) als auch generierte Karten (`Basisklasse`, `## Inspector-Eigenschaften`) enthält, wertet `parseComponentMarkdown` beide Tabellenformate und für die verbleibenden 7 Schema-Einträge (`COMP-0001`…`0128`) direkt `FEATURE-INVENTORY.json` aus.
+- **SWE-2-Datenschnittstelle (`portal-config-argon.json`):** Definiert kanonische Join-Schlüssel (`COMP-0001..0128` / `T*`, `FEAT-0001..0012`, `DOC-0001..0242`, `action.type`) sowie optionale Overlay-Dateipfade (`swe2Integration.optionalOverlayFiles`), ohne Dateien von SWE-2 zu überschreiben.
+- **Tests:** `tests/handbook_html.test.ts` (Abschnitt 7, Z. 204–286).
+

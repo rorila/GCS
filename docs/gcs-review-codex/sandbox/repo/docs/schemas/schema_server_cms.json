@@ -1,0 +1,1047 @@
+{
+  "$module": "server-cms",
+  "description": "Server-Komponentenverträge für das CMS (Phase 1). Jede Komponente garantiert ihre Sicherheitsregeln selbst — der sichtbare GCS-Flow zeigt den fachlichen Ablauf, aber das Entfernen eines Flow-Schritts darf nie ungeschützten Zugriff ermöglichen. Status: Vertrag; Umsetzung schrittweise in Phase 2/3.",
+  "conventions": {
+    "guarantees": "Regeln, die die Komponente unabhängig vom Flow durchsetzt",
+    "stage": "server — Server-Komponenten werden nie im Browser gerendert",
+    "category": "server"
+  },
+  "components": {
+    "TServerAuthorize": {
+      "description": "Zentrale Rechteprüfung als sichtbarer Workflow-Schritt. Prüft Fähigkeit + Geltungsbereich + ggf. Eltern-Kind-Beziehung über can().",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "action": {
+          "type": "string",
+          "default": "",
+          "description": "Zu prüfende Fähigkeit: play, manageArea, viewChild, viewProgress, moderate, publish, ..."
+        },
+        "scope": {
+          "type": "string",
+          "default": "",
+          "description": "Kontext: areaId, childId oder gameId — je nach action"
+        },
+        "denyMessage": {
+          "type": "string",
+          "default": "Nicht erlaubt.",
+          "description": "Antwort bei Ablehnung"
+        }
+      },
+      "methods": [
+        {
+          "name": "check",
+          "description": "Prüft die Berechtigung der aktuellen Sitzung. Gibt {allowed, reason} zurück; wirft nicht.",
+          "params": [
+            "session"
+          ]
+        }
+      ],
+      "events": [
+        "onDenied"
+      ],
+      "guarantees": [
+        "Kein Datenzugriff ohne vorherigen erfolgreichen check() im selben Request",
+        "viewChild/viewProgress ausschließlich über bestätigte Guardian-Beziehung",
+        "Verwaltungsrollen verleihen keine Elternsicht"
+      ]
+    },
+    "TServerGuardian": {
+      "description": "Eltern-Kind-Beziehungen: Abfrage, Einladung, Bestätigung, Widerruf. Implementiert das Zwei-Bestätigungs-Verfahren (E02).",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "requireSecondApprover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Eigene Zuordnung darf nie allein freigegeben werden"
+        },
+        "pendingVisible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ausstehende Zuordnungen gewähren keine Sicht"
+        }
+      },
+      "methods": [
+        {
+          "name": "childrenOf",
+          "description": "Bestätigte Kinder eines Elternteils (nur status=confirmed)",
+          "params": [
+            "personId"
+          ]
+        },
+        {
+          "name": "guardiansOf",
+          "description": "Bestätigte Elternteile eines Kindes",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "propose",
+          "description": "HouseAdmin schlägt Zuordnung vor; erzeugt pending + Einladung",
+          "params": [
+            "childId",
+            "guardianId"
+          ]
+        },
+        {
+          "name": "confirm",
+          "description": "Elternteil bestätigt; bei Selbstzuordnung zusätzliche zweite Bestätigung nötig",
+          "params": [
+            "guardianId",
+            "childId",
+            "confirmerId"
+          ]
+        },
+        {
+          "name": "revoke",
+          "description": "Widerruf; entzieht sofort alle abgeleiteten Zugriffe",
+          "params": [
+            "guardianId",
+            "childId"
+          ]
+        }
+      ],
+      "events": [
+        "onProposed",
+        "onConfirmed",
+        "onRevoked",
+        "onDisputed"
+      ],
+      "guarantees": [
+        "status=revoked oder pending gibt niemals Sicht",
+        "HouseAdmin kann eigene Guardian-Zuordnung nicht allein freigeben",
+        "Bestehende Elternteile werden über Änderungen informiert",
+        "Strittige Zuordnung sperrt den betroffenen Zugang bis zur Klärung"
+      ],
+      "status": "Kern implementiert (childrenOf/guardiansOf in cms-core); propose/confirm/revoke in Phase 2"
+    },
+    "TServerRateLimit": {
+      "description": "Konfigurierbares Versuchslimit pro Endpunkt/Schlüssel — ersetzt verteilte attempts-Maps.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "maxAttempts": {
+          "type": "number",
+          "default": 10,
+          "description": "Versuche im Fenster"
+        },
+        "windowMs": {
+          "type": "number",
+          "default": 60000,
+          "description": "Zeitfenster in Millisekunden"
+        },
+        "keyBy": {
+          "type": "select",
+          "default": "ip",
+          "options": [
+            "ip",
+            "session",
+            "account"
+          ],
+          "description": "Begrenzungsschlüssel"
+        },
+        "blockMessage": {
+          "type": "string",
+          "default": "Bitte kurz warten."
+        }
+      },
+      "methods": [
+        {
+          "name": "attempt",
+          "description": "Zählt einen Versuch; gibt {allowed, retryAfterMs} zurück",
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "reset",
+          "description": "Setzt den Zähler eines Schlüssels zurück (z.B. nach erfolgreicher Anmeldung)",
+          "params": [
+            "key"
+          ]
+        }
+      ],
+      "events": [
+        "onBlocked"
+      ],
+      "guarantees": [
+        "Limit greift auch dann, wenn der Flow-Schritt fehlt (Endpunkt-Adapter fragt die Komponente immer)",
+        "Kurze Emoji-Codes erhalten strengere Limits als Passwort-Zugänge"
+      ]
+    },
+    "TServerPlaySession": {
+      "description": "Spielsitzung mit Heartbeat und Zeitbuchung (E06): start/pause/resume/heartbeat/end. Höchstens eine aktive Sitzung pro Kind; Buchung über alle Geräte und Häuser gemeinsam.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "heartbeatMs": {
+          "type": "number",
+          "default": 30000,
+          "description": "Maximales Heartbeat-Intervall"
+        },
+        "disconnectGraceMs": {
+          "type": "number",
+          "default": 120000,
+          "description": "Fortsetzungsfrist bei Verbindungsverlust (danach 'disconnected')"
+        },
+        "abandonAfterMs": {
+          "type": "number",
+          "default": 600000,
+          "description": "Stillstandsfrist ohne Heartbeat, nach der die Sitzung beendet wird"
+        },
+        "sweepIntervalMs": {
+          "type": "number",
+          "default": 30000,
+          "description": "Serverintervall für den Stillstand-Sweep"
+        },
+        "graceMinutes": {
+          "type": "number",
+          "default": 2,
+          "description": "Abschlussfrist nach Budgetende"
+        }
+      },
+      "methods": [
+        {
+          "name": "start",
+          "description": "Neue Sitzung; prüft Budget, Zeitfenster, Mitgliedschaft, Freigabe; lehnt zweite aktive Sitzung ab",
+          "params": [
+            "childId",
+            "gameId",
+            "areaId"
+          ]
+        },
+        {
+          "name": "heartbeat",
+          "description": "Lebenszeichen; verlängert Sitzung, buch Zeit",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "pause",
+          "description": "Echte bestätigte Pause — zählt nicht als Spielzeit",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "resume",
+          "description": "Pause beenden; prüft Budget erneut",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "end",
+          "description": "Sitzung beenden; finale Zeitbuchung",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "status",
+          "description": "active|paused|disconnected|ended + Restbudget",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "sweep",
+          "description": "Serverseitiger Stillstand-Sweep: getrennt markieren, verlassene Sitzungen beenden und Partien ohne aktive Sitzung abschließen",
+          "params": []
+        }
+      ],
+      "events": [
+        "onWarn5",
+        "onWarn1",
+        "onBudgetExhausted",
+        "onDisconnected",
+        "onEnded"
+      ],
+      "guarantees": [
+        "Zeitbuchung nur aus serverseitigen Zeitstempeln, nie aus Client-Angaben",
+        "Fehlende Heartbeats führen zuerst zu 'disconnected' und nach abandonAfterMs zu 'ended'",
+        "Hintergrund-Tab zählt weiter, solange nicht tatsächlich pausiert",
+        "Zeitzone des Budgets gehört zum Kinderprofil; Gerätewechsel erzeugt keinen neuen Tag"
+      ],
+      "status": "Implementiert (Phase 3: cms-play.cjs, stage_server_play)"
+    },
+    "TServerProgress": {
+      "description": "Optionale Bewertungsmeldungen der Spiele (E07): versioniertes Schema, eventId-Dedupe, source game|server.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "default": 1
+        },
+        "metrics": {
+          "type": "string",
+          "default": "tasks_done,tasks_correct,hints_used,round_complete",
+          "description": "Erlaubte Metrik-Kennungen"
+        }
+      },
+      "methods": [
+        {
+          "name": "report",
+          "description": "Meldung entgegennehmen; Kind/Spiel/Version aus Sitzung ableiten; eventId-Duplikate verwerfen",
+          "params": [
+            "sessionId",
+            "metric",
+            "value",
+            "unit",
+            "eventId"
+          ]
+        },
+        {
+          "name": "listFor",
+          "description": "Bewertungen eines Kindes — nur für bestätigte Elternteile (TServerAuthorize viewProgress)",
+          "params": [
+            "childId"
+          ]
+        }
+      ],
+      "events": [
+        "onReported",
+        "onDuplicateRejected"
+      ],
+      "guarantees": [
+        "childId/gameId/houseId/Empfangszeit kommen aus der Sitzung, nie vom Client",
+        "Doppelte eventId erzeugt keinen zweiten Eintrag",
+        "source='game' und source='server' bleiben unterscheidbar"
+      ],
+      "status": "Implementiert (Phase 3: progress-Route mit eventId-Idempotenz)"
+    },
+    "TServerParty": {
+      "description": "Hausinterne Mehrspieler-Partie (E04/P4): Lobby, Beitritt, synchronisierter Aktionslog, Ende. Jedes Mitglied spielt über eine eigene TServerPlaySession — Zeitlimits gelten pro Kind.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "minPlayers": {
+          "type": "number",
+          "default": 2
+        },
+        "maxPlayers": {
+          "type": "number",
+          "default": 4
+        },
+        "actionLogLimit": {
+          "type": "number",
+          "default": 500,
+          "description": "Maximale Zahl protokollierter Aktionen pro Partie"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Offene Partien eines Raums mit Platzanzeige",
+          "params": [
+            "areaId"
+          ]
+        },
+        {
+          "name": "create",
+          "description": "Gastgeber eröffnet Partie; eigene Spielsitzung startet sofort",
+          "params": [
+            "gameId",
+            "areaId"
+          ]
+        },
+        {
+          "name": "join",
+          "description": "Beitritt nur in offene Partie, gleiches Haus/Raum, gleiche Spielversion, freies Budget, Platz frei",
+          "params": [
+            "partyId"
+          ]
+        },
+        {
+          "name": "begin",
+          "description": "Nur Gastgeber; mindestens minPlayers Mitglieder",
+          "params": [
+            "partyId"
+          ]
+        },
+        {
+          "name": "state",
+          "description": "Mitglieder + Verbindungsstatus + Aktionen seit seq (nur für Mitglieder)",
+          "params": [
+            "partyId",
+            "since"
+          ]
+        },
+        {
+          "name": "action",
+          "description": "Spielzug eines Mitglieds; nur in 'playing'; fortlaufende seq",
+          "params": [
+            "partyId",
+            "payload"
+          ]
+        },
+        {
+          "name": "leave",
+          "description": "Mitglied verlässt Partie; eigene Sitzung endet",
+          "params": [
+            "partyId"
+          ]
+        },
+        {
+          "name": "end",
+          "description": "Nur Gastgeber; beendet Partie und alle Mitglieds-Sitzungen",
+          "params": [
+            "partyId"
+          ]
+        }
+      ],
+      "events": [
+        "onCreated",
+        "onJoined",
+        "onLeft",
+        "onBegan",
+        "onAction",
+        "onMemberDisconnected",
+        "onEnded"
+      ],
+      "guarantees": [
+        "Teilnahme nur über can('play') — Mitgliedschaft, Freigabe und Version werden serverseitig geprüft",
+        "Keine hausfremden Teilnehmer: Hauszugehörigkeit aus Raum-Daten, nie aus Clientangaben",
+        "Jedes Mitglied hat eine eigene Spielsitzung; Zeitlimit-Verbrauch läuft pro Kind weiter",
+        "Aktionslog ist append-only mit fortlaufender seq; Clients können keine fremden Züge oder Lücken erzeugen",
+        "Versionswechsel des Spiels sperrt neue Beitritte zur laufenden Partie"
+      ],
+      "status": "Implementiert (Phase 4: cms-mp.cjs, stage_server_mp)"
+    },
+    "TServerLiveSync": {
+      "description": "Flüchtige Echtzeit-Synchronisation einer Partie über WebSocket. Die Komponente vermittelt nur den jeweils neuesten Eingabe-/State-Stand; verlässliche Fachereignisse bleiben im Partie-Aktionslog.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "endpointPath": {
+          "type": "string",
+          "default": "/api/cms/party/live"
+        },
+        "maxPayloadBytes": {
+          "type": "number",
+          "default": 4096
+        },
+        "maxMessagesPerSecond": {
+          "type": "number",
+          "default": 30
+        },
+        "inputTtlMs": {
+          "type": "number",
+          "default": 750,
+          "description": "Maximales Alter einer anzuwendenden Fern-Eingabe"
+        },
+        "maxStateAgeMs": {
+          "type": "number",
+          "default": 2000,
+          "description": "Ab diesem Alter gilt ein Host-State als veraltet"
+        }
+      },
+      "methods": [
+        {
+          "name": "input",
+          "description": "Validiert eine Nicht-Host-Eingabe (seq, dir) und liefert den normalisierten Wert",
+          "params": [
+            "payload"
+          ]
+        },
+        {
+          "name": "state",
+          "description": "Validiert einen Host-Syncpunkt und liefert den normalisierten Wert",
+          "params": [
+            "payload"
+          ]
+        },
+        {
+          "name": "snapshot",
+          "description": "Liefert Partie-Status, Aktions-Delta, Host-State und relevante Fern-Eingabe",
+          "params": [
+            "party",
+            "live",
+            "personId",
+            "since"
+          ]
+        }
+      ],
+      "events": [
+        "onConnected",
+        "onDisconnected",
+        "onState",
+        "onInput",
+        "onRejected"
+      ],
+      "guarantees": [
+        "Verbindung nur mit gültigem Launch-Grant und aktiver Partienmitgliedschaft",
+        "Nur der Host darf den autoritativen State schreiben",
+        "Nicht-Hosts dürfen nur ihre eigene Eingabe schreiben",
+        "Live-Daten werden nur flüchtig im Prozess gehalten und nicht in den Aktionslog oder die Datenbank geschrieben",
+        "Veraltete State-Ticks und zu große oder zu häufige Payloads werden verworfen"
+      ],
+      "status": "Implementiert (cms-live.cjs + WebSocket-Bridge)"
+    },
+    "TServerPrivacy": {
+      "description": "Personenexport und Löschung (P1.6, implementiert in cms-privacy.cjs). Löschung = Anonymisierung; Löschliste überlebt Wiederherstellungen.",
+      "stage": "server",
+      "category": "server",
+      "properties": {},
+      "methods": [
+        {
+          "name": "exportPerson",
+          "description": "Alle personenbezogenen Daten einer Person; Zugangsdaten nur als Metadaten, nie im Klartext",
+          "params": [
+            "personId"
+          ]
+        },
+        {
+          "name": "deletePerson",
+          "description": "Anonymisiert Person, entfernt personenbezogene Kanten, schreibt Tombstone; verweigert Löschung von Spieleigentümern",
+          "params": [
+            "actor",
+            "personId"
+          ]
+        }
+      ],
+      "events": [
+        "onDeleted"
+      ],
+      "guarantees": [
+        "Audit-Einträge bleiben (pseudonyme ID), Bewertungsinhalte werden entfernt",
+        "Restore alter Sicherungen bringt Gelöschtes nicht zurück",
+        "Löschung von Spieleigentümern wird verweigert"
+      ],
+      "status": "implementiert"
+    },
+    "TServerInvite": {
+      "description": "Generalisierte Einladungen (aus adminInvites): purpose admin-setup|admin-reset|sponsor-setup|parent|observer|device; einmalig, befristet, gehasht gespeichert. sponsor-setup ist ausschließlich für neue Erwachsene vorgesehen; bestehende Erwachsene erhalten sponsor@root zusätzlich zu ihren anderen Rollen.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "ttlMs": {
+          "type": "number",
+          "default": 86400000,
+          "description": "Gültigkeitsdauer (24h)"
+        }
+      },
+      "methods": [
+        {
+          "name": "create",
+          "description": "Einladung erzeugen; gibt Klartext-Token zurück, speichert nur sha256-Hash",
+          "params": [
+            "personId",
+            "houseId",
+            "purpose",
+            "issuer"
+          ]
+        },
+        {
+          "name": "redeem",
+          "description": "Token einlösen; prüft Hash, Ablauf, usedAt und dass der Aussteller noch berechtigt ist",
+          "params": [
+            "token"
+          ]
+        }
+      ],
+      "events": [
+        "onCreated",
+        "onRedeemed",
+        "onExpired"
+      ],
+      "guarantees": [
+        "Nur Hash gespeichert; Token nur einmal ausgegeben",
+        "Einmalig: usedAt verhindert Wiederverwendung",
+        "Einladung verfällt, wenn Aussteller-Berechtigung entzogen wird"
+      ]
+    },
+    "TServerDeviceGrant": {
+      "description": "Befristete Gerätefreigaben für gemeinsam genutzte Geräte (E05): sichtbar, widerrufbar, begrenzt auf ein Haus.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "maxDurationMs": {
+          "type": "number",
+          "default": 28800000,
+          "description": "Maximale Freigabedauer (8h)"
+        }
+      },
+      "methods": [
+        {
+          "name": "grant",
+          "description": "Gerät für ein Haus freigeben",
+          "params": [
+            "houseId",
+            "label",
+            "issuedBy",
+            "durationMs"
+          ]
+        },
+        {
+          "name": "revoke",
+          "description": "Freigabe sofort entziehen",
+          "params": [
+            "grantId"
+          ]
+        },
+        {
+          "name": "check",
+          "description": "Ist dieses Gerät aktuell für dieses Haus freigegeben?",
+          "params": [
+            "deviceId",
+            "houseId"
+          ]
+        }
+      ],
+      "events": [
+        "onGranted",
+        "onRevoked",
+        "onExpired"
+      ],
+      "guarantees": [
+        "Abgelaufene oder widerrufene Freigaben erlauben keinen Zugang",
+        "Gerätefreigabe ersetzt niemals die Emoji-Anmeldung des Kindes"
+      ]
+    },
+    "TServerParentAccount": {
+      "description": "Eltern- und Beobachterkonto: Kinderliste, Aktivität, Bewertungen, Zeitbudget, Raum-Aggregat. Implementiert in cms-parent.cjs; Events/Tasks/Actions werden aus stage_server_parent geladen und beim Start validiert (loadParentWorkflow).",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "readMessage": {
+          "type": "string",
+          "default": "Daten nur für bestätigt zugeordnete Kinder."
+        },
+        "failureMessage": {
+          "type": "string",
+          "default": "Aktion nicht möglich."
+        }
+      },
+      "methods": [
+        {
+          "name": "children",
+          "description": "Bestätigt zugeordnete Kinder des Kontos (flache Karten für TTable)",
+          "params": [
+            "session"
+          ]
+        },
+        {
+          "name": "activity",
+          "description": "Aktuelles Spiel, Status, heutige Minuten, Budget des Kindes",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "progress",
+          "description": "Gemeldete Bewertungen des Kindes",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "setBudget",
+          "description": "Zeitbudget setzen; Lockerung erzeugt pendingBudget (Zweitbestätigung)",
+          "params": [
+            "session",
+            "childId",
+            "dailyMinutes"
+          ]
+        },
+        {
+          "name": "approveBudget",
+          "description": "Zweites Elternteil bestätigt ausstehende Lockerung",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "pulse",
+          "description": "Aggregierte Raumzahlen für Beobachter (keine Personen)",
+          "params": [
+            "session",
+            "areaId?"
+          ]
+        }
+      ],
+      "events": [
+        "onChildren",
+        "onActivity",
+        "onProgress",
+        "onSetBudget",
+        "onApproveBudget",
+        "onPulse"
+      ],
+      "guarantees": [
+        "Elternsicht ausschließlich über guardians mit status=confirmed",
+        "Beobachter-Aggregat enthält niemals Personen-, Spiel- oder Bewertungsdaten einzelner Kinder",
+        "Selbstbestätigung (proposedBy == session) wird mit 409 abgewiesen",
+        "Budget-Lockerung wirkt erst nach Zustimmung eines zweiten Elternteils",
+        "Sitzung mit assurance=account gewährt keinen Verwaltungszugang"
+      ],
+      "status": "Implementiert (Phase 2)"
+    },
+    "TServerSponsorship": {
+      "stage": "server",
+      "category": "server",
+      "description": "Sponsor-Kind-Begleitungen: Kontakt-Fähigkeiten, Anfrage, Quorum-Entscheidung aller Eltern, Zustandsautomat (requested/active/paused/ended/rejected/withdrawn/expired), Sichtfreigabe-Versionen, Familienhistorie, strukturierte Mitteilungen, Benachrichtigungen.",
+      "properties": {
+        "sponsorshipPolicy": {
+          "type": "string",
+          "default": "Zugriff nur aus konkreter genehmigter Beziehung",
+          "description": "Verbindliche Begleitungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "contactCodeCreate",
+          "description": "Eltern stellen einmaligen Kontaktcode aus (Klartext nur in der Antwort)",
+          "params": [
+            "childId",
+            "label"
+          ]
+        },
+        {
+          "name": "contactCodes",
+          "description": "Ausgestellte Kontaktcodes eines Kindes (nur Eltern)",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "contactCodeRevoke",
+          "description": "Kontaktcode widerrufen (nur Eltern)",
+          "params": [
+            "capabilityId"
+          ]
+        },
+        {
+          "name": "requestCreate",
+          "description": "Sponsor-Anfrage ueber Kontaktcode; idempotent ueber requestId; verbraucht die Faehigkeit",
+          "params": [
+            "contactCode",
+            "purpose",
+            "periodEnd|periodDays",
+            "notes",
+            "requestId"
+          ]
+        },
+        {
+          "name": "requestWithdraw",
+          "description": "Sponsor zieht offene Anfrage zurueck",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "requestDecide",
+          "description": "Elternentscheid; Zustimmung erst bei Quorum aller zustimmungspflichtigen Eltern wirksam",
+          "params": [
+            "sponsorshipId",
+            "approve",
+            "scope?"
+          ]
+        },
+        {
+          "name": "childDecision",
+          "description": "Kind lehnt ab oder beendet eigene Pause",
+          "params": [
+            "sponsorshipId",
+            "accept"
+          ]
+        },
+        {
+          "name": "pause",
+          "description": "Eltern/Kind/Sponsor pausieren; Zugriff sofort gesperrt",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "resume",
+          "description": "Fortsetzen; vom Kind ausgeloeste Pause loest nur das Kind",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "end",
+          "description": "Beenden entzieht Zugriff sofort; Ansprueche werden zum Stichtag bewertet",
+          "params": [
+            "sponsorshipId",
+            "reason"
+          ]
+        },
+        {
+          "name": "accessPropose",
+          "description": "Sichtfreigabe-Version vorschlagen; Einschraenkung sofort, Erweiterung mit Elternquorum",
+          "params": [
+            "sponsorshipId",
+            "scope|subjectsCsv/activitiesCsv/detailLevel/windowDays"
+          ]
+        },
+        {
+          "name": "accessConsent",
+          "description": "Elternzustimmung zu Sichtversion; wirksam bei Quorum",
+          "params": [
+            "sponsorshipId",
+            "versionId",
+            "approve"
+          ]
+        },
+        {
+          "name": "listSponsor",
+          "description": "Begleitungen des Sponsors (DTO-Allowlist)",
+          "params": []
+        },
+        {
+          "name": "listParent",
+          "description": "Begleitungen + Kontaktcodes eines Kindes (nur Eltern)",
+          "params": [
+            "childId",
+            "sponsorshipId?"
+          ]
+        },
+        {
+          "name": "listChild",
+          "description": "Begleiter des Kindes",
+          "params": []
+        },
+        {
+          "name": "progress",
+          "description": "Sichtgefilterte Leistungspunkte; Sponsor nur bei aktiver Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "history",
+          "description": "Ereignisprotokoll; Sponsor nur eigene Begleitung bis zum Ende",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "obligations",
+          "description": "Freigegebene/erfuellte Belohnungen des Sponsors",
+          "params": []
+        },
+        {
+          "name": "messageSend",
+          "description": "Strukturierte Mitteilung (familiensichtbar, kein Privatchat)",
+          "params": [
+            "sponsorshipId",
+            "targetType",
+            "targetId",
+            "text"
+          ]
+        },
+        {
+          "name": "messageList",
+          "description": "Mitteilungen der Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "notifications",
+          "description": "In-App-Benachrichtigungen der Sitzung",
+          "params": []
+        },
+        {
+          "name": "notificationRead",
+          "description": "Benachrichtigung als gelesen markieren",
+          "params": [
+            "notificationId"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Kein Datenzugriff vor elterlicher Genehmigung (status=active + wirksame Sichtfreigabe + Laufzeit)",
+        "Zustimmungsquorum: alle zum Aktivierungszeitpunkt bestaetigten aktiven Eltern (requiredGuardianIds eingefroren)",
+        "Jeder Elternteil kann jederzeit einschraenken, pausieren oder beenden — ohne Quorum",
+        "Kind kann ablehnen und pausieren; kindseitige Pause loest nur das Kind",
+        "Beendigung/Pause sperrt Sponsorzugriff sofort — auch ueber direkte API-Aufrufe",
+        "Sponsor sieht ausschliesslich Feld-Allowlist-DTOs; keine Rohantworten, Fehler, Karten oder Fremddaten",
+        "Historie ist fuer Eltern vollstaendig; Sponsor und Kind koennen sie nicht unbemerkt veraendern",
+        "Keine privaten Nachrichten: Mitteilungen sind an Objekte gebunden und familiensichtbar"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerSponsorAgreement": {
+      "stage": "server",
+      "category": "server",
+      "description": "Versionierte Belohnungsvereinbarungen: Vorschlaege durch Eltern/Sponsor/Kind; wirksam erst bei Zustimmung aller erforderlichen Eltern UND des Sponsors derselben Version; veroeffentlichte Versionen unveraenderlich; Diff zur bisherigen Fassung.",
+      "properties": {
+        "agreementPolicy": {
+          "type": "string",
+          "default": "Zustimmung an konkrete Version gebunden",
+          "description": "Verbindliche Vereinbarungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Vereinbarungen + Versionen einer Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "propose",
+          "description": "Neue Version vorschlagen; proposende Partei stimmt automatisch zu",
+          "params": [
+            "sponsorshipId",
+            "terms|metricKeysCsv/pointsTarget/rewardText/from/until/consumePoints/carryOver/validUntil",
+            "proposalId?"
+          ]
+        },
+        {
+          "name": "consent",
+          "description": "Zustimmung/Ablehnung zu exakt einer Version; bei Quorum sofortige Aktivierung + Anspruchsbewertung im selben Commit",
+          "params": [
+            "agreementId",
+            "version",
+            "approve"
+          ]
+        },
+        {
+          "name": "diff",
+          "description": "Verstaendlicher Unterschied zur aktiven Version",
+          "params": [
+            "agreementId",
+            "version"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Wirksamkeit nur mit Zustimmung aller requiredGuardianIds + Sponsor an dieselbe Version",
+        "Veroeffentlichte Versionen sind unveraenderlich (Neue Version statt Aenderung)",
+        "Bis zur Freigabe gilt die bisherige aktive Version weiter",
+        "Punkteziel 1..1000000, Leistungsarten nur aus veroeffentlichten Regelversionen",
+        "Erreichte Ansprueche entfallen durch Versionswechsel nicht"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerReward": {
+      "stage": "server",
+      "category": "server",
+      "description": "Belohnungsansprueche: genau ein Anspruch je entitlementKey; Zustaende earned/requested/released/fulfilled/cancelled; optionales Punktekonto (reserve/release/consume) bei consumePoints-Vereinbarungen.",
+      "properties": {
+        "rewardPolicy": {
+          "type": "string",
+          "default": "Keine doppelte Vergabe; Erfuellung zweistufig",
+          "description": "Verbindliche Belohnungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Ansprueche + Punktekonto einer Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "request",
+          "description": "Einloesewunsch (Kind oder Eltern); reserviert Punkte bei consumePoints",
+          "params": [
+            "claimKey",
+            "requestId?"
+          ]
+        },
+        {
+          "name": "decision",
+          "description": "Eltern: Einloesung freigeben (released) oder zurueckweisen (zurueck zu earned)",
+          "params": [
+            "claimKey",
+            "approve",
+            "reason?"
+          ]
+        },
+        {
+          "name": "cancel",
+          "description": "Eltern: Anspruch mit Begruendung stornieren",
+          "params": [
+            "claimKey",
+            "reason"
+          ]
+        },
+        {
+          "name": "fulfillmentReport",
+          "description": "Sponsor meldet Erfuellung (einmalig, aendert Anspruch noch nicht)",
+          "params": [
+            "claimKey",
+            "note?"
+          ]
+        },
+        {
+          "name": "fulfillmentConfirm",
+          "description": "Eltern bestaetigen Erfuellung — genau einmal; verbraucht reservierte Punkte",
+          "params": [
+            "claimKey"
+          ]
+        }
+      ],
+      "guarantees": [
+        "entitlementKey eindeutig — keine doppelte Vergabe",
+        "Einloesung nur aus Zustand earned; Freigabe nur durch Erziehungsberechtigte",
+        "Erfuellung erst nach Sponsormeldung + Elternbestaetigung (idempotent, genau einmal)",
+        "Ansprueche ueberleben Pause, Versionswechsel und Beendigung",
+        "Reservierte Punkte werden bei Zurueckweisung/Storno freigegeben",
+        "Keine Zahlungsabwicklung"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerPerformance": {
+      "stage": "server",
+      "category": "server",
+      "description": "Gepruefte Leistungspunkte: performanceLedger ist die einzige Anspruchsquelle; Eintraege entstehen serverseitig verifiziert (Regelversion deckt Spiel+Metrik+Wertebereich) oder elterlich anerkannt; Rohmeldungen zaehlen nie direkt.",
+      "properties": {
+        "performancePolicy": {
+          "type": "string",
+          "default": "Nur gepruefte Ledger-Eintraege zaehlen",
+          "description": "Verbindliche Leistungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "recognize",
+          "description": "Eltern erkennen eine Leistung an (guardian-confirmed)",
+          "params": [
+            "childId",
+            "metricKey",
+            "value",
+            "unit?",
+            "occurredAt?",
+            "progressEventId?",
+            "note?"
+          ]
+        },
+        {
+          "name": "ledger",
+          "description": "Geprueftes Leistungskonto eines Kindes (nur Eltern)",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "rules",
+          "description": "Veroeffentlichte Leistungsarten fuer Vereinbarungen",
+          "params": []
+        }
+      ],
+      "guarantees": [
+        "Nur verification=verified|guardian-confirmed zaehlt; reported nie",
+        "Dedup ueber fachlichen Ereignisschluessel (Quelle + Regelversion)",
+        "Endliche Werte, deklarierte Einheit und Wertebereich serverseitig erzwungen",
+        "Sponsor kann Leistungen weder melden noch veraendern",
+        "Append-only: Korrekturen als reversalOf-Gegenbuchung"
+      ],
+      "status": "Implementiert (v8)"
+    }
+  }
+}

@@ -1,0 +1,220 @@
+// Aufbau ab null — SPIEL-01 bis SPIEL-03 (docs/CMS-Testkatalog.md).
+// SuperAdmin laedt ein Spiel ueber stage_library hoch und veroeffentlicht
+// es → HouseAdmin gibt es im Raum frei → das Kind sieht es in der Galerie
+// und startet die Sitzung ueber die UI (kein API-Fallback!). Aufgaben
+// einzeln bewertet, Abhaengigkeiten ressourcenbasiert (dep).
+const path=require('node:path'),fs=require('node:fs'),assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const {bootMinimal,busy,sel,emojiLogin,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
+const {makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,card,cardWait}=require('./cms/aufbau-common.cjs');
+const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
+
+const PORT=15229;
+const PROJ=path.resolve(__dirname,'..','public','test-projects','ZahlenDuell.json');
+const TITEL='Rechenduell Testspiel';
+const vget=(page,name)=>page.evaluate(n=>{const o=window.player.runtime.getObjects().find(x=>x.name===n);return o?o.value:undefined},name);
+const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('/api/cms/'+r,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return{status:x.status,data:await x.json().catch(()=>({}))}},[route,body||{}]);
+
+(async()=>{
+ const env=await bootMinimal(PORT);const base=env.base;let browser,adm=null,sonne=null,raum=null,kid=null;
+ const{task,report}=makeRunner('aufbau-5');
+ const errors=[];
+ try{
+  browser=await chromium.launch({channel:'msedge',headless:true});
+  recordBrowser(browser);
+  const page=await browser.newPage({viewport:{width:1280,height:960}});
+  page.on('pageerror',e=>errors.push(e.message));
+
+  // ── VORAUS: Haus Sonne + HouseAdmin „anna" ─────────────────────────
+  await task('VORAUS-A','Haus Sonne + HouseAdmin „anna"',[],async()=>{
+   await adminLogin(page,base,'super',TEST_PASSWORD);
+   const r=await setupHouseAdmin({browser,env,base,page,house:'Haus Sonne',name:'Anna Admin',username:'anna'});
+   sonne=r.sonne;adm=r.adm;adm.on('pageerror',e=>errors.push(e.message));
+  },page);
+
+  await task('VORAUS-R','Raum „Spielraum" angelegt',[dep('VORAUS-A',()=>!!adm)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_rooms');
+   await adm.getByPlaceholder('Raumname',{exact:true}).fill('Spielraum');
+   await click(adm,'RaumAnlegen');
+   raum=env.file().areas.find(a=>a.name==='Spielraum'&&a.parentId===sonne.id);
+   assert.ok(raum,'Raum fehlt');
+  },adm);
+
+  // ── VORAUS-K: Bewohner anlegen und danach dem Raum zuordnen ────────
+  // Raumzutritt ist RaumAdmin-Aufgabe (stage_room_access). anna wurde beim
+  // Raum-Anlegen deklarativ selbst RaumAdmin (room-admin-initial).
+  let lina=null;
+  await task('VORAUS-K','Bewohnerin „Lina Kind" angelegt und Spielraum zugeordnet',[dep('VORAUS-R',()=>!!raum)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_residents');
+   await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
+   await adm.locator('[placeholder="🦊"]').fill('🦊');
+   await adm.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,tree,house');
+   await click(adm,'BewohnerAnlegen');
+   lina=env.file().people.find(p=>p.name==='Lina Kind');
+   assert.ok(lina&&env.file().codes.some(c=>c.personId===lina.id),'Kind/Code fehlt');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft fehlt');
+   assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Bewohnerin wurde unerwartet direkt dem Raum zugeordnet');
+   await adm.goto(base+'/admin',{waitUntil:'domcontentloaded'});
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
+   await busy(adm);
+   await rowClick(adm,'RaumTabelle','Spielraum');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_overview',null,{timeout:10000});
+   await busy(adm);
+   await click(adm,'Navigation_stage_room_access');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_access',null,{timeout:10000});
+   await busy(adm);
+   await rowClick(adm,'MitgliederTabelle','Lina Kind');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung fehlt');
+  },adm);
+
+  // ── SPIEL-01a: Spiel ueber die Bibliothek hochladen ────────────────
+  let game=null;
+  await task('SPIEL-01a','Spiel „'+TITEL+'" hochgeladen',[dep('VORAUS-A',()=>true)],async()=>{
+   await page.goto(base+'/super',{waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_super',null,{timeout:10000});
+   await click(page,'Navigation_stage_library');
+   await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_library',null,{timeout:10000});
+   await busy(page);
+   const name=await sel(page,'SpielName');
+   await page.locator(name+' input').fill(TITEL);
+   await click(page,'SpielAnlegen');
+   await busy(page);
+   game=env.file().games.find(g=>g.title===TITEL);
+   assert.ok(game&&game.status==='draft'&&game.file==='','Spielentwurf ohne Datei fehlt oder ist nicht als Entwurf gespeichert');
+   assert.strictEqual((await papi(page,'admin/super-game-create',{title:TITEL})).status,409,'Doppelter eigener Spielname wurde angelegt');
+   const vorUpload=await papi(page,'upload-library',{operation:'publish',id:game.id,published:true});
+   assert.strictEqual(vorUpload.status,409,'Entwurf ohne GCS-Datei durfte veröffentlicht werden');
+   const table=await sel(page,'SpieleTabelle');
+   await page.locator(table+' tbody tr',{hasText:TITEL}).click();
+   await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_library_detail',null,{timeout:10000});
+   await busy(page);
+   assert.strictEqual(await vget(page,'CMSGameId'),game.id,'Tabellenzeile öffnete nicht den ausgewählten Entwurf');
+   const description=await sel(page,'SpielBeschreibung');
+   await page.locator(description+' input').fill('Automatischer Spieltest');
+   // TFilePicker oeffnet den nativen Dateidialog → filechooser-Event
+   const fc=page.waitForEvent('filechooser',{timeout:8000});
+   await click(page,'DateiWaehlen');
+   (await fc).setFiles(PROJ);
+   await busy(page);
+   await click(page,'Hochladen');
+   await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Auswahl')?.text.includes('GCS-Datei vorhanden'),null,{timeout:10000});
+   game=env.file().games.find(g=>g.id===game.id);
+   assert.ok(game&&game.file&&game.description==='Automatischer Spieltest','Upload hat den vorhandenen Entwurf nicht befüllt: '+JSON.stringify(game));
+   assert.strictEqual(env.file().games.filter(g=>g.title===TITEL).length,1,'Upload hat einen zweiten Spieldatensatz angelegt');
+  },page);
+
+  // ── SPIEL-01c: Entwurf vor Veroeffentlichung begutachten ───────────
+  await task('SPIEL-01c','Entwurf per „Begutachten“ in Vorschau geoeffnet',[dep('SPIEL-01a',()=>!!game)],async()=>{
+   const i=await page.evaluate(t=>{const o=window.player.runtime.getObjects();
+    for(let k=0;k<4;k++){const c=o.find(x=>x.name==='SpielKarte'+k);if(c&&String(c.text||'').includes(t))return k}return -1},TITEL);
+   assert.ok(i>=0,'Spielkarte nicht gefunden');
+   await click(page,'SpielKarte'+i);
+   const pv=page.waitForResponse(r=>r.url().includes('/api/cms/upload-library'),{timeout:10000});
+   await click(page,'Begutachten');
+   const resp=await pv,body=await resp.json().catch(()=>({}));
+   assert.strictEqual(resp.status(),200,'Begutachten-Anfrage: '+resp.status());
+   assert.ok(/^\/play\/[a-f0-9]{48}$/.test(body.launch||''),'kein Vorschau-Link: '+JSON.stringify(body).slice(0,200));
+   // Der Spiel-Host (cms-shell.js) bettet den Link automatisch ein.
+   await page.waitForSelector('iframe[src*="/play/"]',{timeout:8000});
+   // Verwaltungssitzung genuegt — kein Kind-Token, keine Spielsitzung.
+   const prev=await page.context().request.get(base+body.launch);
+   const html=await prev.text();
+   assert.strictEqual(prev.status(),200,'Vorschau-Seite nicht erreichbar: '+prev.status());
+   assert.ok(html.includes('Vorschau'),'Vorschau-Kennzeichnung fehlt');
+   assert.ok(html.includes('Zahlen')||html.includes('Duell'),'Projekt nicht eingebettet');
+   // Negativ: ohne Verwaltungssitzung ist derselbe Link gesperrt.
+   const guest=await browser.newContext();
+   const g2=await guest.request.get(base+body.launch);
+   assert.strictEqual(g2.status(),403,'Vorschau ohne Sitzung erreichbar: '+g2.status());
+   await guest.close();
+   // Zurueck aus der Vorschau: der Host-Layer muss sich wieder schliessen.
+   await page.locator('button[aria-label="Spiel schließen"]').click();
+   await page.waitForFunction(()=>{const f=document.querySelector('iframe[src*="/play/"]');return!f||f.parentElement.hidden},null,{timeout:5000});
+  },page);
+
+  // ── SPIEL-01b: Spiel veroeffentlichen ──────────────────────────────
+  await task('SPIEL-01b','Spiel veroeffentlicht',[dep('SPIEL-01a',()=>!!game)],async()=>{
+   // Spielkarte auswaehlen, dann „Veroeffentlichen"
+   const i=await page.evaluate(t=>{const o=window.player.runtime.getObjects();
+    for(let k=0;k<4;k++){const c=o.find(x=>x.name==='SpielKarte'+k);if(c&&String(c.text||'').includes(t))return k}return -1},TITEL);
+   assert.ok(i>=0,'Spielkarte nicht gefunden');
+   await click(page,'SpielKarte'+i);
+   await click(page,'Veroeffentlichen');
+   const g=env.file().games.find(x=>x.id===game.id);
+   assert.ok(g&&(g.status==='published'||g.published===true),'Status: '+(g&&g.status));
+  },page);
+
+  // ── SPIEL-02a: Kind sieht das Spiel noch NICHT (keine Freigabe) ────
+  await task('SPIEL-02a','Kind sieht Spiel ohne Freigabe nicht',[dep('VORAUS-K',()=>!!lina),dep('SPIEL-01b',()=>!!game)],async()=>{
+   kid=await (await browser.newContext()).newPage();
+   kid.on('pageerror',e=>errors.push(e.message));
+   await emojiLogin(kid,base,['owl','dog','tree','house']);
+   await kid.waitForFunction(()=>window.player.runtime.stage.id==='stage_gallery',null,{timeout:10000});
+   const games=await papi(kid,'games',{token:await vget(kid,'Token'),areaId:raum.id});
+   // Streng: die Antwort muss erfolgreich sein UND das Spiel fehlen —
+   // eine Fehlerantwort ohne Titel waere sonst falsch-gruen.
+   assert.strictEqual(games.status,200,'games-Antwort nicht erfolgreich: '+games.status);
+   assert.ok(!JSON.stringify(games.data).includes('Rechenduell'),'Spiel ohne Freigabe sichtbar');
+  },kid);
+
+  // ── SPIEL-02b: HouseAdmin gibt das Spiel im Haus frei ─────────────
+  // Freigaben sind seit dem Multi-Stage-Umbau Haus-Ebene (house-game-set,
+  // areaId=Haus) und gelten fuer alle Raeume des Hauses.
+  const grantAktiv=()=>env.file().grants.some(g=>g.areaId===sonne?.id&&g.active===true&&JSON.stringify(g).includes(game?.id));
+  await task('SPIEL-02b','Spielfreigabe im Haus durch „anna"',[dep('SPIEL-01b',()=>!!game),dep('VORAUS-R',()=>!!raum)],async()=>{
+   await adm.goto(base+'/house',{waitUntil:'domcontentloaded'});
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
+   await busy(adm);
+   await openHouseArea(adm,'Haus Sonne','stage_house_games');
+   const gr=adm.waitForResponse(r=>r.url().includes('house-game-set')&&r.request().method()==='POST',{timeout:10000});
+   gr.catch(()=>{}); // unhandled rejection vermeiden, falls der Zeilenklick scheitert
+   await rowClick(adm,'SpielTabelle','Rechenduell');
+   const resp=await gr;
+   assert.strictEqual(resp.status(),200,'Freigabe-Request fehlgeschlagen: '+resp.status());
+   assert.ok(grantAktiv(),'kein aktiver Grant');
+  },adm);
+
+  // ── SPIEL-03a: Kind sieht und startet das Spiel ueber die UI ───────
+  await task('SPIEL-03a','Kind sieht Spiel + UI-Klick startet Spielsitzung',[dep('SPIEL-02a',()=>!!kid),dep('SPIEL-02b',grantAktiv)],async()=>{
+   const games=await papi(kid,'games',{token:await vget(kid,'Token'),areaId:raum.id});
+   assert.strictEqual(games.status,200,'games-Antwort nicht erfolgreich: '+games.status);
+   assert.ok(JSON.stringify(games.data).includes('Rechenduell'),'Spiel nach Freigabe nicht sichtbar');
+   // Echter UI-Weg: Raumkarte in der Galerie → Spielkarte → der Klick
+   // muss selbst den launch-Request ausloesen (Session-Start + Grant
+   // serverseitig). Kein API-Fallback.
+   await busy(kid);
+   const rt=await sel(kid,'RaumTabelle');
+   await kid.locator(rt+' .gcs-card-item',{hasText:'Spielraum'}).click();
+   await busy(kid);
+   assert.ok(await cardWait(kid,'Rechenduell'),'Spielkarte in Galerie fehlt');
+   const startResp=kid.waitForResponse(r=>r.url().includes('/api/cms/launch')&&r.request().method()==='POST',{timeout:10000});
+   assert.ok(await card(kid,'Rechenduell'),'Spielkarte nicht klickbar');
+   const resp=await startResp;
+   assert.strictEqual(resp.status(),200,'UI-Spielstart fehlgeschlagen: '+resp.status());
+   const body=await resp.json().catch(()=>({}));
+   assert.ok(body.playSessionId&&body.launch,'keine Launch-Antwort: '+JSON.stringify(body).slice(0,200));
+   // Spielsitzungen sind Betriebsdaten → cms-v1-ops.json (seit der Store-Trennung).
+   const ops=JSON.parse(fs.readFileSync(env.dataPath.replace(/\.json$/,'-ops.json'),'utf8'));
+   const s=(ops.playSessions||[]).find(x=>x.id===body.playSessionId);
+   assert.ok(s&&s.gameId===game.id&&s.areaId===raum.id,'Spielsitzung nicht im Bestand (Spiel/Raum): '+JSON.stringify(ops.playSessions||[]).slice(0,200));
+  },kid);
+
+  // ── SPIEL-03b: Freigabeentzug wirkt sofort (streng: 403, fachlich) ─
+  await task('SPIEL-03b','Freigabeentzug sperrt Spielstart',[dep('SPIEL-03a',grantAktiv)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_games');
+   await rowClick(adm,'SpielTabelle','Rechenduell');
+   assert.ok(!grantAktiv(),'Grant noch aktiv');
+   // Ueber denselben Endpunkt wie die UI: launch → interner Start →
+   // Vertrag: genau 403 „Spiel nicht freigegeben" — nicht irgendein Fehler.
+   const start=await papi(kid,'launch',{token:await vget(kid,'Token'),areaId:raum.id,gameId:game.id});
+   assert.strictEqual(start.status,403,'Start trotz Entzug: '+start.status);
+   assert.ok(/freigegeb/i.test(JSON.stringify(start.data)),'unerwartete Fehlerantwort: '+JSON.stringify(start.data).slice(0,200));
+  },adm);
+ }finally{
+  if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-spiele'});
+  await env.close();
+ }
+ const extra=errors.length?{id:'BROWSER',name:'Browser-Ausnahmen',status:'FEHLER',note:errors.join(' | ').slice(0,300)}:null;
+ const{fe,bl}=report(extra);
+ if(fe+bl>0)process.exitCode=1;
+})().catch(e=>{console.error(e);process.exitCode=1});

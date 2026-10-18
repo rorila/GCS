@@ -1,0 +1,8536 @@
+[
+ {
+  "id": "DOC-0001",
+  "kind": "document",
+  "name": ".katalog-state.json",
+  "title": "docs/.katalog-state.json",
+  "category": "test-artefakt",
+  "description": "Statusdatei zum CMS-Testkatalog.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/.katalog-state.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ae9bac6ec7ef0fc8"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0002",
+  "kind": "document",
+  "name": "AGENT_API_REFERENCE.md",
+  "title": "docs/AGENT_API_REFERENCE.md",
+  "category": "referenz",
+  "description": "Aug.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AGENT_API_REFERENCE.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b40f552275ae4b02"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0003",
+  "kind": "document",
+  "name": "AI_Agent_Integration_Plan.md",
+  "title": "docs/AI_Agent_Integration_Plan.md",
+  "category": "konzept/plan",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AI_Agent_Integration_Plan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:aa4f26a409e1105c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0004",
+  "kind": "document",
+  "name": "AI_PROJECT_GENERATION.md",
+  "title": "docs/AI_PROJECT_GENERATION.md",
+  "category": "konzept/plan",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AI_PROJECT_GENERATION.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2816fb22b6507403"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0005",
+  "kind": "document",
+  "name": "AI_Test_Anleitung.md",
+  "title": "docs/AI_Test_Anleitung.md",
+  "category": "anleitung",
+  "description": "Juli.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AI_Test_Anleitung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2dd3a61ad07e343b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0006",
+  "kind": "document",
+  "name": "AgentAPI.md",
+  "title": "docs/AgentAPI.md",
+  "category": "referenz",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AgentAPI.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b91f0b3b516513bf"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0007",
+  "kind": "document",
+  "name": "AgentController_Vorlagen.md",
+  "title": "docs/AgentController_Vorlagen.md",
+  "category": "referenz",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/AgentController_Vorlagen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b0c9f8400d262d2f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0008",
+  "kind": "document",
+  "name": "Aufgabenbereich-Bedienung-und-Umsetzungsstand.md",
+  "title": "docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md",
+  "category": "umsetzungsstand",
+  "description": "Beschreibt implementierten ersten Stand (17.10.).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:850751b6f9a31f71"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0009",
+  "kind": "document",
+  "name": "Aufgabenbereich-Plan-und-Eventvertrag.md",
+  "title": "docs/Aufgabenbereich-Plan-und-Eventvertrag.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Aufgabenbereich-Plan-und-Eventvertrag.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0c360409163a5dac"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0010",
+  "kind": "document",
+  "name": "Aufgabenbereich-Spielwelt-Turmbau.md",
+  "title": "docs/Aufgabenbereich-Spielwelt-Turmbau.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Aufgabenbereich-Spielwelt-Turmbau.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:67e084c1d1d28e2a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0011",
+  "kind": "document",
+  "name": "BREAKOUT-LERNPROJEKT.md",
+  "title": "docs/BREAKOUT-LERNPROJEKT.md",
+  "category": "konzept/plan",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/BREAKOUT-LERNPROJEKT.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1af9f94591becb9d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0012",
+  "kind": "document",
+  "name": "BREAKOUT-OBJEKTLISTE.md",
+  "title": "docs/BREAKOUT-OBJEKTLISTE.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/BREAKOUT-OBJEKTLISTE.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d4683576b5d3ccc1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0013",
+  "kind": "document",
+  "name": "CMS-Datenschutz-Kinderschutz-Audit.md",
+  "title": "docs/CMS-Datenschutz-Kinderschutz-Audit.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Datenschutz-Kinderschutz-Audit.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9b6e2e8928543f6f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0014",
+  "kind": "document",
+  "name": "CMS-Datenseparierung-und-DB-Migrationsplan.md",
+  "title": "docs/CMS-Datenseparierung-und-DB-Migrationsplan.md",
+  "category": "konzept/plan",
+  "description": "JSON→SQLite-Migration umgesetzt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Datenseparierung-und-DB-Migrationsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d691ecf426a8b6ca"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0015",
+  "kind": "document",
+  "name": "CMS-Entwickler-Umsetzungsplan.md",
+  "title": "docs/CMS-Entwickler-Umsetzungsplan.md",
+  "category": "umsetzungsstand",
+  "description": "Laufender CMS-Umsetzungsplan.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Entwickler-Umsetzungsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:13e2edfc009f40ba"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0016",
+  "kind": "document",
+  "name": "CMS-HouseAdmin-RaumAdmin-Multiplayer-Konzept.md",
+  "title": "docs/CMS-HouseAdmin-RaumAdmin-Multiplayer-Konzept.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-HouseAdmin-RaumAdmin-Multiplayer-Konzept.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:da4e26341da631f5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0017",
+  "kind": "document",
+  "name": "CMS-Karteikasten-Lernpunkte.md",
+  "title": "docs/CMS-Karteikasten-Lernpunkte.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Karteikasten-Lernpunkte.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b64220fc362aadff"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0018",
+  "kind": "document",
+  "name": "CMS-Karteikasten.md",
+  "title": "docs/CMS-Karteikasten.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Karteikasten.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0b5b1e38817c6492"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0019",
+  "kind": "document",
+  "name": "CMS-Phase0-Inventar.md",
+  "title": "docs/CMS-Phase0-Inventar.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Phase0-Inventar.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bc4ef732e1642c14"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0020",
+  "kind": "document",
+  "name": "CMS-Plan.md",
+  "title": "docs/CMS-Plan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Plan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:93e72357c652a39b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0021",
+  "kind": "document",
+  "name": "CMS-Rollenmodell-Haus-Raum.md",
+  "title": "docs/CMS-Rollenmodell-Haus-Raum.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Rollenmodell-Haus-Raum.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:745e452cea766303"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0022",
+  "kind": "document",
+  "name": "CMS-Spielstart-Vertrag.md",
+  "title": "docs/CMS-Spielstart-Vertrag.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Spielstart-Vertrag.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bb33ecb2c3065dcc"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0023",
+  "kind": "document",
+  "name": "CMS-Sponsor-Umsetzungsplan.md",
+  "title": "docs/CMS-Sponsor-Umsetzungsplan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Sponsor-Umsetzungsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:805abae9ebf9f770"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0024",
+  "kind": "document",
+  "name": "CMS-Testkatalog-Ergebnis.md",
+  "title": "docs/CMS-Testkatalog-Ergebnis.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Testkatalog-Ergebnis.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:81363c77d2d2b1a4"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0025",
+  "kind": "document",
+  "name": "CMS-Testkatalog.md",
+  "title": "docs/CMS-Testkatalog.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Testkatalog.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d2d71e6ba785e99c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0026",
+  "kind": "document",
+  "name": "CMS-Testluecken.md",
+  "title": "docs/CMS-Testluecken.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/CMS-Testluecken.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:347d47a9a474a2fe"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0027",
+  "kind": "document",
+  "name": "Editor_Komponenten_Regal.md",
+  "title": "docs/Editor_Komponenten_Regal.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Editor_Komponenten_Regal.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f336f07042a3f787"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0028",
+  "kind": "document",
+  "name": "FlowEditor_DV_Konzept.md",
+  "title": "docs/FlowEditor_DV_Konzept.md",
+  "category": "konzept/plan",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/FlowEditor_DV_Konzept.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:51f6b2a3723ae284"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0029",
+  "kind": "document",
+  "name": "Flyio-Migrationsplan.md",
+  "title": "docs/Flyio-Migrationsplan.md",
+  "category": "konzept/plan",
+  "description": "Fly.io-Bereitstellung Single-Instance + Volume.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/Flyio-Migrationsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d945668050fb0688"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0030",
+  "kind": "document",
+  "name": "GCS-Browseruebersetzung-Analyse.md",
+  "title": "docs/GCS-Browseruebersetzung-Analyse.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-Browseruebersetzung-Analyse.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6abb6021644d3115"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0031",
+  "kind": "document",
+  "name": "GCS-CMS-ANMELDUNG.md",
+  "title": "docs/GCS-CMS-ANMELDUNG.md",
+  "category": "referenz",
+  "description": "Sept.; CMS-Anmeldung seitdem mehrfach weiterentwickelt.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-ANMELDUNG.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a7d549bb646fac6a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0032",
+  "kind": "document",
+  "name": "GCS-CMS-HAUSVERWALTUNG.md",
+  "title": "docs/GCS-CMS-HAUSVERWALTUNG.md",
+  "category": "referenz",
+  "description": "Sept.; Hausverwaltung inzwischen getrennte Workspace-Stages.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-HAUSVERWALTUNG.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:72f0d39b9da5f5d5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0033",
+  "kind": "document",
+  "name": "GCS-CMS-PROFIL.md",
+  "title": "docs/GCS-CMS-PROFIL.md",
+  "category": "referenz",
+  "description": "Sept.; Profil-Flows geändert.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-PROFIL.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b4cfc4da30b7e484"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0034",
+  "kind": "document",
+  "name": "GCS-CMS-SPEZIFIKATION.md",
+  "title": "docs/GCS-CMS-SPEZIFIKATION.md",
+  "category": "konzept/plan",
+  "description": "Selbstauskunft: „Planungsstand, noch keine implementierten CMS-Funktionen\" — Spezifikation, kein Umsetzungsstand.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "stichprobe",
+   "basis": "Selbstauskunft im Dokument"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-SPEZIFIKATION.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:40ad585d4acba8ad"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0035",
+  "kind": "document",
+  "name": "GCS-CMS-SPIELSTART.md",
+  "title": "docs/GCS-CMS-SPIELSTART.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-SPIELSTART.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bbd2da9bfd6d0010"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0036",
+  "kind": "document",
+  "name": "GCS-CMS-STAGES.md",
+  "title": "docs/GCS-CMS-STAGES.md",
+  "category": "referenz",
+  "description": "Sept.; Stage-Aufteilung mehrfach umgebaut.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-STAGES.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c5cfc2bd212fe76a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0037",
+  "kind": "document",
+  "name": "GCS-CMS-START.md",
+  "title": "docs/GCS-CMS-START.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-START.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b5a2ed8defc69d0e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0038",
+  "kind": "document",
+  "name": "GCS-CMS-SUPERADMIN.md",
+  "title": "docs/GCS-CMS-SUPERADMIN.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-SUPERADMIN.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2594820cfb4dc170"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0039",
+  "kind": "document",
+  "name": "GCS-CMS-UPLOADS.md",
+  "title": "docs/GCS-CMS-UPLOADS.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-UPLOADS.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4cd9e1bf7c48bd98"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0040",
+  "kind": "document",
+  "name": "GCS-CMS-VERWALTUNG.md",
+  "title": "docs/GCS-CMS-VERWALTUNG.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-VERWALTUNG.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e6de63a7b8c1589d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0041",
+  "kind": "document",
+  "name": "GCS-CMS-WORKFLOWS.md",
+  "title": "docs/GCS-CMS-WORKFLOWS.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-CMS-WORKFLOWS.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bb207b56aeef947d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0042",
+  "kind": "document",
+  "name": "GCS-OBJEKTLISTEN-TABELLEN.md",
+  "title": "docs/GCS-OBJEKTLISTEN-TABELLEN.md",
+  "category": "referenz",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-OBJEKTLISTEN-TABELLEN.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:68bd69c40b1271ed"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0043",
+  "kind": "document",
+  "name": "GCS-SERVER-KOMPONENTEN.md",
+  "title": "docs/GCS-SERVER-KOMPONENTEN.md",
+  "category": "referenz",
+  "description": "Sept.; Server-Komponenten seitdem erweitert (u. a. TServerSql, TServerEnroll).",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-SERVER-KOMPONENTEN.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a9dd139f8b7f2673"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0044",
+  "kind": "document",
+  "name": "GCS-TRAINING-SCHRITTPLAN.md",
+  "title": "docs/GCS-TRAINING-SCHRITTPLAN.md",
+  "category": "konzept/plan",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-TRAINING-SCHRITTPLAN.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:58cdccbb5235caa5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0045",
+  "kind": "document",
+  "name": "GCS-TRAINING.md",
+  "title": "docs/GCS-TRAINING.md",
+  "category": "konzept/plan",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS-TRAINING.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5e2defb83274728d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0046",
+  "kind": "document",
+  "name": "GCS_FEATURE_MAP.md",
+  "title": "docs/GCS_FEATURE_MAP.md",
+  "category": "referenz",
+  "description": "Prosaische Feature-Karte (UseCase-Wegweiser). Gewollte Überschneidung: FEATURE-INVENTORY ist die strukturierte, maschinenlesbare SSoT; diese Datei bleibt Lesedoku.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/GCS_FEATURE_MAP.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6d6daa137ea78dca"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0047",
+  "kind": "document",
+  "name": "GameToolBox_KI_Integration_Schritt_fuer_Schritt.md",
+  "title": "docs/GameToolBox_KI_Integration_Schritt_fuer_Schritt.md",
+  "category": "anleitung",
+  "description": "Juli.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/GameToolBox_KI_Integration_Schritt_fuer_Schritt.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:8caa4e40a61e33b5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0048",
+  "kind": "document",
+  "name": "HouseAdmin-Bewohneranlage-Avatar-Emoji-Plan.md",
+  "title": "docs/HouseAdmin-Bewohneranlage-Avatar-Emoji-Plan.md",
+  "category": "konzept/plan",
+  "description": "Plan wurde umgesetzt (Bewohneranlage mit Avatar/Emoji).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/HouseAdmin-Bewohneranlage-Avatar-Emoji-Plan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:3b35bfc7375c9893"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0049",
+  "kind": "document",
+  "name": "JumpAndRun_BestPractice_Guide.md",
+  "title": "docs/JumpAndRun_BestPractice_Guide.md",
+  "category": "anleitung",
+  "description": "Aug.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/JumpAndRun_BestPractice_Guide.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:aac1339e5566c837"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0050",
+  "kind": "document",
+  "name": "JumpAndRun_EndlessRunner_Guide.md",
+  "title": "docs/JumpAndRun_EndlessRunner_Guide.md",
+  "category": "anleitung",
+  "description": "Aug.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/JumpAndRun_EndlessRunner_Guide.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:338f071f02ddaae8"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0051",
+  "kind": "document",
+  "name": "Karteikarten-Antwortauswahl.md",
+  "title": "docs/Karteikarten-Antwortauswahl.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikarten-Antwortauswahl.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a6a38a9c8739a5ea"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0052",
+  "kind": "document",
+  "name": "Karteikarten-Gestalten.md",
+  "title": "docs/Karteikarten-Gestalten.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikarten-Gestalten.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b0ebb22df69167aa"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0053",
+  "kind": "document",
+  "name": "Karteikasten-Abenteuer.md",
+  "title": "docs/Karteikasten-Abenteuer.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikasten-Abenteuer.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ad7cb49ee69b78c2"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0054",
+  "kind": "document",
+  "name": "Karteikasten-Belohnungsrunden.md",
+  "title": "docs/Karteikasten-Belohnungsrunden.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikasten-Belohnungsrunden.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6a52ef46dc015c67"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0055",
+  "kind": "document",
+  "name": "Karteikasten-Quiz-Papierkarte.md",
+  "title": "docs/Karteikasten-Quiz-Papierkarte.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikasten-Quiz-Papierkarte.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4e5d20f71e64364e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0056",
+  "kind": "document",
+  "name": "Karteikasten-Quiz-Spielbeschreibung.md",
+  "title": "docs/Karteikasten-Quiz-Spielbeschreibung.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikasten-Quiz-Spielbeschreibung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6ed7d6e35a4e1a06"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0057",
+  "kind": "document",
+  "name": "Karteikasten-Statistik-Plan.md",
+  "title": "docs/Karteikasten-Statistik-Plan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Karteikasten-Statistik-Plan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5f3e3946254ce208"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0058",
+  "kind": "document",
+  "name": "Lernspiel-Geruest.md",
+  "title": "docs/Lernspiel-Geruest.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Lernspiel-Geruest.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:64a5b16bb8679276"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0059",
+  "kind": "document",
+  "name": "Lernzielkatalog.md",
+  "title": "docs/Lernzielkatalog.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Lernzielkatalog.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:30f456512b79d738"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0060",
+  "kind": "document",
+  "name": "Mathe-Insel-Flussbruecke.md",
+  "title": "docs/Mathe-Insel-Flussbruecke.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathe-Insel-Flussbruecke.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1a115ee47c348176"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0061",
+  "kind": "document",
+  "name": "Mathe-Rechenpuzzle.md",
+  "title": "docs/Mathe-Rechenpuzzle.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathe-Rechenpuzzle.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c28b4312e707e6e5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0062",
+  "kind": "document",
+  "name": "Mathe-Sprache-und-Antwortzeit.md",
+  "title": "docs/Mathe-Sprache-und-Antwortzeit.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathe-Sprache-und-Antwortzeit.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:af3f33bed922424a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0063",
+  "kind": "document",
+  "name": "Mathematik-Lernspiele-GCS-Ablauf-und-Architektur.md",
+  "title": "docs/Mathematik-Lernspiele-GCS-Ablauf-und-Architektur.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathematik-Lernspiele-GCS-Ablauf-und-Architektur.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:98d74f957809df01"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0064",
+  "kind": "document",
+  "name": "Mathematik-Phase1-Schnittstellenpruefung.md",
+  "title": "docs/Mathematik-Phase1-Schnittstellenpruefung.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathematik-Phase1-Schnittstellenpruefung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2e52d8833d45b5ce"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0065",
+  "kind": "document",
+  "name": "Mathematik-Umsetzungsstand.md",
+  "title": "docs/Mathematik-Umsetzungsstand.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Mathematik-Umsetzungsstand.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7b27a89b3acfdb9b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0066",
+  "kind": "document",
+  "name": "Multiplayer_Testen.md",
+  "title": "docs/Multiplayer_Testen.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Multiplayer_Testen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d4fefaaf528b085e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0067",
+  "kind": "document",
+  "name": "NAMING_CONVENTIONS.md",
+  "title": "docs/NAMING_CONVENTIONS.md",
+  "category": "referenz",
+  "description": "Mai.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/NAMING_CONVENTIONS.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:184a47a4af1cfc05"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0068",
+  "kind": "document",
+  "name": "Overlay-Implementierungsreview.md",
+  "title": "docs/Overlay-Implementierungsreview.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Overlay-Implementierungsreview.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a30a8238ffec75fa"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0069",
+  "kind": "document",
+  "name": "Overlay-Komponenten-Umsetzungsplan.md",
+  "title": "docs/Overlay-Komponenten-Umsetzungsplan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Overlay-Komponenten-Umsetzungsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4ae557daf872b570"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0070",
+  "kind": "document",
+  "name": "PingPong-Remote-Synchronisationsplan.md",
+  "title": "docs/PingPong-Remote-Synchronisationsplan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/PingPong-Remote-Synchronisationsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:04715e1ac8a556d1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0071",
+  "kind": "document",
+  "name": "Planner_Ollama_Schritt_fuer_Schritt_Anleitung.md",
+  "title": "docs/Planner_Ollama_Schritt_fuer_Schritt_Anleitung.md",
+  "category": "anleitung",
+  "description": "Juli.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/Planner_Ollama_Schritt_fuer_Schritt_Anleitung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:48a844c39631fcf3"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0072",
+  "kind": "document",
+  "name": "Planner_Prompt_Bereinigung_Schritt_fuer_Schritt.md",
+  "title": "docs/Planner_Prompt_Bereinigung_Schritt_fuer_Schritt.md",
+  "category": "anleitung",
+  "description": "Juli.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/Planner_Prompt_Bereinigung_Schritt_fuer_Schritt.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4a2852afc4daa6ec"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0073",
+  "kind": "document",
+  "name": "QA_Report.html",
+  "title": "docs/QA_Report.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1988ba4d9f59db1b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0074",
+  "kind": "document",
+  "name": "QA_Report.md",
+  "title": "docs/QA_Report.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1fc38a2a2a3f0635"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0075",
+  "kind": "document",
+  "name": "QA_Report_2026-10-07_16-50-49.html",
+  "title": "docs/QA_Report_2026-10-07_16-50-49.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-07_16-50-49.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ca06fb2c61217ca0"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0076",
+  "kind": "document",
+  "name": "QA_Report_2026-10-09_20-22-39.html",
+  "title": "docs/QA_Report_2026-10-09_20-22-39.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-09_20-22-39.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:282de089153ed738"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0077",
+  "kind": "document",
+  "name": "QA_Report_2026-10-09_20-24-42.html",
+  "title": "docs/QA_Report_2026-10-09_20-24-42.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-09_20-24-42.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c1591452a6d4109e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0078",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_09-25-42.html",
+  "title": "docs/QA_Report_2026-10-10_09-25-42.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_09-25-42.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:3e6752220ee00d04"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0079",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_09-29-30.html",
+  "title": "docs/QA_Report_2026-10-10_09-29-30.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_09-29-30.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b5c5df8896833f76"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0080",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_09-33-55.html",
+  "title": "docs/QA_Report_2026-10-10_09-33-55.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_09-33-55.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:229308698283a6fe"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0081",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_10-30-07.html",
+  "title": "docs/QA_Report_2026-10-10_10-30-07.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_10-30-07.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2da64bd36546ccc3"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0082",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_10-32-40.html",
+  "title": "docs/QA_Report_2026-10-10_10-32-40.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_10-32-40.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:51e09d8317916b84"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0083",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_11-06-52.html",
+  "title": "docs/QA_Report_2026-10-10_11-06-52.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_11-06-52.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:62f3c213e09d7aa1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0084",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_19-49-27.html",
+  "title": "docs/QA_Report_2026-10-10_19-49-27.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_19-49-27.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9907a3f31d563167"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0085",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_19-57-16.html",
+  "title": "docs/QA_Report_2026-10-10_19-57-16.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_19-57-16.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6dfcf6b9d83cda51"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0086",
+  "kind": "document",
+  "name": "QA_Report_2026-10-10_20-02-08.html",
+  "title": "docs/QA_Report_2026-10-10_20-02-08.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-10_20-02-08.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:90efdcc776cf7ebc"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0087",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-22-10.html",
+  "title": "docs/QA_Report_2026-10-11_17-22-10.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-22-10.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:fe1923a268c3f7df"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0088",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-23-29.html",
+  "title": "docs/QA_Report_2026-10-11_17-23-29.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-23-29.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:baca8a46848c2503"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0089",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-23-56.html",
+  "title": "docs/QA_Report_2026-10-11_17-23-56.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-23-56.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c50bc4d5aa30017a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0090",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-23-57.html",
+  "title": "docs/QA_Report_2026-10-11_17-23-57.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-23-57.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4c37863d901852d2"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0091",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-24-31.html",
+  "title": "docs/QA_Report_2026-10-11_17-24-31.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-24-31.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:08103854cca2174d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0092",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-29-53.html",
+  "title": "docs/QA_Report_2026-10-11_17-29-53.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-29-53.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f08d4a6d34bb581c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0093",
+  "kind": "document",
+  "name": "QA_Report_2026-10-11_17-30-39.html",
+  "title": "docs/QA_Report_2026-10-11_17-30-39.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-11_17-30-39.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:05769df5b73db09e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0094",
+  "kind": "document",
+  "name": "QA_Report_2026-10-15_11-03-31.html",
+  "title": "docs/QA_Report_2026-10-15_11-03-31.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-15_11-03-31.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:39b0bd88b5b51fd2"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0095",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_10-55-30.html",
+  "title": "docs/QA_Report_2026-10-16_10-55-30.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_10-55-30.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2ac1291437912b68"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0096",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_11-21-50.html",
+  "title": "docs/QA_Report_2026-10-16_11-21-50.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_11-21-50.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1f3e439956465f1b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0097",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_14-39-56.html",
+  "title": "docs/QA_Report_2026-10-16_14-39-56.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_14-39-56.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bb091a55a1dceba9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0098",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_14-42-05.html",
+  "title": "docs/QA_Report_2026-10-16_14-42-05.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_14-42-05.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f1c0a93f5f82372d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0099",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_14-42-50.html",
+  "title": "docs/QA_Report_2026-10-16_14-42-50.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_14-42-50.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:06d995634f99bd3a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0100",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_14-43-44.html",
+  "title": "docs/QA_Report_2026-10-16_14-43-44.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_14-43-44.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:31a07a2397062b82"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0101",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_16-27-26.html",
+  "title": "docs/QA_Report_2026-10-16_16-27-26.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_16-27-26.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6b75cfac90e534f9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0102",
+  "kind": "document",
+  "name": "QA_Report_2026-10-16_16-34-59.html",
+  "title": "docs/QA_Report_2026-10-16_16-34-59.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/QA_Report_2026-10-16_16-34-59.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:8c9cce5e1b5211c3"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0103",
+  "kind": "document",
+  "name": "Quiz_Sprachausgabe.md",
+  "title": "docs/Quiz_Sprachausgabe.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Quiz_Sprachausgabe.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:42a08d0b1edf197b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0104",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2597771c73159d90"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0105",
+  "kind": "document",
+  "name": "Refactoring.md",
+  "title": "docs/Refactoring.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Refactoring.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a632ee5841f1911b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0106",
+  "kind": "document",
+  "name": "SNAKE-LERNPROJEKT.md",
+  "title": "docs/SNAKE-LERNPROJEKT.md",
+  "category": "konzept/plan",
+  "description": "Sept.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/SNAKE-LERNPROJEKT.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ce93ecc44841e435"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0107",
+  "kind": "document",
+  "name": "SQLite-Flyio-Pruefbericht.md",
+  "title": "docs/SQLite-Flyio-Pruefbericht.md",
+  "category": "umsetzungsstand",
+  "description": "SQLite-/Fly.io-Prüfung (Okt.).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/SQLite-Flyio-Pruefbericht.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:215aee35e4f98ab1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0108",
+  "kind": "document",
+  "name": "Spiele-Haeuserfreigabe.md",
+  "title": "docs/Spiele-Haeuserfreigabe.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Spiele-Haeuserfreigabe.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b1c5f4d08885e4a1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0109",
+  "kind": "document",
+  "name": "Spielegalerie-Tabelle.md",
+  "title": "docs/Spielegalerie-Tabelle.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Spielegalerie-Tabelle.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:987457ef9db6a896"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0110",
+  "kind": "document",
+  "name": "Stage-Schnittstellen.md",
+  "title": "docs/Stage-Schnittstellen.md",
+  "category": "referenz",
+  "description": "Externe Stage-Schnittstellen (Eingänge/Ausgänge) — implementiert.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "voll",
+   "basis": "inhalt in dieser Analyse geprüft"
+  },
+  "sources": {
+   "docs": [
+    "docs/Stage-Schnittstellen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:aebe8c544e5a52f7"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0111",
+  "kind": "document",
+  "name": "Tauri-Desktop-Umsetzungsplan.md",
+  "title": "docs/Tauri-Desktop-Umsetzungsplan.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/Tauri-Desktop-Umsetzungsplan.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4c7d83f0d906ac16"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0112",
+  "kind": "document",
+  "name": "VideoToSpriteSheet_GCS_Prompt.md",
+  "title": "docs/VideoToSpriteSheet_GCS_Prompt.md",
+  "category": "anleitung",
+  "description": "Aug.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/VideoToSpriteSheet_GCS_Prompt.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a8aafcd48f5ad15c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0113",
+  "kind": "document",
+  "name": "VirtualGamepad_Anleitung_Kids.md",
+  "title": "docs/VirtualGamepad_Anleitung_Kids.md",
+  "category": "anleitung",
+  "description": "April.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/VirtualGamepad_Anleitung_Kids.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:fb530bd35f6a374f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0114",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/architecture/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/architecture/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:85b50567e467e45f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0115",
+  "kind": "document",
+  "name": "execution-flow.md",
+  "title": "docs/architecture/execution-flow.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/architecture/execution-flow.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1dae726ecfaec95c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0116",
+  "kind": "document",
+  "name": "module-map.md",
+  "title": "docs/architecture/module-map.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/architecture/module-map.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a6e4a42d4ebce604"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0117",
+  "kind": "document",
+  "name": "overview.md",
+  "title": "docs/architecture/overview.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/architecture/overview.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c3c9707206698639"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0118",
+  "kind": "document",
+  "name": "architecture.md",
+  "title": "docs/architecture.md",
+  "category": "referenz",
+  "description": "März; Architektur-Standards teils noch gültig, Detailprüfung offen.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/architecture.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d0c96b189fc63b61"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0119",
+  "kind": "document",
+  "name": "breakout-sieg.png",
+  "title": "docs/breakout-sieg.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/breakout-sieg.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f45dfac45d56cb34"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0120",
+  "kind": "document",
+  "name": "breakout-start.png",
+  "title": "docs/breakout-start.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/breakout-start.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:44da96ab512ead35"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0121",
+  "kind": "document",
+  "name": "cms-anmeldung-initial.png",
+  "title": "docs/cms-anmeldung-initial.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-anmeldung-initial.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:68b078fbf595730d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0122",
+  "kind": "document",
+  "name": "cms-anmeldung-sitzung.png",
+  "title": "docs/cms-anmeldung-sitzung.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-anmeldung-sitzung.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:8ebcb0786bf3a5e4"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0123",
+  "kind": "document",
+  "name": "cms-anmeldung.png",
+  "title": "docs/cms-anmeldung.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-anmeldung.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c83ce3f2e81b5ad4"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0124",
+  "kind": "document",
+  "name": "cms-avatar-upload.png",
+  "title": "docs/cms-avatar-upload.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-avatar-upload.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:43b2c2135338dcc8"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0125",
+  "kind": "document",
+  "name": "cms-einwahl.png",
+  "title": "docs/cms-einwahl.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-einwahl.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b79496be54f025ba"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0126",
+  "kind": "document",
+  "name": "cms-galerie.png",
+  "title": "docs/cms-galerie.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-galerie.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f98f2656ec631ec1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0127",
+  "kind": "document",
+  "name": "cms-hausverwaltung.png",
+  "title": "docs/cms-hausverwaltung.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-hausverwaltung.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e1d37ab57e72d798"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0128",
+  "kind": "document",
+  "name": "cms-login-test.json",
+  "title": "docs/cms-login-test.json",
+  "category": "test-artefakt",
+  "description": "Test-Artefakt.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-login-test.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ba639ed583b2e88c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0129",
+  "kind": "document",
+  "name": "cms-profil.png",
+  "title": "docs/cms-profil.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-profil.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:49a883ef3b8191bd"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0130",
+  "kind": "document",
+  "name": "cms-room-table.png",
+  "title": "docs/cms-room-table.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-room-table.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:86e294d7f0e48da5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0131",
+  "kind": "document",
+  "name": "cms-spiele-upload.png",
+  "title": "docs/cms-spiele-upload.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-spiele-upload.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:79b3c620fdde468f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0132",
+  "kind": "document",
+  "name": "cms-superadmin-detail.png",
+  "title": "docs/cms-superadmin-detail.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-superadmin-detail.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4a1e9ee4c3aa8f60"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0133",
+  "kind": "document",
+  "name": "cms-superadmin.png",
+  "title": "docs/cms-superadmin.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-superadmin.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1af6fa8b8862bd0d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0134",
+  "kind": "document",
+  "name": "cms-unified-stages.png",
+  "title": "docs/cms-unified-stages.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-unified-stages.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:52b87be37d0060ab"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0135",
+  "kind": "document",
+  "name": "cms-verwaltung.png",
+  "title": "docs/cms-verwaltung.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-verwaltung.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ce8469e23f25d5b9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0136",
+  "kind": "document",
+  "name": "cms-workflow-browser-test.json",
+  "title": "docs/cms-workflow-browser-test.json",
+  "category": "test-artefakt",
+  "description": "Test-Artefakt.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-workflow-browser-test.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d56f34784e6309cf"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0137",
+  "kind": "document",
+  "name": "cms-workflows.png",
+  "title": "docs/cms-workflows.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/cms-workflows.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a662d2d69f68921d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0138",
+  "kind": "document",
+  "name": "coding-standards.md",
+  "title": "docs/coding-standards.md",
+  "category": "referenz",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/coding-standards.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e26f58ba4a222d53"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0139",
+  "kind": "document",
+  "name": "components-generated.md",
+  "title": "docs/components-generated.md",
+  "category": "referenz",
+  "description": "Deckt 72 Komponenten ab — vollständige Abdeckung nachgewiesen: alle 72 Namen haben eine Karte in docs/reference/components/ (121 Karten).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "redundant",
+   "reviewDepth": "stichprobe",
+   "basis": "generierte Datei (Skript vorhanden)"
+  },
+  "sources": {
+   "docs": [
+    "docs/components-generated.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6fd503dd38e5f844"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0140",
+  "kind": "document",
+  "name": "components.md",
+  "title": "docs/components.md",
+  "category": "referenz",
+  "description": "März; inhaltlich durch die generierte Komponenten-Referenz (121 Karten, registry-verifiziert) ersetzt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "redundant",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/components.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:135a95b25386db5b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0141",
+  "kind": "document",
+  "name": "debug-elinsmemory.png",
+  "title": "docs/debug-elinsmemory.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/debug-elinsmemory.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6ca39a4a11fd3e9a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0142",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/features/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:85e6c3be43ca6f90"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0143",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/features/cms/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/cms/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:48b79a3564aa6e78"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0144",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/features/editor/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:30f316df31e65c99"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0145",
+  "kind": "document",
+  "name": "flow-editor.md",
+  "title": "docs/features/editor/flow-editor.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/flow-editor.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:cd5f62d63402fca2"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0146",
+  "kind": "document",
+  "name": "inspector.md",
+  "title": "docs/features/editor/inspector.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/inspector.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f35f6106b2857115"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0147",
+  "kind": "document",
+  "name": "project-management.md",
+  "title": "docs/features/editor/project-management.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/project-management.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:11aec35d305ea419"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0148",
+  "kind": "document",
+  "name": "stage-editor.md",
+  "title": "docs/features/editor/stage-editor.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/stage-editor.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b3e9bdd7e1a09ea6"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0149",
+  "kind": "document",
+  "name": "views-run-simulator.md",
+  "title": "docs/features/editor/views-run-simulator.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/editor/views-run-simulator.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f2435c88abceaf23"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0150",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/features/lernwelten/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/lernwelten/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:53489c0e1059faf1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0151",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/features/multiplayer/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/multiplayer/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:dcf0dc5156e47fea"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0152",
+  "kind": "document",
+  "name": "sicherheit.md",
+  "title": "docs/features/multiplayer/sicherheit.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/multiplayer/sicherheit.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:428afba11641acdf"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0153",
+  "kind": "document",
+  "name": "spielablauf.md",
+  "title": "docs/features/runtime/spielablauf.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/features/runtime/spielablauf.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9dcb7014ca268c31"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0154",
+  "kind": "document",
+  "name": "plan-projekttyp-filter.md",
+  "title": "docs/plan-projekttyp-filter.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/plan-projekttyp-filter.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2bcff0fbf9235456"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0155",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/reference/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5e363151b2a020ba"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0156",
+  "kind": "document",
+  "name": "actions.md",
+  "title": "docs/reference/actions.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b44d2a3c72a100fd"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0157",
+  "kind": "document",
+  "name": "events.md",
+  "title": "docs/reference/events.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d243db3752664ad2"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0158",
+  "kind": "document",
+  "name": "expressions.md",
+  "title": "docs/reference/expressions.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/expressions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:aece837cd84b9abe"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0159",
+  "kind": "document",
+  "name": "multiplayer-runtime.md",
+  "title": "docs/reference/multiplayer-runtime.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/multiplayer-runtime.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:992b01292c57f94f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0160",
+  "kind": "document",
+  "name": "tasks-conditions.md",
+  "title": "docs/reference/tasks-conditions.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/tasks-conditions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bb61138c64e4a922"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0161",
+  "kind": "document",
+  "name": "variables.md",
+  "title": "docs/reference/variables.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/reference/variables.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0fa38de69b73b265"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0162",
+  "kind": "document",
+  "name": "review-sponsor-umsetzung.md",
+  "title": "docs/review-sponsor-umsetzung.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/review-sponsor-umsetzung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a6ff9718b629d009"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0163",
+  "kind": "document",
+  "name": "runtime-guide.md",
+  "title": "docs/runtime-guide.md",
+  "category": "referenz",
+  "description": "März; grobe Zusammenhänge zutreffend, Details ungeprüft.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/runtime-guide.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35460d0978090c99"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0164",
+  "kind": "document",
+  "name": "schema_base.json",
+  "title": "docs/schemas/schema_base.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_base.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:710a52a6ec789b56"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0165",
+  "kind": "document",
+  "name": "schema_containers.json",
+  "title": "docs/schemas/schema_containers.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_containers.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a99cb7ca341cd393"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0166",
+  "kind": "document",
+  "name": "schema_dialogs.json",
+  "title": "docs/schemas/schema_dialogs.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_dialogs.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:522ef5f74be1db24"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0167",
+  "kind": "document",
+  "name": "schema_display.json",
+  "title": "docs/schemas/schema_display.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_display.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4cd5bd6f441923f5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0168",
+  "kind": "document",
+  "name": "schema_game.json",
+  "title": "docs/schemas/schema_game.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_game.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:36cfa8c553a01245"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0169",
+  "kind": "document",
+  "name": "schema_inputs.json",
+  "title": "docs/schemas/schema_inputs.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_inputs.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b0056fbaaa7d92cf"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0170",
+  "kind": "document",
+  "name": "schema_media.json",
+  "title": "docs/schemas/schema_media.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_media.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5b4dbd8ed2255bf1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0171",
+  "kind": "document",
+  "name": "schema_server.json",
+  "title": "docs/schemas/schema_server.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_server.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b27a0d5f887af64b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0172",
+  "kind": "document",
+  "name": "schema_server_cms.json",
+  "title": "docs/schemas/schema_server_cms.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_server_cms.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e510c110c86478dc"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0173",
+  "kind": "document",
+  "name": "schema_services.json",
+  "title": "docs/schemas/schema_services.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_services.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0fea251cdc41eaa0"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0174",
+  "kind": "document",
+  "name": "schema_table_data.json",
+  "title": "docs/schemas/schema_table_data.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_table_data.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4cdb4c25d8a7c56d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0175",
+  "kind": "document",
+  "name": "schema_timers.json",
+  "title": "docs/schemas/schema_timers.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_timers.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e204b31b29d0a055"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0176",
+  "kind": "document",
+  "name": "schema_variables.json",
+  "title": "docs/schemas/schema_variables.json",
+  "category": "daten",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/schemas/schema_variables.json"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f8e6d513a0bdb242"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0177",
+  "kind": "document",
+  "name": "server-request-response.png",
+  "title": "docs/server-request-response.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/server-request-response.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:918a1f3f69ca1b3c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0178",
+  "kind": "document",
+  "name": "server-toolbox-inspector.png",
+  "title": "docs/server-toolbox-inspector.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/server-toolbox-inspector.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6650c64009b64857"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0179",
+  "kind": "document",
+  "name": "snake-start.png",
+  "title": "docs/snake-start.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/snake-start.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e2d47a55da32e06c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0180",
+  "kind": "document",
+  "name": "sponsor-verbesserungen.md",
+  "title": "docs/sponsor-verbesserungen.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/sponsor-verbesserungen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:44da94dd6d953ddb"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0181",
+  "kind": "document",
+  "name": "stage-overview-filters.md",
+  "title": "docs/stage-overview-filters.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/stage-overview-filters.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:87ea11f7ad5fb8dd"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0182",
+  "kind": "document",
+  "name": "superadmin-sponsorverwaltung.md",
+  "title": "docs/superadmin-sponsorverwaltung.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/superadmin-sponsorverwaltung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:18973a76bed86ba5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0183",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/tutorials/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/tutorials/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:140de733cf32399a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0184",
+  "kind": "document",
+  "name": "ui-inspector-guide.md",
+  "title": "docs/ui-inspector-guide.md",
+  "category": "anleitung",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/ui-inspector-guide.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ae1963dfff7768cd"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0185",
+  "kind": "document",
+  "name": "upload-debug.png",
+  "title": "docs/upload-debug.png",
+  "category": "bild/asset",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/upload-debug.png"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:452f1ee285d7b810"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0186",
+  "kind": "document",
+  "name": "AIAgentController.md",
+  "title": "docs/use_cases/AIAgentController.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/AIAgentController.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:dbce0b701fd45ee9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0187",
+  "kind": "document",
+  "name": "ActionParameterStandardisierung.md",
+  "title": "docs/use_cases/ActionParameterStandardisierung.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/ActionParameterStandardisierung.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:35d6a43ff5e962f7"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0188",
+  "kind": "document",
+  "name": "ActionVisualisierungsSynchronisation.md",
+  "title": "docs/use_cases/ActionVisualisierungsSynchronisation.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/ActionVisualisierungsSynchronisation.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:dc637d1d11f10a87"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0189",
+  "kind": "document",
+  "name": "Authentication_JWT.md",
+  "title": "docs/use_cases/Authentication_JWT.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/Authentication_JWT.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:70901eba1934f33c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0190",
+  "kind": "document",
+  "name": "BlueprintFlowDropdown.md",
+  "title": "docs/use_cases/BlueprintFlowDropdown.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/BlueprintFlowDropdown.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d5d0114bdf755e81"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0191",
+  "kind": "document",
+  "name": "DataActionInspector.md",
+  "title": "docs/use_cases/DataActionInspector.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/DataActionInspector.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:61dee66824d35e38"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0192",
+  "kind": "document",
+  "name": "DataModels.md",
+  "title": "docs/use_cases/DataModels.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/DataModels.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a37225f3c154de36"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0193",
+  "kind": "document",
+  "name": "DynamicDropdowns.md",
+  "title": "docs/use_cases/DynamicDropdowns.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/DynamicDropdowns.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1d6917d0544f7b1a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0194",
+  "kind": "document",
+  "name": "EmojiPinFlow.md",
+  "title": "docs/use_cases/EmojiPinFlow.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/EmojiPinFlow.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:463c75c24cf1bd95"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0195",
+  "kind": "document",
+  "name": "ExecuteCalculateVariable.md",
+  "title": "docs/use_cases/ExecuteCalculateVariable.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/ExecuteCalculateVariable.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b6a99784173f8a29"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0196",
+  "kind": "document",
+  "name": "FlowEditorDetailAnzeige.md",
+  "title": "docs/use_cases/FlowEditorDetailAnzeige.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/FlowEditorDetailAnzeige.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f09e7b253dafd714"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0197",
+  "kind": "document",
+  "name": "FlowEditorRenameSync.md",
+  "title": "docs/use_cases/FlowEditorRenameSync.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/FlowEditorRenameSync.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:754e975a9cab8657"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0198",
+  "kind": "document",
+  "name": "LoginFlow.md",
+  "title": "docs/use_cases/LoginFlow.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/LoginFlow.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a4c19a4e864d5e5a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0199",
+  "kind": "document",
+  "name": "SmartMapping.md",
+  "title": "docs/use_cases/SmartMapping.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/SmartMapping.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:dd75a8b0f681c849"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0200",
+  "kind": "document",
+  "name": "SofortigeJSONSynchronisation.md",
+  "title": "docs/use_cases/SofortigeJSONSynchronisation.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/SofortigeJSONSynchronisation.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:277671af81cb2c11"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0201",
+  "kind": "document",
+  "name": "SynchronisationLoeschenFlowEditor.md",
+  "title": "docs/use_cases/SynchronisationLoeschenFlowEditor.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/SynchronisationLoeschenFlowEditor.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7c9f9edf956b9608"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0202",
+  "kind": "document",
+  "name": "UseCaseIndex.txt",
+  "title": "docs/use_cases/UseCaseIndex.txt",
+  "category": "index",
+  "description": "Fortlaufender Use-Case-Index (Stand 17.10.).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/UseCaseIndex.txt"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:026e3b840fc9fdf9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0203",
+  "kind": "document",
+  "name": "UseCaseTemplate.md",
+  "title": "docs/use_cases/UseCaseTemplate.md",
+  "category": "use-case",
+  "description": "Vorlage aus März; Gültigkeit ungeprüft.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/UseCaseTemplate.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b706ffc4cd7da87b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0204",
+  "kind": "document",
+  "name": "VariableMorphing.md",
+  "title": "docs/use_cases/VariableMorphing.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/VariableMorphing.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:9d7d8ac272df39f8"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0205",
+  "kind": "document",
+  "name": "VariablentypPersistenz.md",
+  "title": "docs/use_cases/VariablentypPersistenz.md",
+  "category": "use-case",
+  "description": "März.",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "Änderungsdatum/Alter des Dokuments"
+  },
+  "sources": {
+   "docs": [
+    "docs/use_cases/VariablentypPersistenz.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c96b2d8586f57299"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0206",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/user-guide/README.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5d104cd9c1c4be78"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0207",
+  "kind": "document",
+  "name": "kapitel-01-projekt-anlegen.md",
+  "title": "docs/user-guide/kapitel-01-projekt-anlegen.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-01-projekt-anlegen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2cbcf9df2d2c9604"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0208",
+  "kind": "document",
+  "name": "_vorlage.md",
+  "title": "docs/user-guide/_vorlage.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "Interne Kapitelvorlage",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/_vorlage.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:453531fb1ed366d0"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0209",
+  "kind": "document",
+  "name": "kapitel-02-arbeitsplatz.md",
+  "title": "docs/user-guide/kapitel-02-arbeitsplatz.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-02-arbeitsplatz.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:0f3a48d7b99f230b"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0210",
+  "kind": "document",
+  "name": "kapitel-03-baum-platzieren.md",
+  "title": "docs/user-guide/kapitel-03-baum-platzieren.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-03-baum-platzieren.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2c90a849c4621eb9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0211",
+  "kind": "document",
+  "name": "kapitel-04-variablen-wasser.md",
+  "title": "docs/user-guide/kapitel-04-variablen-wasser.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-04-variablen-wasser.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:3f87f9abda5f527f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0212",
+  "kind": "document",
+  "name": "kapitel-05-tasks-verstehen.md",
+  "title": "docs/user-guide/kapitel-05-tasks-verstehen.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-05-tasks-verstehen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f82d4d725741d88f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0213",
+  "kind": "document",
+  "name": "kapitel-06-giess-knopf.md",
+  "title": "docs/user-guide/kapitel-06-giess-knopf.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-06-giess-knopf.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:e907b907a589189e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0214",
+  "kind": "document",
+  "name": "kapitel-07-bedingungen.md",
+  "title": "docs/user-guide/kapitel-07-bedingungen.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-07-bedingungen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f5c2893f68d132a0"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0215",
+  "kind": "document",
+  "name": "kapitel-08-flow-editor.md",
+  "title": "docs/user-guide/kapitel-08-flow-editor.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-08-flow-editor.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:428b4e9ce2b59cfb"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0216",
+  "kind": "document",
+  "name": "kapitel-09-wachstumsstufen.md",
+  "title": "docs/user-guide/kapitel-09-wachstumsstufen.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-09-wachstumsstufen.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b6d2da9aaacb0bc9"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0217",
+  "kind": "document",
+  "name": "kapitel-10-durst-timer.md",
+  "title": "docs/user-guide/kapitel-10-durst-timer.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-10-durst-timer.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7ce6bcd127485df1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0218",
+  "kind": "document",
+  "name": "kapitel-11-bilder-media.md",
+  "title": "docs/user-guide/kapitel-11-bilder-media.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-11-bilder-media.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:508e19ef55d5df35"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0219",
+  "kind": "document",
+  "name": "kapitel-12-game-state.md",
+  "title": "docs/user-guide/kapitel-12-game-state.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-12-game-state.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:b499e390fcd62270"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0220",
+  "kind": "document",
+  "name": "kapitel-13-run-test.md",
+  "title": "docs/user-guide/kapitel-13-run-test.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-13-run-test.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:160b828996a0da09"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0221",
+  "kind": "document",
+  "name": "kapitel-14-export.md",
+  "title": "docs/user-guide/kapitel-14-export.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-14-export.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:834bfb2a84e65750"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0222",
+  "kind": "document",
+  "name": "kapitel-15-feintuning.md",
+  "title": "docs/user-guide/kapitel-15-feintuning.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-15-feintuning.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:03399688a02e0d6c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0223",
+  "kind": "document",
+  "name": "b-kapitel-01-aufgaben-stufe.md",
+  "title": "docs/user-guide/b-kapitel-01-aufgaben-stufe.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-01-aufgaben-stufe.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:be1af6e94ccc3e70"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0224",
+  "kind": "document",
+  "name": "b-kapitel-02-richtige-antworten.md",
+  "title": "docs/user-guide/b-kapitel-02-richtige-antworten.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-02-richtige-antworten.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5dc3c5fd52e65138"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0225",
+  "kind": "document",
+  "name": "b-kapitel-03-weltreaktion.md",
+  "title": "docs/user-guide/b-kapitel-03-weltreaktion.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-03-weltreaktion.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f101dd00d18a404f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0226",
+  "kind": "document",
+  "name": "b-kapitel-04-baumhaus.md",
+  "title": "docs/user-guide/b-kapitel-04-baumhaus.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-04-baumhaus.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:055437e98a3e393a"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0227",
+  "kind": "document",
+  "name": "b-kapitel-05-dragdrop.md",
+  "title": "docs/user-guide/b-kapitel-05-dragdrop.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-05-dragdrop.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:69eee295b5f39e01"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0228",
+  "kind": "document",
+  "name": "b-kapitel-06-neustart.md",
+  "title": "docs/user-guide/b-kapitel-06-neustart.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-06-neustart.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2962511f0b0a4291"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0229",
+  "kind": "document",
+  "name": "b-kapitel-07-zufallsaufgaben.md",
+  "title": "docs/user-guide/b-kapitel-07-zufallsaufgaben.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-07-zufallsaufgaben.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7b1df3e5b108ee1c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0230",
+  "kind": "document",
+  "name": "b-kapitel-08-feinschliff.md",
+  "title": "docs/user-guide/b-kapitel-08-feinschliff.md",
+  "category": "dokumentation (Phase 2)",
+  "description": "",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt (Autoren-Handbuch)",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-08-feinschliff.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:76595471db31e711"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0231",
+  "kind": "document",
+  "name": "TESTBERICHT.md",
+  "title": "docs/handbook-html/TESTBERICHT.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/TESTBERICHT.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:6aed5ca8379b7ddb"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0232",
+  "kind": "document",
+  "name": "VERGLEICH.md",
+  "title": "docs/handbook-html/VERGLEICH.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/VERGLEICH.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:d9cbfdfc2d815fdd"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0233",
+  "kind": "document",
+  "name": "GCS-PRINZIPIEN.md",
+  "title": "docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c94de131cac92c0e"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0234",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/handbook-html/gcs-native/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/gcs-native/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:afad82727b9a6321"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0235",
+  "kind": "document",
+  "name": "index.html",
+  "title": "docs/handbook-html/gcs-native/index.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/gcs-native/index.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:bde7659895d60faf"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0236",
+  "kind": "document",
+  "name": "project.js",
+  "title": "docs/handbook-html/gcs-native/project.js",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/gcs-native/project.js"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:deaa00a4bd07cf46"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0237",
+  "kind": "document",
+  "name": "runtime-standalone.js",
+  "title": "docs/handbook-html/gcs-native/runtime-standalone.js",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/gcs-native/runtime-standalone.js"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:deaa11ac26a4d0f3"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0238",
+  "kind": "document",
+  "name": "README.md",
+  "title": "docs/handbook-html/modern/README.md",
+  "category": "dokumentation (Phase 1)",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "technisch geprüft"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "aktuell",
+   "reviewDepth": "metadaten",
+   "basis": "in dieser Analyse neu erstellt",
+   "canonical": true
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/modern/README.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:41349adcf0bd9919"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0239",
+  "kind": "document",
+  "name": "app.js",
+  "title": "docs/handbook-html/modern/app.js",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/modern/app.js"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c1a4d14e25642402"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0240",
+  "kind": "document",
+  "name": "index.html",
+  "title": "docs/handbook-html/modern/index.html",
+  "category": "report",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "möglicherweise veraltet",
+   "reviewDepth": "metadaten",
+   "basis": "generierter QA-Snapshot (Stichtagsdatei)"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/modern/index.html"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ab68ab335e39a0e5"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0241",
+  "kind": "document",
+  "name": "style.css",
+  "title": "docs/handbook-html/modern/style.css",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/modern/style.css"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:50524f7af09cdfd0"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "DOC-0242",
+  "kind": "document",
+  "name": "handbook-content.js",
+  "title": "docs/handbook-html/shared/handbook-content.js",
+  "category": "dokument",
+  "description": "",
+  "status": {
+   "dev": "veraltet",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "missing": true,
+  "docMeta": {
+   "rating": "noch nicht bewertet",
+   "reviewDepth": "metadaten",
+   "basis": "nicht geöffnet"
+  },
+  "sources": {
+   "docs": [
+    "docs/handbook-html/shared/handbook-content.js"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:62afed0c7e584b73"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ }
+]

@@ -57,25 +57,25 @@ dokumentiert (Teil B). Sie setzt die Einsteiger-Kapitel voraus.
 | 4 | [Variablen — der Wasservorrat](kapitel-04-variablen-wasser.md) | `Variable` (Toolbox „Variablen") platzieren, Startwert setzen | Variable `Wasser` = 0 |
 | 5 | [Tasks verstehen](kapitel-05-tasks-verstehen.md) | Was ein Task ist; Task anlegen und benennen | Leerer Task `Giessen` existiert |
 | 6 | [Aktionen — der Gießen-Knopf](kapitel-06-giess-knopf.md) | Button-Event `onClick` → Task aufrufen; `increment`-Action in den Task legen | Klick erhöht `Wasser` um 1 |
-| 7 | Bedingungen — wann wächst er | `condition`-Element: „Wasser ≥ 3 → nächste Stufe" | Verzweigung im Task |
-| 8 | Der Flow-Editor | Aktionen als Knoten visuell verbinden | Task als Flussdiagramm |
-| 9 | Bilder wechseln — Wachstumsstufen | `property`-/`set`-Action: Sprite-Bild je Stufe tauschen | Baum zeigt Stufe passend zu `Wasser` |
+| 7 | [Bedingungen — wann wächst er](kapitel-07-bedingungen.md) | `condition`-Element: „Wasser ≥ 3 → nächste Stufe" | Verzweigung im Task |
+| 8 | [Der Flow-Editor](kapitel-08-flow-editor.md) | Aktionen als Knoten visuell verbinden | Task als Flussdiagramm |
+| 9 | [Bilder wechseln — Wachstumsstufen](kapitel-09-wachstumsstufen.md) | `property`-Action: Sprite-Stufe je nach `Wasser` | Baum zeigt Stufe passend zu `Wasser` |
 
 ### A3 — Leben einhauchen
 
 | # | Kapitel | Lernziel | Ergebnis |
 |---|---|---|---|
-| 10 | Der Durst-Timer | `Timer` + `onTimer` → `Wasser` sinkt | −1 Wasser alle 5 s |
-| 11 | Bildquellen & Media-Tools | Bildimport, Bildaufteiler (Sprite-Stadien aus einem Bild) | Drei Baum-Bilder eingebunden |
-| 12 | Spielzustand mit Game State | `Game State` (Toolbox „Game"): `won` bei voller Stufe | Erfolgsmeldung |
+| 10 | [Der Durst-Timer](kapitel-10-durst-timer.md) | `Timer` + `onTimer` → `Wasser` sinkt | −1 Wasser alle 5 s |
+| 11 | [Bildquellen & Media-Tools](kapitel-11-bilder-media.md) | Image List (3×1) + Sprite-Frame-Bindung | Baum zeigt echte Bilder |
+| 12 | [Spielzustand mit Game State](kapitel-12-game-state.md) | `Game State` (Toolbox „Game"): `won` + Toast | Erfolgsmeldung |
 
 ### A4 — Testen & Teilen
 
 | # | Kapitel | Lernziel | Ergebnis |
 |---|---|---|---|
-| 13 | Im Run-Modus testen | ▶-Ansicht (arbeitet auf Projekt-Kopie) | Spiel läuft, Rückkehr zum Editor |
-| 14 | Speichern & Export | Datei→Speichern, Plattform→Export als ZIP | `mein-baum.zip` für CMS-Upload |
-| 15 | Feintuning | Undo/Redo (Strg+Z/Y), Themes, Stage duplizieren | Projekt verfeinert |
+| 13 | [Im Run-Modus testen](kapitel-13-run-test.md) | Run-Ansicht (arbeitet auf Projekt-Klon) | Spiel läuft, Rückkehr zum Editor |
+| 14 | [Speichern & Export](kapitel-14-export.md) | Datei→Speichern, Plattform→Export als ZIP | ZIP-Paket für CMS-Upload |
+| 15 | [Feintuning](kapitel-15-feintuning.md) | Undo/Redo (Strg+Z), Themes, Stage duplizieren | Projekt verfeinert |
 
 ---
 
@@ -85,14 +85,14 @@ dokumentiert (Teil B). Sie setzt die Einsteiger-Kapitel voraus.
 
 | # | Kapitel | Lernziel | Neue Konzepte |
 |---|---|---|---|
-| B1 | Die Aufgaben-Stufe | Mathe-Frage anzeigen (Label/Edit), Antwort prüfen | `Edit`-Feld, `condition` mit Vergleich, Task „Antwort prüfen" |
-| B2 | Lernfortschritt zählen | Variable `RichtigeAntworten` — richtige Antwort erhöht sie um 1 | `increment`-Action, Variable unabhängig von Spielmechanik |
-| B3 | Richtige Antwort → Weltreaktion | Event-Kette: `RichtigeAntworten` ändert sich → Baumstufe prüfen | Variablen-Events (`onChange`, `triggerValues`, `range`) |
-| B4 | Das Baumhaus entsteht | Ab Schwellwert von `RichtigeAntworten`: neues Objekt einblenden/`spawn_object` | Objekt-Erzeugung zur Laufzeit |
-| B5 | Eigene Entscheidungen — Dekor-Sprites | Sprites per Drag auf den Baum ziehen | Drag&Drop zur Laufzeit, `droppable`, `onDrop`-Events |
-| B6 | Neustart-Frage | Nach Ziel: Kind wählt Neustart selbst | `restart_game`-Action, `confirm`-Dialog |
-| B7 | Mehrere Aufgaben-Typen | Zweites Fach/Aufgabentyp ergänzen | Tasks parametrisieren, Wiederverwendung |
-| B8 | Feinschliff | Splash-Stage, Übergänge (`navigate_stage`), Sound | Stage-Wechsel, `TAudio` |
+| B1 | [Die Aufgaben-Stufe](b-kapitel-01-aufgaben-stufe.md) | Mathe-Frage anzeigen (Label/Edit), Antwort prüfen | `Edit`-Feld, `condition` mit Vergleich, Task „Antwort prüfen" |
+| B2 | [Lernfortschritt zählen](b-kapitel-02-richtige-antworten.md) | Variable `RichtigeAntworten` — richtige Antwort erhöht sie um 1 | `increment`-Action, Variable unabhängig von Spielmechanik |
+| B3 | [Richtige Antwort → Weltreaktion](b-kapitel-03-weltreaktion.md) | `onValueChanged` auf `RichtigeAntworten` → Baumstufe prüfen | Variablen-Events (`onValueChanged`, `onThresholdReached`) |
+| B4 | [Das Baumhaus entsteht](b-kapitel-04-baumhaus.md) | Ab Schwellwert: `visible` freischalten oder `spawn_object` | Sichtbarkeit, Objekt-Erzeugung zur Laufzeit |
+| B5 | [Dekor-Sprites per Drag-and-drop](b-kapitel-05-dragdrop.md) | Sprites per Drag auf den Baum ziehen | `draggable`, `droppable`, `onDrop` mit `draggedName` |
+| B6 | [Selbst entscheiden: Neustart](b-kapitel-06-neustart.md) | Nach Ziel: Kind wählt Neustart selbst | `restart_game`, Wahl-UI per `visible` |
+| B7 | [Neue Aufgaben automatisch](b-kapitel-07-zufallsaufgaben.md) | Zufallszahlen + `calculate` erzeugen neue Aufgaben | `Random`-Variable, `randomValue`, Formel |
+| B8 | [Feinschliff & Abschluss](b-kapitel-08-feinschliff.md) | Start-Stage, Übergang (`navigate_stage`), Sound | Stage-Wechsel, `TAudio`/`play_audio` |
 
 ---
 

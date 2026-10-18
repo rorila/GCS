@@ -1,0 +1,428 @@
+// Gemeinsame Helfer fuer die Aufbau-Tests „ab null" (docs/CMS-Testkatalog.md).
+// - makeRunner: aufgabenweise Bewertung (OK/FEHLER/BLOCKIERT) mit Screenshots;
+//   dep(id, check) erlaubt ressourcenbasierte Fortsetzung: eine Folgeaufgabe
+//   laeuft auch dann, wenn die Vorgaengeraufgabe scheiterte, die benoetigte
+//   Ressource aber nachweisbar existiert.
+// - click: ECHTER Playwright-Klick auf das DOM-Element (prueft Sichtbarkeit
+//   und Anklickbarkeit) — kein direkter runtime.handleEvent-Aufruf.
+// - setupHouseAdmin: fuehrt die Einrichtungskette komplett ueber die echte UI
+//   aus (SuperAdmin → Haus → Person → Rolle → Einladung → Zugang → Login)
+// - card/cardWait/status: Karten-Vertrag von Karte0..3 wie in den Katalogsuiten
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const assert=require('node:assert/strict');
+const {execFileSync}=require('node:child_process');
+const {busy,sel,obj,adminLogin,TEST_PASSWORD}=require('./katalog-report.cjs');
+
+const ARTIFACTS=path.join(os.tmpdir(),'gcs-aufbau-artifacts');
+fs.mkdirSync(ARTIFACTS,{recursive:true});
+
+/** Echter Klick auf ein GCS-Objekt (sichtbar + anklickbar), danach Busy=0. */
+async function click(page,name){
+ const s=await sel(page,name);
+ const el=page.locator(s);
+ await el.scrollIntoViewIfNeeded().catch(()=>{});
+ await el.click({timeout:10000});
+ await page.waitForTimeout(150);await busy(page);
+}
+
+/** Ressourcen-Abhaengigkeit: Aufgabe laeuft, wenn `id` bestanden ist ODER
+ *  check() die benoetigte Ressource nachweist (Fehlerfortsetzung). */
+const dep=(id,check)=>({id,check});
+
+/** Tabellenzeile eines GCS-Objekts klicken (wartet auf Sichtbarkeit). */
+async function rowClick(page,tableName,text){
+ const t=await sel(page,tableName);
+ const row=page.locator(t+' tbody tr',{hasText:text});
+ await row.waitFor({timeout:10000});
+ await row.click();
+ await page.waitForTimeout(150);await busy(page);
+}
+/** Auf das Vorhandensein einer Tabellenzeile warten. */
+async function rowWait(page,tableName,text){
+ const t=await sel(page,tableName);
+ await page.locator(t+' tbody tr',{hasText:text}).waitFor({timeout:10000});
+ return true;
+}
+
+/** Hauskontext herstellen: auf der Hausauswahl (stage_house) die Hauszeile
+ *  waehlen → stage_house_overview; optional danach in einen Arbeitsbereich
+ *  navigieren (z.B. 'stage_house_rooms'). Bereits gesetzter Kontext bleibt. */
+async function openHouseArea(page,houseName,section){
+ const sid=await page.evaluate(()=>window.player.runtime.stage.id);
+ if(sid==='stage_house'){
+  await rowClick(page,'HausTabelle',houseName);
+  await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_overview',null,{timeout:10000});
+  await busy(page);
+ }
+ if(section){
+  const cur=await page.evaluate(()=>window.player.runtime.stage.id);
+  if(cur!==section){
+   await click(page,'Navigation_'+section);
+   await page.waitForFunction(s=>window.player.runtime.stage.id===s,section,{timeout:10000});
+   await busy(page);
+  }
+ }
+}
+
+/** Aufgaben-Runner: Fehler stoppt nur abhaengige Folgeaufgaben. */
+function makeRunner(prefix){
+ const done=new Set(),results=[];
+ const shot=async(page,id)=>{try{const f=path.join(ARTIFACTS,prefix+'-'+id+'.png');await page.screenshot({path:f});return f}catch{return null}};
+ async function task(id,name,deps,fn,page){
+  const missing=[];
+  for(const d of deps||[]){
+   if(typeof d==='string'){if(!done.has(d))missing.push(d);continue;}
+   if(done.has(d.id))continue;
+   let ok=false;
+   try{ok=!!(await d.check())}catch{ok=false}
+   if(!ok)missing.push(d.id);
+  }
+  if(missing.length){
+   results.push({id,name,status:'BLOCKIERT',note:'fehlende Voraussetzung: '+missing.join(', ')});
+   console.log('BLOCKIERT '+id+' '+name+' ('+missing.join(', ')+')');return false;
+  }
+  try{await videoMark(page,id,name)}catch{}
+  // Waehrend eines Tasks neu eroeffnete Seiten (adm/kid/setup-Logins)
+  // erhalten dieselbe Kapitelmarke bei ihrer ersten Navigation.
+  const __pt=globalThis.__gcsCurrentTask;
+  if(VIDEO_DIR)globalThis.__gcsCurrentTask={id,name};
+  // Aufnahme-Modus: Overlay erst lesen lassen, dann erst agieren.
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_PRE_MS*paceMul());
+  let ok;
+  try{await fn();done.add(id);results.push({id,name,status:'OK'});console.log('OK '+id+' '+name);ok=true;}
+  catch(e){
+   const f=page?await shot(page,id):null;
+   results.push({id,name,status:'FEHLER',note:String(e&&e.message||e).split('\n')[0].slice(0,300),shot:f});
+   console.log('FEHLER '+id+' '+name+': '+results[results.length-1].note+(f?' ['+f+']':''));ok=false;
+  }
+  // Nachwirkzeit: letzte Aktion eines Kapitels nicht abhacken.
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_POST_MS*paceMul());
+  if(__pt)globalThis.__gcsCurrentTask=__pt;else delete globalThis.__gcsCurrentTask;
+  return ok;
+ }
+ function report(extra){
+  if(extra)results.push(extra);
+  const ok=results.filter(r=>r.status==='OK').length,fe=results.filter(r=>r.status==='FEHLER').length,bl=results.filter(r=>r.status==='BLOCKIERT').length;
+  console.log('\n── Aufgabenbericht ──────────────────────────────');
+  for(const r of results)console.log(r.status.padEnd(9)+r.id.padEnd(11)+r.name+(r.note?' — '+r.note:''));
+  console.log('─────────────────────────────────────────────────');
+  console.log(ok+' bestanden, '+fe+' fehlgeschlagen, '+bl+' blockiert.');
+  return{ok,fe,bl};
+ }
+ return{task,results,done,report};
+}
+
+/** Init-Request einer Verwaltungs-Stage abwarten (InitialLaden-Timer,
+ *  350 ms — sonst Rennen mit ListModus/Auswahlzustand, s. T-L8). */
+function initRequest(page,urlPart){
+ const p=page.waitForResponse(r=>r.url().includes(urlPart)&&r.request().method()==='POST',{timeout:10000});
+ // Wenn ein Zwischenschritt vor dem await wirft, bliebe die Promise
+ // unbehandelt und wuerde den Prozess crashen (unhandled rejection).
+ p.catch(()=>{});
+ return p;
+}
+
+/**
+ * Komplette HouseAdmin-Einrichtung ueber die echte UI.
+ * Erwartet eine bereits angemeldete SuperAdmin-Seite auf stage_super.
+ * Liefert {sonne, person, adm} — adm ist die angemeldete Admin-Seite
+ * auf stage_house.
+ */
+async function setupHouseAdmin({browser,env,base,page,house='Haus Sonne',name='Anna Admin',username='anna'}){
+ // Wiedereintrittsfest: die Seite kann auf einer Detail-Stage stehen.
+ await page.goto(base+'/super',{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_super',{timeout:10000});
+ const housesResp=initRequest(page,'super-houses');
+ await click(page,'Navigation_stage_super_houses');
+ await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_houses');
+ await housesResp;
+ await busy(page);
+ let sonne=env.file().areas.find(a=>a.name===house&&a.type==='house');
+ if(!sonne){
+  await page.getByPlaceholder('Hausname',{exact:true}).fill(house);
+  await click(page,'HausAnlegen');await busy(page);
+  sonne=env.file().areas.find(a=>a.name===house&&a.type==='house');
+  assert.ok(sonne,'Haus „'+house+'" nicht im Datenbestand');
+ }
+ // Haus oeffnen (Init-Request der Haus-Stage abwarten)
+ const initResp=initRequest(page,'super-admins');
+ const hausSel=await sel(page,'HausTabelle');
+ await page.locator(hausSel+' tbody tr',{hasText:house}).click();
+ await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_house',{timeout:10000});
+ await initResp;await busy(page);
+ const admSel=await sel(page,'AdminTabelle');
+ // Person anlegen
+ await click(page,'AdminHinzufuegen');await busy(page);
+ await page.getByPlaceholder('Anzeigename',{exact:true}).fill(name);
+ await click(page,'PersonAnlegen');await busy(page);
+ const person=env.file().people.find(p=>p.name===name);
+ assert.ok(person&&person.kind==='adult','Person „'+name+'" nicht angelegt');
+ await page.locator(admSel+' tbody tr',{hasText:name}).waitFor({timeout:10000});
+ // Hausrolle zuweisen
+ await page.locator(admSel+' tbody tr',{hasText:name}).click();
+ await page.waitForTimeout(150);
+ assert.strictEqual((await obj(page,'Confirm'))?.visible,true,'Bestaetigungsdialog fehlt');
+ await click(page,'Confirm');await busy(page);
+ assert.ok(env.file().roles.some(r=>r.personId===person.id&&r.areaId===sonne.id&&r.role==='areaAdmin'&&r.active===true),'areaAdmin-Rolle fehlt');
+ // Detailseite → Einrichtungslink
+ const detResp=initRequest(page,'super-person-detail');
+ await page.locator(admSel+' tbody tr',{hasText:name}).click();
+ await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_admin_detail',{timeout:10000});
+ await detResp;await busy(page);
+ await click(page,'ZugangButton');
+ const link=await page.getByPlaceholder('Einrichtungslink erscheint hier',{exact:true}).inputValue();
+ assert.ok(/ticket=[a-f0-9]{64}/.test(link),'kein gueltiger Einrichtungslink: '+link);
+ // Zugang im frischen Kontext einrichten (eigenes Cookie-Jar!)
+ const setup=await (await browser.newContext()).newPage();
+ await setup.goto(link);
+ await setup.locator('[name=username]').fill(username);
+ await setup.locator('[name=password]').fill(TEST_PASSWORD);
+ await setup.getByRole('button',{name:'Zugang anlegen'}).click();
+ // Erfolg ist der Auto-Login-Redirect auf die Haus-Stage (303), keine Erfolgsseite.
+ await setup.waitForURL(u=>u.pathname==='/house',{timeout:10000}).catch(()=>{});
+ assert.ok(setup.url().includes('/house')||((await setup.locator('body').innerText()).includes('Zugang eingerichtet')),'Enroll meldet keinen Erfolg');
+ await setup.close();
+ // Als neuer Admin anmelden → stage_house (eigener Kontext: Sitzungen
+ // bleiben strikt getrennt, sonst traegt jeder Aufruf das letzte Cookie)
+ const adm=await (await browser.newContext()).newPage();
+ await adminLogin(adm,base,username,TEST_PASSWORD);
+ await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',{timeout:10000});
+ await busy(adm);
+ return{sonne,person,adm};
+}
+
+// ── Karten-Vertrag: Karte0..3 = Slot0..3; erst warten bis die Karte den
+// gesuchten Text traegt, dann genau einmal feuern (Karten toggeln!). ──
+function cardWait(page,text){
+ return page.waitForFunction(t=>{const o=window.player.runtime.getObjects();
+  for(let k=0;k<4;k++){
+   const nm=o.find(x=>x.name==='Name'+k)?.value,ct=o.find(x=>x.name==='Karte'+k)?.text;
+   if((nm&&String(nm).includes(t))||(ct&&String(ct).includes(t)))return true;
+  }return false},text,{timeout:10000,polling:200}).then(()=>true).catch(()=>false);
+}
+async function card(page,text){
+ await busy(page);
+ if(!await cardWait(page,text))return false;
+ const i=await page.evaluate(t=>{const o=window.player.runtime.getObjects();
+  for(let k=0;k<4;k++){
+   const nm=o.find(x=>x.name==='Name'+k)?.value,ct=o.find(x=>x.name==='Karte'+k)?.text;
+   if((nm&&String(nm).includes(t))||(ct&&String(ct).includes(t)))return k;
+  }return -1},text);
+ if(i<0)return false;
+ await click(page,'Karte'+i);await busy(page);
+ return true;
+}
+const status=async page=>((await obj(page,'Status'))?.text||'');
+const cardTexts=page=>page.evaluate(()=>{const o=window.player.runtime.getObjects();return[0,1,2,3].map(k=>o.find(x=>x.name==='Karte'+k)?.text||'')});
+
+// ── Feature-Video-Aufnahme (nur aktiv, wenn GCS_VIDEO_DIR gesetzt) ───
+// recordBrowser(browser): laesst jede neue Page im Browser als WebM
+// aufzeichnen (patch auf newContext/newPage). videoMark(page,id,name)
+// blendet ein Kapitel-Overlay ein und merkt den Zeitstempel.
+// finalizeBrowserVideos(browser,{outDir,base}) schliesst alle Kontexte,
+// verschiebt die WebMs nach outDir/<base>-<nr>.webm und schreibt je
+// <base>-<nr>.chapters.json mit den Kapitel-Offsets der Page.
+
+const VIDEO_DIR=process.env.GCS_VIDEO_DIR||null;
+const VIDEO_SIZE={width:1280,height:960};
+// Menschen-Pacing (nur mit VIDEO_DIR aktiv): wie viel Luft jede Aktion bekommt.
+const VIDEO_STEP_MS=+(process.env.GCS_VIDEO_STEP_MS||900);   // Pause vor der Aktion
+const VIDEO_POST_MS=+(process.env.GCS_VIDEO_POST_MS||700);   // Nachwirkzeit danach
+const VIDEO_TYPE_MS=+(process.env.GCS_VIDEO_TYPE_MS||110);   // pro Tastenanschlag
+const VIDEO_TASK_PRE_MS=+(process.env.GCS_VIDEO_TASK_PRE_MS||1400); // Overlay lesbar
+const VIDEO_TASK_POST_MS=+(process.env.GCS_VIDEO_TASK_POST_MS||900);
+// Einrichtungskapitel (VORAUS-*) sind Geruest, keine Nutzer-Aufgaben — dort
+// laeuft das Pacing gestrafft, echte Aufgaben behalten Erzaehltempo.
+const VIDEO_VORAUS_FAKTOR=+(process.env.GCS_VIDEO_VORAUS_FAKTOR||0.3);
+const paceMul=()=>/^VORAUS/.test((globalThis.__gcsCurrentTask&&globalThis.__gcsCurrentTask.id)||'')?VIDEO_VORAUS_FAKTOR:1;
+
+// Sichtbarer Cursor + Klick-Ripple + Ziel-Highlight. Folgt den echten
+// mousemove/mousedown-Events, die Playwright bei click()/mouse.move() feuert.
+const CURSOR_SCRIPT=`(()=>{
+ const boot=()=>{
+  if(document.getElementById('__gcs_cursor'))return;
+  const dot=document.createElement('div');dot.id='__gcs_cursor';
+  dot.style.cssText='position:fixed;width:22px;height:22px;border-radius:50%;background:rgba(255,64,64,.55);border:2px solid #fff;box-shadow:0 0 10px rgba(0,0,0,.5);z-index:2147483647;pointer-events:none;transform:translate(-50%,-50%);left:-100px;top:-100px;';
+  (document.body||document.documentElement).appendChild(dot);
+  document.addEventListener('mousemove',e=>{dot.style.left=e.clientX+'px';dot.style.top=e.clientY+'px';},true);
+  document.addEventListener('mousedown',e=>{
+   const r=document.createElement('div');
+   r.style.cssText='position:fixed;width:14px;height:14px;border-radius:50%;border:3px solid #ffd54f;z-index:2147483647;pointer-events:none;transform:translate(-50%,-50%);left:'+e.clientX+'px;top:'+e.clientY+'px;transition:all .6s ease-out;';
+   (document.body||document.documentElement).appendChild(r);
+   requestAnimationFrame(()=>{r.style.width='56px';r.style.height='56px';r.style.opacity='0';});
+   setTimeout(()=>r.remove(),750);
+   dot.style.background='rgba(255,64,64,.95)';dot.style.transform='translate(-50%,-50%) scale(1.4)';
+  },true);
+  document.addEventListener('mouseup',()=>{dot.style.background='rgba(255,64,64,.55)';dot.style.transform='translate(-50%,-50%) scale(1)';},true);
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+ window.__gcsFlash=el=>{
+  if(!el||!el.style)return;
+  const o=el.style.outline,oo=el.style.outlineOffset;
+  el.style.outline='4px solid #ff5252';el.style.outlineOffset='3px';
+  setTimeout(()=>{el.style.outline=o;el.style.outlineOffset=oo;},900);
+ };
+})();`;
+
+// Ummantelt einen Locator: Highlight -> sichtbare Mausbewegung -> Pause ->
+// Aktion -> Nachwirkzeit. fill wird zu getippter Eingabe (pressSequentially).
+function wrapLocator(loc,page){
+ const ACTS=new Set(['click','dblclick','hover','check','uncheck','selectOption','press','tap','type']);
+ return new Proxy(loc,{
+  get(t,k){
+   if(k==='fill')return async(v,o={})=>{
+    await pace(page,t);
+    try{
+     await t.fill(''); // Feld erst leeren — pressSequentially wuerde sonst anhaengen
+     const r=await t.pressSequentially(String(v??''),{delay:VIDEO_TYPE_MS*paceMul(),...o});
+     await nap(page,VIDEO_POST_MS*paceMul());return r;
+    }
+    catch(e){return t.fill(v,o);}
+   };
+   if(ACTS.has(k))return async(...a)=>{await pace(page,t);const r=await t[k](...a);await nap(page,VIDEO_POST_MS*paceMul());return r};
+   const v=t[k];return typeof v==='function'?v.bind(t):v;
+  }
+ });
+}
+async function pace(page,loc){
+ try{await loc.scrollIntoViewIfNeeded({timeout:4000}).catch(()=>{})}catch{}
+ try{await loc.evaluate(el=>window.__gcsFlash&&window.__gcsFlash(el)).catch(()=>{})}catch{}
+ try{const bb=await loc.boundingBox();if(bb)await page.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2,{steps:26})}catch{}
+ await nap(page,VIDEO_STEP_MS*paceMul());
+}
+const nap=(page,ms)=>page.waitForTimeout(ms).catch(()=>{});
+function wrapPage(page){
+ if(page.__gcsWrapped)return page;page.__gcsWrapped=true;
+ const origLocator=page.locator.bind(page); // Roh-Locator: vermeidet Doppel-Pacing
+ for(const m of ['click','dblclick','hover','check','uncheck','selectOption','press']){
+  page[m]=(s,o={})=>wrapLocator(origLocator(s),page)[m](o);
+ }
+ page.fill=(s,v)=>wrapLocator(origLocator(s),page).fill(v);
+ for(const m of ['locator','getByPlaceholder','getByRole','getByText','getByLabel','getByTestId','getByTitle','getByAltText']){
+  const orig=page[m].bind(page);
+  page[m]=(...a)=>wrapLocator(orig(...a),page);
+ }
+ return page;
+}
+
+function recordBrowser(browser){
+ if(!VIDEO_DIR)return browser;
+ const origCtx=browser.newContext.bind(browser);
+ const origPage=browser.newPage.bind(browser);
+ browser.__recPages=[];
+ const track=p=>{
+  p.__recT0=Date.now();p.__videoChapters=[];browser.__recPages.push(p);
+  wrapPage(p);
+  const t=globalThis.__gcsCurrentTask;
+  if(t)p.once('load',()=>{videoMark(p,t.id,t.name).catch(()=>{})});
+ };
+ browser.newContext=async(opts={})=>{
+  const ctx=await origCtx({...opts,recordVideo:{dir:VIDEO_DIR,size:(opts&&opts.viewport)||VIDEO_SIZE}});
+  await ctx.addInitScript(CURSOR_SCRIPT).catch(()=>{});
+  ctx.on('page',track);
+  return ctx;
+ };
+ browser.newPage=async(opts={})=>{
+  const ctx=await browser.newContext(opts);
+  return ctx.newPage();
+ };
+ return browser;
+}
+
+/** Kapitelmarke fuer Feature-Videos: Overlay + Zeitstempel. */
+async function videoMark(page,id,name){
+ if(!VIDEO_DIR||!page||!page.__recT0)return;
+ const offset=(Date.now()-page.__recT0)/1000;
+ page.__videoChapters.push({id,titel:name,offset:Math.round(offset*10)/10});
+ await page.evaluate(({id,name})=>{
+  let o=document.getElementById('__gcs_video_overlay');
+  if(!o){
+   o=document.createElement('div');o.id='__gcs_video_overlay';
+   o.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147483647;background:rgba(10,25,30,.88);color:#eaf6f2;padding:9px 24px;border-radius:22px;font:600 17px/1.3 system-ui,sans-serif;pointer-events:none;transition:opacity .4s;box-shadow:0 2px 14px rgba(0,0,0,.45);white-space:nowrap;';
+   document.body.appendChild(o);
+  }
+  o.textContent=id+' · '+name;o.style.opacity='1';
+  // Banner bleibt fuer die gesamte Task-Dauer sichtbar (Handbuch-Zuschauer)
+ },{id,name}).catch(()=>{});
+}
+
+// ── Sprachausgabe fuer Feature-Videos (GCS_VIDEO_NARR=1) ─────────────
+// narr(page,'text'): rendert die Ansage ueber edge-tts (neurale Stimme),
+// wartet den groessten Teil der Clipdauer ab — die naechste Aktion faellt
+// damit in den Klang der Ansage (Schritt-fuer-Schritt synchron zur Maus).
+// Zeitstempel+Dauer je Page → <base>-<nr>.narration.json, die Clips
+// landen nach dem Finalisieren unter <outDir>/_narr/.
+const NARR=!!(VIDEO_DIR&&process.env.GCS_VIDEO_NARR);
+const NARR_VOICE=process.env.GCS_VIDEO_NARR_VOICE||'de-DE-KatjaNeural';
+const NARR_WAIT=+(process.env.GCS_VIDEO_NARR_WAIT||0.75); // Anteil vorab abwarten
+const NARR_MIN_MS=+(process.env.GCS_VIDEO_NARR_MIN||350); // Restpause nach Ansage
+let __ttsCmd=null,__narrSeq=0;
+function ttsCmd(){
+ if(__ttsCmd)return __ttsCmd;
+ const cands=[[process.env.GCS_TTS_PYTHON,['-m','edge_tts','--list-voices']],['python',['-m','edge_tts','--list-voices']],['py',['-3','-m','edge_tts','--list-voices']]];
+ for(const c of cands){
+  if(!c[0])continue;
+  try{execFileSync(c[0],c[1],{stdio:'pipe',timeout:30000});__ttsCmd=c[0];return __ttsCmd}catch{}
+ }
+ __ttsCmd='python';return __ttsCmd;
+}
+function ttsRender(text,dest){
+ try{execFileSync(ttsCmd(),['-m','edge_tts','--voice',NARR_VOICE,'--text',text,'--write-media',dest],{stdio:'pipe',timeout:60000})}
+ catch(e){console.log('  NARR-TTS fehlgeschlagen: '+String(e.message||e).split('\n')[0]);return null}
+ try{
+  const fp=require('ffprobe-static').path;
+  const d=+execFileSync(fp,['-v','error','-show_entries','format=duration','-of','csv=p=0',dest],{timeout:15000}).toString().trim();
+  return Number.isFinite(d)?d:null;
+ }catch{return null}
+}
+/** Kuratierte Ansage: rendert TTS, wartet Clip-nahe Zeit, loggt Offset. */
+async function narr(page,text){
+ if(!NARR||!page||!page.__recT0)return;
+ const dir=path.join(VIDEO_DIR,'_narr');
+ fs.mkdirSync(dir,{recursive:true});
+ const base='n'+String(++__narrSeq).padStart(4,'0')+'.mp3';
+ const file=path.join(dir,base);
+ const dur=ttsRender(text,file);
+ if(dur==null)return;
+ (page.__narrEvents=page.__narrEvents||[]).push({t:Math.round((Date.now()-page.__recT0)/100)/10,file:base,text,dur:Math.round(dur*100)/100});
+ await nap(page,Math.max(NARR_MIN_MS,dur*1000*NARR_WAIT));
+}
+function narrFinalize(outDir,base,nr,page){
+ const ev=page.__narrEvents||[];
+ if(!ev.length)return;
+ const nd=path.join(outDir,'_narr');fs.mkdirSync(nd,{recursive:true});
+ for(const e of ev){try{fs.copyFileSync(path.join(VIDEO_DIR,'_narr',e.file),path.join(nd,e.file))}catch{}}
+ try{fs.writeFileSync(path.join(outDir,base+'-'+nr+'.narration.json'),JSON.stringify({seite:nr,events:ev},null,2))}catch{}
+}
+
+/** Videos aller Pages finalisieren → [{pfad,seite,aufgaben}]. */
+async function finalizeBrowserVideos(browser,opts){
+ const outDir=(opts&&opts.outDir)||path.join('public','videos');
+ const base=(opts&&opts.base)||'suite';
+ const pages=(browser&&browser.__recPages)||[];
+ if(!pages.length||!VIDEO_DIR){if(browser)await browser.close();return[];}
+ const results=[];
+ fs.mkdirSync(outDir,{recursive:true});
+ // Kontexte zuerst schliessen: das finalisiert die Video-Dateien,
+ // saveAs funktioniert dann noch bei offenem Browser.
+ for(const ctx of browser.contexts()){try{await ctx.close()}catch{}}
+ for(let i=0;i<pages.length;i++){
+  const page=pages[i];
+  const nr=String(i+1);
+  const chapters=page.__videoChapters||[];
+  try{
+   const video=page.video&&page.video();
+   if(!video)continue;
+   const dest=path.join(outDir,base+'-'+nr+'.webm');
+   await video.saveAs(dest);
+   results.push({seite:nr,pfad:'videos/'+base+'-'+nr+'.webm',aufgaben:chapters});
+   console.log('  VIDEO '+base+'-'+nr+'.webm ('+chapters.length+' Kapitel)');
+  }catch(e){console.log('  Video '+nr+': '+e.message)}
+  try{fs.writeFileSync(path.join(outDir,base+'-'+nr+'.chapters.json'),JSON.stringify({seite:nr,chapters},null,2))}catch{}
+  try{narrFinalize(outDir,base,nr,page)}catch{}
+ }
+ try{await browser.close()}catch{}
+ return results;
+}
+
+module.exports={makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,narr,finalizeBrowserVideos};

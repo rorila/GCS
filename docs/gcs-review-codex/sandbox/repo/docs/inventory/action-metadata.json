@@ -1,0 +1,1624 @@
+{
+  "generated": "2026-10-17T16:01:47.829Z",
+  "tool": "scripts/docs/dump-action-metadata.cjs",
+  "source": "ActionRegistry.getAllMetadata() via esbuild-Bundle",
+  "count": 59,
+  "types": [
+    {
+      "type": "property",
+      "label": "Daten / Eigenschaft setzen",
+      "description": "Setzt eine oder mehrere Datenquellen (Variablen oder Objekteigenschaften) auf neue Werte.",
+      "parameters": [
+        {
+          "name": "changes",
+          "label": "Zuweisungen",
+          "type": "keyvalue",
+          "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
+        }
+      ]
+    },
+    {
+      "type": "action",
+      "label": "Daten / Eigenschaft setzen",
+      "description": "Alias für property — ändert Datenquellen.",
+      "parameters": [
+        {
+          "name": "changes",
+          "label": "Zuweisungen",
+          "type": "keyvalue",
+          "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
+        }
+      ]
+    },
+    {
+      "type": "set_child_property",
+      "label": "Kind-Eigenschaft ändern",
+      "description": "Sucht ein Kind-Element im TGroupPanel über dessen Namen und ändert dessen Eigenschaften.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Eltern-Objekt (TGroupPanel)",
+          "type": "object",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Oft %Self% oder ${Var} mit der ID des gespawnten Templates"
+        },
+        {
+          "name": "childName",
+          "label": "Kind Name",
+          "type": "string",
+          "hint": "Name des zu modifizierenden Kind-Elements im Template"
+        },
+        {
+          "name": "changes",
+          "label": "Änderungen (JSON)",
+          "type": "json",
+          "hint": "Beispiel: { \"text\": \"Neuer Text\" }"
+        }
+      ]
+    },
+    {
+      "type": "variable",
+      "label": "Variable lesen / setzen",
+      "description": "Liest einen Wert aus einer Quelle (Objekt-Eigenschaft, Wert oder andere Variable) und speichert ihn in einer Ziel-Variable.",
+      "parameters": [
+        {
+          "name": "variableName",
+          "label": "Ziel-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "value",
+          "label": "Einfacher Wert (z.B. 555)",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        },
+        {
+          "name": "source",
+          "label": "(oder) Quell-Objekt / Variable",
+          "type": "object",
+          "source": "objects"
+        },
+        {
+          "name": "sourceProperty",
+          "label": "(oder) Eigenschaft (optional)",
+          "type": "string",
+          "placeholder": "z.B. text oder value"
+        }
+      ]
+    },
+    {
+      "type": "set_variable",
+      "label": "Variable setzen (Zuweisung)",
+      "hidden": true,
+      "description": "Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.",
+      "parameters": [
+        {
+          "name": "variableName",
+          "label": "Ziel-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "value",
+          "label": "Einfacher Wert (z.B. 555)",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        },
+        {
+          "name": "source",
+          "label": "(oder) Quell-Objekt / Variable",
+          "type": "object",
+          "source": "objects"
+        },
+        {
+          "name": "sourceProperty",
+          "label": "(oder) Eigenschaft (optional)",
+          "type": "string",
+          "placeholder": "z.B. text oder value"
+        }
+      ]
+    },
+    {
+      "type": "calculate",
+      "label": "Berechnung",
+      "description": "Führt eine mathematische Berechnung aus.",
+      "parameters": [
+        {
+          "name": "resultVariable",
+          "label": "Ziel",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "formula",
+          "label": "Wert",
+          "type": "string",
+          "multiline": true,
+          "placeholder": "z.B. myVar := score + 10",
+          "hint": "Ziel := Ausdruck, z.B. myVar := 5 + score"
+        }
+      ]
+    },
+    {
+      "type": "negate",
+      "label": "Wert negieren",
+      "description": "Negiert numerische Eigenschaften oder Variablen (- wird zu +, + wird zu -).",
+      "parameters": [
+        {
+          "name": "changes",
+          "label": "Zuweisungen",
+          "type": "keyvalue",
+          "hint": "Wähle Datenquellen (links) aus, die negiert werden sollen."
+        }
+      ]
+    },
+    {
+      "type": "increment",
+      "label": "Werte addieren",
+      "description": "Addiert numerische Werte auf bestehende Variablen oder Eigenschaften.",
+      "parameters": [
+        {
+          "name": "changes",
+          "label": "Zuweisungen",
+          "type": "keyvalue",
+          "hint": "Wähle Datenquellen (links) und den Wert, der addiert werden soll (rechts)."
+        }
+      ]
+    },
+    {
+      "type": "animate",
+      "label": "Komponente animieren",
+      "description": "Startet eine Animation/Effekt auf einer Komponente.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "allowFreeText": true,
+          "defaultValue": "",
+          "placeholder": "--- Komponente auswählen ---",
+          "hint": "Das zu animierende Objekt (\"self\" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name). Mehrere Ziele durch Komma trennen, z.B. \"Karte1, Karte2\"."
+        },
+        {
+          "name": "effect",
+          "label": "Effekt",
+          "type": "select",
+          "options": [
+            "shake",
+            "pulse",
+            "bounce",
+            "fade",
+            "grow",
+            "shrink",
+            "explode",
+            "pop",
+            "implode",
+            "fadeIn",
+            "fadeOut",
+            "spin",
+            "wobble",
+            "flip",
+            "flip3d"
+          ],
+          "defaultValue": "shake"
+        },
+        {
+          "name": "duration",
+          "label": "Dauer (ms)",
+          "type": "number",
+          "defaultValue": 500,
+          "hint": "Zeit in Millisekunden"
+        },
+        {
+          "name": "source",
+          "label": "Quell-Objekt (Saug-Ziel)",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "defaultValue": "",
+          "placeholder": "--- Objekt auswählen ---",
+          "hint": "Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte.",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "implode"
+            ]
+          }
+        },
+        {
+          "name": "targetScale",
+          "label": "Ziel-Skalierung",
+          "type": "number",
+          "defaultValue": 2,
+          "hint": "Für grow/shrink",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "grow",
+              "shrink",
+              "pulse"
+            ]
+          }
+        },
+        {
+          "name": "fragments",
+          "label": "Fragmente",
+          "type": "number",
+          "defaultValue": 9,
+          "hint": "Für explode/pop",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "explode",
+              "pop"
+            ]
+          }
+        },
+        {
+          "name": "spread",
+          "label": "Ausbreitung (px)",
+          "type": "number",
+          "defaultValue": 120,
+          "hint": "Für explode",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "explode"
+            ]
+          }
+        },
+        {
+          "name": "degrees",
+          "label": "Grad",
+          "type": "number",
+          "defaultValue": 360,
+          "hint": "Für spin",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "spin"
+            ]
+          }
+        },
+        {
+          "name": "intensity",
+          "label": "Intensität",
+          "type": "number",
+          "defaultValue": 15,
+          "hint": "Für wobble/shake",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "wobble",
+              "shake"
+            ]
+          }
+        },
+        {
+          "name": "height",
+          "label": "Sprunghöhe (px)",
+          "type": "number",
+          "defaultValue": 20,
+          "hint": "Für bounce",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "bounce"
+            ]
+          }
+        },
+        {
+          "name": "targetOpacity",
+          "label": "Ziel-Transparenz (0-1)",
+          "type": "number",
+          "defaultValue": 0,
+          "hint": "Für fade",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "fade"
+            ]
+          }
+        },
+        {
+          "name": "midpointTask",
+          "label": "Midpoint-Task",
+          "type": "select",
+          "source": "tasks",
+          "defaultValue": "",
+          "placeholder": "--- Task auswählen ---",
+          "hint": "Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln).",
+          "visibleWhen": {
+            "field": "effect",
+            "values": [
+              "flip",
+              "flip3d"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "move_to",
+      "label": "Bewegen zu",
+      "description": "Bewegt ein Objekt an eine bestimmte Position.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "object",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Objektname, \"self\" oder ${Var} mit Objekt-ID/Name"
+        },
+        {
+          "name": "x",
+          "label": "Ziel-X",
+          "type": "number"
+        },
+        {
+          "name": "y",
+          "label": "Ziel-Y",
+          "type": "number"
+        },
+        {
+          "name": "lockDuringMove",
+          "label": "Während Bewegung nicht ziehbar",
+          "type": "boolean",
+          "defaultValue": false
+        },
+        {
+          "name": "duration",
+          "label": "Dauer (ms)",
+          "type": "number",
+          "defaultValue": 500
+        },
+        {
+          "name": "easing",
+          "label": "Easing",
+          "type": "select",
+          "source": "easing-functions",
+          "defaultValue": "easeOut"
+        }
+      ]
+    },
+    {
+      "type": "sprite_animate",
+      "label": "Sprite-Frame Animation",
+      "description": "Durchläuft die Frames einer TImageList von Start bis Ende (einmalig).",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Sprite",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Das Sprite mit einer TImageList (auch ${Var} mit Objekt-ID/Name)"
+        },
+        {
+          "name": "fromFrame",
+          "label": "Start-Frame",
+          "type": "number",
+          "defaultValue": 0
+        },
+        {
+          "name": "toFrame",
+          "label": "End-Frame",
+          "type": "number",
+          "defaultValue": 7
+        },
+        {
+          "name": "duration",
+          "label": "Dauer (ms)",
+          "type": "number",
+          "defaultValue": 1000
+        }
+      ]
+    },
+    {
+      "type": "navigate",
+      "label": "Spiel wechseln",
+      "hidden": true,
+      "description": "Wechselt zu einem anderen Projekt.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Projekt",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "navigate_stage",
+      "label": "Stage wechseln",
+      "description": "Wechselt zu einer anderen Stage innerhalb des Projekts.",
+      "parameters": [
+        {
+          "name": "stageId",
+          "label": "Ziel-Stage",
+          "type": "select",
+          "source": "stages"
+        },
+        {
+          "name": "reset",
+          "label": "Stage zurücksetzen",
+          "type": "boolean",
+          "defaultValue": false,
+          "hint": "Wenn aktiviert, wird die Stage komplett neu aufgebaut (alle Komponenten auf Initialwerte)"
+        }
+      ]
+    },
+    {
+      "type": "restart_game",
+      "label": "Spiel neu starten",
+      "description": "Startet das komplette Spiel neu (inkl. Blueprint-Stage). Alle Variablen und Objekte werden auf ihre Initialwerte zurückgesetzt.",
+      "parameters": []
+    },
+    {
+      "type": "http",
+      "label": "HTTP Request",
+      "description": "Führt einen API-Call aus (REST/JSON).",
+      "parameters": [
+        {
+          "name": "url",
+          "label": "URL",
+          "type": "string"
+        },
+        {
+          "name": "method",
+          "label": "Methode",
+          "type": "select",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ],
+          "defaultValue": "GET"
+        },
+        {
+          "name": "body",
+          "label": "Body (JSON-String oder Objekt)",
+          "type": "string",
+          "multiline": true
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis speichern in",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "resultPath",
+          "label": "Daten-Pfad (Selektor)",
+          "type": "string",
+          "hint": "Optional: Pfad zum Objekt in der Response (z.B. \"user\")"
+        },
+        {
+          "name": "selectFields",
+          "label": "Felder (SELECT)",
+          "type": "string",
+          "hint": "Kommagetrennte Liste der Felder oder count(*)"
+        },
+        {
+          "name": "queryProperty",
+          "label": "Filter-Feld (WHERE)",
+          "type": "string",
+          "hint": "z.B. id oder email"
+        },
+        {
+          "name": "queryOperator",
+          "label": "Operator",
+          "type": "select",
+          "options": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "CONTAINS"
+          ],
+          "defaultValue": "=="
+        },
+        {
+          "name": "queryValue",
+          "label": "Filter-Wert",
+          "type": "string",
+          "hint": "Wert oder ${variable}"
+        },
+        {
+          "name": "directFetch",
+          "label": "Direkter Abruf (keine Simulation)",
+          "type": "boolean",
+          "hint": "Im Editor den ApiSimulator umgehen — z.B. für statische Dateien wie /videos/feature-videos.json"
+        }
+      ]
+    },
+    {
+      "type": "respond_http",
+      "label": "HTTP Antwort senden",
+      "requiresServer": true,
+      "description": "Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).",
+      "parameters": [
+        {
+          "name": "requestId",
+          "label": "Request ID",
+          "type": "string",
+          "hint": "Wird automatisch vom onRequest-Event bereitgestellt."
+        },
+        {
+          "name": "status",
+          "label": "HTTP Status",
+          "type": "number",
+          "defaultValue": 200
+        },
+        {
+          "name": "data",
+          "label": "Antwort-Daten (JSON)",
+          "type": "string",
+          "hint": "Das Objekt, das als JSON gesendet wird."
+        }
+      ]
+    },
+    {
+      "type": "execute_login_request",
+      "label": "Login Request ausführen",
+      "hidden": true,
+      "description": "Führt den Login-Request gegen das Backend aus.",
+      "parameters": []
+    },
+    {
+      "type": "data_action",
+      "label": "Data Action",
+      "description": "Führt eine Daten-Aktion aus (HTTP, SQL, etc.).",
+      "parameters": [
+        {
+          "name": "dataStore",
+          "label": "Data Store (Komponente)",
+          "type": "select",
+          "source": "components",
+          "hint": "Wähle eine TDataStore-Komponente (z.B. UserData)"
+        },
+        {
+          "name": "selectFields",
+          "label": "Felder (SELECT)",
+          "type": "string",
+          "hint": "Kommagetrennte Liste der Felder oder count(*)"
+        },
+        {
+          "name": "queryProperty",
+          "label": "Filter-Feld (WHERE)",
+          "type": "string",
+          "hint": "z.B. id oder email"
+        },
+        {
+          "name": "queryOperator",
+          "label": "Operator",
+          "type": "select",
+          "options": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "CONTAINS"
+          ],
+          "defaultValue": "=="
+        },
+        {
+          "name": "queryValue",
+          "label": "Filter-Wert",
+          "type": "string",
+          "hint": "Wert oder ${variable}"
+        }
+      ]
+    },
+    {
+      "type": "handle_api_request",
+      "label": "API Request verarbeiten",
+      "requiresServer": true,
+      "description": "Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.",
+      "parameters": []
+    },
+    {
+      "type": "spawn_object",
+      "label": "Objekt spawnen",
+      "description": "Holt eine Instanz aus dem Object Pool eines TSpriteTemplate.",
+      "parameters": [
+        {
+          "name": "templateId",
+          "label": "Template",
+          "type": "string",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Das TSpriteTemplate"
+        },
+        {
+          "name": "referenceObject",
+          "label": "Spawnen bei Objekt",
+          "type": "string",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Optional: Koords von dieses Objekts übernehmen"
+        },
+        {
+          "name": "spawnMode",
+          "label": "Template Spawn Modus",
+          "type": "select",
+          "options": [
+            "normal",
+            "all_active",
+            "random_active"
+          ],
+          "defaultValue": "normal",
+          "hint": "Gilt nur, wenn das Bezugsobjekt ein Template ist."
+        },
+        {
+          "name": "offsetX",
+          "label": "Offset X",
+          "type": "number",
+          "hint": "Verschiebung auf X-Achse"
+        },
+        {
+          "name": "offsetY",
+          "label": "Offset Y",
+          "type": "number",
+          "hint": "Verschiebung auf Y-Achse"
+        },
+        {
+          "name": "x",
+          "label": "Absolute X-Position",
+          "type": "number",
+          "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
+        },
+        {
+          "name": "y",
+          "label": "Absolute Y-Position",
+          "type": "number",
+          "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
+        }
+      ]
+    },
+    {
+      "type": "destroy_object",
+      "label": "Objekt zerstören",
+      "description": "Gibt eine Pool-Instanz zurück (macht sie unsichtbar und verfügbar).",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "string",
+          "hint": "Pool-Instanz oder %Self%"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "label": "Service aufrufen",
+      "description": "Ruft eine Methode eines registrierten Services auf.",
+      "parameters": [
+        {
+          "name": "service",
+          "label": "Service",
+          "type": "select",
+          "source": "services"
+        },
+        {
+          "name": "method",
+          "label": "Methode",
+          "type": "string"
+        },
+        {
+          "name": "serviceParams",
+          "label": "Parameter-Liste",
+          "type": "json"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis speichern in",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "create_room",
+      "label": "Multiplayer-Raum erstellen",
+      "requiresMultiplayer": true,
+      "description": "Erstellt einen neuen Multiplayer-Raum.",
+      "parameters": [
+        {
+          "name": "game",
+          "label": "Spiel-Identifikator",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "join_room",
+      "label": "Multiplayer-Raum beitreten",
+      "requiresMultiplayer": true,
+      "description": "Tritt einem Multiplayer-Raum bei.",
+      "parameters": [
+        {
+          "name": "code",
+          "label": "Raum-Code",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "store_token",
+      "label": "Token speichern/löschen",
+      "hidden": true,
+      "description": "Verwaltet Authentifizierungs-Token (JWT) im LocalStorage.",
+      "parameters": [
+        {
+          "name": "operation",
+          "label": "Operation",
+          "type": "select",
+          "options": [
+            "set",
+            "delete"
+          ],
+          "defaultValue": "set"
+        },
+        {
+          "name": "token",
+          "label": "Token (Daten)",
+          "type": "string"
+        },
+        {
+          "name": "tokenKey",
+          "label": "Speicher-Schlüssel",
+          "type": "string",
+          "defaultValue": "auth_token"
+        }
+      ]
+    },
+    {
+      "type": "show_toast",
+      "label": "Toast anzeigen",
+      "description": "Blendet eine kurze Nachricht am Bildschirmrand ein.",
+      "parameters": [
+        {
+          "name": "message",
+          "label": "Nachricht",
+          "type": "string"
+        },
+        {
+          "name": "toastType",
+          "label": "Typ",
+          "type": "select",
+          "options": [
+            "info",
+            "success",
+            "warning",
+            "error"
+          ],
+          "defaultValue": "info"
+        }
+      ]
+    },
+    {
+      "type": "call_method",
+      "label": "Methode aufrufen",
+      "description": "Ruft eine Methode auf einem Objekt oder registrierten Service auf.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel (Objekt oder Service)",
+          "type": "select",
+          "source": "objects_and_services"
+        },
+        {
+          "name": "method",
+          "label": "Methode",
+          "type": "select",
+          "source": "methods_of_target"
+        },
+        {
+          "name": "params",
+          "label": "Parameter (Array)",
+          "type": "json",
+          "hint": "[\"param1\", \"param2\"]"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis speichern in",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "play_audio",
+      "label": "Audio abspielen",
+      "description": "Spielt ein TAudio-Element (zerolatenz via WebAudio) ab.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Audio-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
+        }
+      ]
+    },
+    {
+      "type": "stop_audio",
+      "label": "Audio stoppen",
+      "description": "Stoppt ein laufendes TAudio-Element.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Audio-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
+        }
+      ]
+    },
+    {
+      "type": "load_theme_map",
+      "label": "Theme (TStringMap) laden",
+      "description": "Kopiert alle Strings aus einer Quell-TStringMap in eine Ziel-TStringMap (erlaubt sofortigen Theme-Wechsel).",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel (z.B. MainThemes)",
+          "type": "select",
+          "source": "objects",
+          "hint": "Welches Theme soll überschrieben werden?"
+        },
+        {
+          "name": "source",
+          "label": "Quelle (z.B. DataThemeDark)",
+          "type": "select",
+          "source": "objects",
+          "hint": "Welches Theme soll geladen werden?"
+        }
+      ]
+    },
+    {
+      "type": "set_active_theme",
+      "label": "Aktives Theme setzen",
+      "description": "Wechselt das aktive Theme zur Laufzeit und optional als Spieler-Präferenz.",
+      "parameters": [
+        {
+          "name": "themeId",
+          "label": "Theme",
+          "type": "select",
+          "source": "themes",
+          "hint": "Verfügbare Themes aus dem ThemeRegistry"
+        },
+        {
+          "name": "savePreference",
+          "label": "Präferenz speichern",
+          "type": "boolean",
+          "defaultValue": true
+        }
+      ]
+    },
+    {
+      "type": "show_theme_dialog",
+      "label": "Theme-Dialog anzeigen",
+      "description": "Zeigt einen TThemeDialog zur Theme-Auswahl an.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Theme-Dialog",
+          "type": "select",
+          "source": "theme_dialogs",
+          "hint": "Vorhandener TThemeDialog auf der Stage"
+        }
+      ]
+    },
+    {
+      "type": "close_overlay",
+      "label": "Overlay schließen",
+      "description": "Schließt das laufende Overlay-Projekt und sendet ein Ergebnis an das Hauptspiel (TOverlay.onOverlayResult).",
+      "parameters": [
+        {
+          "name": "result",
+          "label": "Ergebnis (JSON)",
+          "type": "json",
+          "hint": "{\"richtig\": 7, \"gesamt\": 10} — ${…} wird interpoliert"
+        }
+      ]
+    },
+    {
+      "type": "toggle_dialog",
+      "label": "Dialog ein-/ausblenden",
+      "description": "Blendet einen TDialogRoot per Slide-Animation ein oder aus.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Dialog (TDialogRoot)",
+          "type": "object",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "hint": "Name des Dialog-Objekts (auch ${Var} mit Objekt-ID/Name)"
+        },
+        {
+          "name": "mode",
+          "label": "Modus",
+          "type": "select",
+          "options": [
+            "toggle",
+            "show",
+            "hide"
+          ],
+          "defaultValue": "toggle"
+        }
+      ]
+    },
+    {
+      "type": "list_push",
+      "label": "Liste: Element hinzufügen",
+      "description": "Hängt einen Wert an das Ende einer Liste an.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "value",
+          "label": "Wert",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        }
+      ]
+    },
+    {
+      "type": "list_pop",
+      "label": "Liste: Letztes Element entfernen",
+      "description": "Entfernt das letzte Element und speichert es optional in einer Variable.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable (optional)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "list_get",
+      "label": "Liste: Element lesen",
+      "description": "Liest ein Element an einer bestimmten Position.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "index",
+          "label": "Index (0-basiert)",
+          "type": "string",
+          "placeholder": "0 oder ${var}"
+        },
+        {
+          "name": "field",
+          "label": "Feld (optional)",
+          "type": "string",
+          "placeholder": "z.B. objectId — leer = ganze Zeile"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "defaultValue",
+          "label": "Standard-Wert (bei Fehler)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "list_set",
+      "label": "Liste: Element setzen",
+      "description": "Setzt ein Element an einer bestimmten Position.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "index",
+          "label": "Index (0-basiert)",
+          "type": "string",
+          "placeholder": "0 oder ${var}"
+        },
+        {
+          "name": "value",
+          "label": "Neuer Wert",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        }
+      ]
+    },
+    {
+      "type": "list_remove",
+      "label": "Liste: Element entfernen (Index)",
+      "description": "Entfernt ein Element an einer bestimmten Position.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "index",
+          "label": "Index (0-basiert)",
+          "type": "string",
+          "placeholder": "0 oder ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Entferntes Element in Variable (optional)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "list_clear",
+      "label": "Liste: Leeren",
+      "description": "Entfernt alle Elemente aus einer Liste.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "list_shuffle",
+      "label": "Liste: Mischen",
+      "description": "Mischt eine Liste zufällig (Fisher-Yates). Optionaler Seed für Reproduzierbarkeit.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "seed",
+          "label": "Seed (optional, für deterministisch)",
+          "type": "string",
+          "placeholder": "z.B. 42"
+        }
+      ]
+    },
+    {
+      "type": "list_contains",
+      "label": "Liste: Enthält Element?",
+      "description": "Prüft ob ein Wert in der Liste enthalten ist. Ergebnis (true/false) in Variable.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "value",
+          "label": "Suchwert",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable (boolean)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "list_length",
+      "label": "Liste: Länge",
+      "description": "Ermittelt die Anzahl der Elemente in einer Liste.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Listen-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable (Zahl)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "map_get",
+      "label": "Map: Wert lesen",
+      "description": "Liest einen Wert aus einem Key-Value-Objekt.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Map-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "key",
+          "label": "Schlüssel",
+          "type": "string",
+          "placeholder": "Key oder ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "defaultValue",
+          "label": "Standard-Wert (bei fehlendem Key)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "map_set",
+      "label": "Map: Wert setzen",
+      "description": "Setzt einen Wert in einem Key-Value-Objekt.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Map-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "key",
+          "label": "Schlüssel",
+          "type": "string",
+          "placeholder": "Key oder ${var}"
+        },
+        {
+          "name": "value",
+          "label": "Wert",
+          "type": "string",
+          "placeholder": "Literal oder ${var}"
+        }
+      ]
+    },
+    {
+      "type": "map_delete",
+      "label": "Map: Schlüssel löschen",
+      "description": "Entfernt einen Schlüssel aus einem Key-Value-Objekt.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Map-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "key",
+          "label": "Schlüssel",
+          "type": "string",
+          "placeholder": "Key oder ${var}"
+        }
+      ]
+    },
+    {
+      "type": "map_has",
+      "label": "Map: Schlüssel vorhanden?",
+      "description": "Prüft ob ein Schlüssel in der Map existiert.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Map-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "key",
+          "label": "Schlüssel",
+          "type": "string",
+          "placeholder": "Key oder ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable (boolean)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "map_keys",
+      "label": "Map: Alle Schlüssel",
+      "description": "Gibt alle Schlüssel einer Map als Liste zurück.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Map-Variable",
+          "type": "variable",
+          "source": "variables"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis-Variable (Liste)",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "bind_event",
+      "label": "Event zuweisen",
+      "description": "Weist einer Komponente zur Laufzeit eine Task fuer ein Event zu (z.B. Pool-Sprite).",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Komponente",
+          "type": "select",
+          "source": "objects_and_variables",
+          "defaultValue": "",
+          "allowVariableBinding": true,
+          "hint": "Komponente oder Variable, die das Event-Mapping erhaelt (auch self bei Pool-Sprites)."
+        },
+        {
+          "name": "event",
+          "label": "Event",
+          "type": "select",
+          "source": "events_of_target",
+          "defaultValue": "",
+          "hint": "Bei Variable als Target werden alle bekannten Events angeboten."
+        },
+        {
+          "name": "task",
+          "label": "Task",
+          "type": "select",
+          "source": "tasks",
+          "defaultValue": "",
+          "hint": "Leer = Zuweisung entfernen."
+        }
+      ]
+    },
+    {
+      "type": "unbind_event",
+      "label": "Event entfernen",
+      "description": "Entfernt eine Event-Zuweisung von einer Komponente.",
+      "parameters": [
+        {
+          "name": "target",
+          "label": "Ziel-Komponente",
+          "type": "select",
+          "source": "objects_and_variables",
+          "defaultValue": "",
+          "allowVariableBinding": true
+        },
+        {
+          "name": "event",
+          "label": "Event",
+          "type": "select",
+          "source": "events_of_target",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "type": "shake_screen",
+      "label": "Kamera-Shake",
+      "description": "Lässt den Stage-Viewport kurz wackeln.",
+      "parameters": [
+        {
+          "name": "intensity",
+          "label": "Intensität",
+          "type": "select",
+          "options": [
+            "light",
+            "medium",
+            "heavy"
+          ],
+          "defaultValue": "medium"
+        },
+        {
+          "name": "duration",
+          "label": "Dauer (ms)",
+          "type": "number",
+          "defaultValue": 250
+        }
+      ]
+    },
+    {
+      "type": "record_set",
+      "label": "Record: Wert setzen",
+      "description": "Setzt ein Record-Feld fuer ein Objekt in einer TObjektliste.",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "allowFreeText": true,
+          "defaultValue": "self",
+          "placeholder": "self / Objektname / Zeilenindex"
+        },
+        {
+          "name": "field",
+          "label": "Feldname",
+          "type": "string",
+          "placeholder": "z.B. isSelected"
+        },
+        {
+          "name": "value",
+          "label": "Wert",
+          "type": "string",
+          "placeholder": "true / false / Zahl / ${var}"
+        }
+      ]
+    },
+    {
+      "type": "record_get",
+      "label": "Record: Wert lesen",
+      "description": "Liest ein Record-Feld eines Objekts in eine Variable.",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "allowFreeText": true,
+          "defaultValue": "self",
+          "placeholder": "self / Objektname / Zeilenindex"
+        },
+        {
+          "name": "field",
+          "label": "Feldname",
+          "type": "string",
+          "placeholder": "z.B. isSelected"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis in Variable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "record_index",
+      "label": "Record: Index ermitteln",
+      "description": "Liefert den 0-basierten Listenindex eines Objekts in einer TObjectList.",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "target",
+          "label": "Ziel-Objekt",
+          "type": "select",
+          "source": "objects",
+          "allowVariableBinding": true,
+          "allowFreeText": true,
+          "defaultValue": "self",
+          "placeholder": "self / Objektname / Zeilenindex"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis in Variable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "record_find",
+      "label": "Record: Zeilen suchen",
+      "description": "Schreibt alle Objekt-IDs mit passendem Feldwert als Liste in eine Variable.",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "field",
+          "label": "Feldname",
+          "type": "string",
+          "placeholder": "z.B. isSelected"
+        },
+        {
+          "name": "value",
+          "label": "Gesuchter Wert",
+          "type": "string",
+          "placeholder": "true / false / Zahl / ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis in Variable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "record_count",
+      "label": "Record: Zeilen zaehlen",
+      "description": "Zaehlt alle Zeilen mit passendem Feldwert (z.B. Siegbedingung).",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "field",
+          "label": "Feldname",
+          "type": "string",
+          "placeholder": "z.B. isSelected"
+        },
+        {
+          "name": "value",
+          "label": "Gesuchter Wert",
+          "type": "string",
+          "placeholder": "true / false / Zahl / ${var}"
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnis in Variable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "record_reset",
+      "label": "Record: Feld zuruecksetzen",
+      "description": "Setzt ein Feld in allen Zeilen auf den Default oder einen festen Wert.",
+      "parameters": [
+        {
+          "name": "list",
+          "label": "Objekt-Liste",
+          "type": "select",
+          "source": "objects",
+          "placeholder": "--- TObjectList waehlen ---"
+        },
+        {
+          "name": "field",
+          "label": "Feldname",
+          "type": "string",
+          "placeholder": "z.B. isSelected"
+        },
+        {
+          "name": "value",
+          "label": "Wert (leer = Default)",
+          "type": "string",
+          "placeholder": "leer lassen fuer Schema-Default"
+        }
+      ]
+    },
+    {
+      "type": "stage_input",
+      "label": "Stage-Eingang auslösen",
+      "description": "Sendet ein Ereignis an einen deklarierten Eingang der aktiven Stage.",
+      "parameters": [
+        {
+          "name": "eventName",
+          "label": "Eventname",
+          "type": "string"
+        },
+        {
+          "name": "payload",
+          "label": "Nutzdaten (JSON)",
+          "type": "json",
+          "defaultValue": {}
+        },
+        {
+          "name": "correlationId",
+          "label": "Bezug zum Eingangs-Event",
+          "type": "string",
+          "hint": "Leer: Kennung des auslösenden Stage-Events."
+        },
+        {
+          "name": "stageId",
+          "label": "Ziel-Stage (leer = aktiv)",
+          "type": "string"
+        },
+        {
+          "name": "eventId",
+          "label": "Event-Kennung",
+          "type": "string",
+          "hint": "Bei Wiederholung dieselbe Kennung senden; leer erzeugt eine neue."
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnisvariable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    },
+    {
+      "type": "stage_output",
+      "label": "Stage-Ausgang senden",
+      "description": "Meldet ein deklariertes Stage-Ereignis an verbundene Empfänger.",
+      "parameters": [
+        {
+          "name": "eventName",
+          "label": "Eventname",
+          "type": "string"
+        },
+        {
+          "name": "payload",
+          "label": "Nutzdaten (JSON)",
+          "type": "json",
+          "defaultValue": {}
+        },
+        {
+          "name": "correlationId",
+          "label": "Bezug zum Eingangs-Event",
+          "type": "string",
+          "hint": "Leer: Kennung des auslösenden Stage-Events."
+        },
+        {
+          "name": "resultVariable",
+          "label": "Ergebnisvariable",
+          "type": "variable",
+          "source": "variables"
+        }
+      ]
+    }
+  ]
+}

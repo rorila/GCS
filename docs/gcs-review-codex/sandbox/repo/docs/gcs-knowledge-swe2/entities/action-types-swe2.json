@@ -1,0 +1,3167 @@
+[
+ {
+  "id": "ACT-0001",
+  "kind": "action-type",
+  "name": "property",
+  "title": "Daten / Eigenschaft setzen",
+  "category": "runtime-action",
+  "description": "Setzt eine oder mehrere Datenquellen (Variablen oder Objekteigenschaften) auf neue Werte.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "changes",
+    "type": "keyvalue",
+    "label": "Zuweisungen",
+    "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1b0d0e198fd136e7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0002",
+  "kind": "action-type",
+  "name": "action",
+  "title": "Daten / Eigenschaft setzen",
+  "category": "runtime-action",
+  "description": "Alias für property — ändert Datenquellen.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "changes",
+    "type": "keyvalue",
+    "label": "Zuweisungen",
+    "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
+   }
+  ],
+  "flags": {
+   "isAlias": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c80c4eac7792c374"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0003",
+  "kind": "action-type",
+  "name": "set_child_property",
+  "title": "Kind-Eigenschaft ändern",
+  "category": "runtime-action",
+  "description": "Sucht ein Kind-Element im TGroupPanel über dessen Namen und ändert dessen Eigenschaften.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "object",
+    "label": "Eltern-Objekt (TGroupPanel)",
+    "hint": "Oft %Self% oder ${Var} mit der ID des gespawnten Templates"
+   },
+   {
+    "name": "childName",
+    "type": "string",
+    "label": "Kind Name",
+    "hint": "Name des zu modifizierenden Kind-Elements im Template"
+   },
+   {
+    "name": "changes",
+    "type": "json",
+    "label": "Änderungen (JSON)",
+    "hint": "Beispiel: { \"text\": \"Neuer Text\" }"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:15869ea11a8a4c9d"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0004",
+  "kind": "action-type",
+  "name": "variable",
+  "title": "Variable lesen / setzen",
+  "category": "runtime-action",
+  "description": "Liest einen Wert aus einer Quelle (Objekt-Eigenschaft, Wert oder andere Variable) und speichert ihn in einer Ziel-Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "variableName",
+    "type": "variable",
+    "label": "Ziel-Variable"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Einfacher Wert (z.B. 555)"
+   },
+   {
+    "name": "source",
+    "type": "object",
+    "label": "(oder) Quell-Objekt / Variable"
+   },
+   {
+    "name": "sourceProperty",
+    "type": "string",
+    "label": "(oder) Eigenschaft (optional)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:06cdf57049178a0b"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0005",
+  "kind": "action-type",
+  "name": "set_variable",
+  "title": "Variable setzen (Zuweisung)",
+  "category": "runtime-action",
+  "description": "Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "variableName",
+    "type": "variable",
+    "label": "Ziel-Variable"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Einfacher Wert (z.B. 555)"
+   },
+   {
+    "name": "source",
+    "type": "object",
+    "label": "(oder) Quell-Objekt / Variable"
+   },
+   {
+    "name": "sourceProperty",
+    "type": "string",
+    "label": "(oder) Eigenschaft (optional)"
+   }
+  ],
+  "flags": {
+   "hidden": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e20babdc1a0ecbc8"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0006",
+  "kind": "action-type",
+  "name": "calculate",
+  "title": "Berechnung",
+  "category": "runtime-action",
+  "description": "Führt eine mathematische Berechnung aus.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ziel"
+   },
+   {
+    "name": "formula",
+    "type": "string",
+    "label": "Wert",
+    "hint": "Ziel := Ausdruck, z.B. myVar := 5 + score"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b048536bdb1deb29"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0007",
+  "kind": "action-type",
+  "name": "negate",
+  "title": "Wert negieren",
+  "category": "runtime-action",
+  "description": "Negiert numerische Eigenschaften oder Variablen (- wird zu +, + wird zu -).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "changes",
+    "type": "keyvalue",
+    "label": "Zuweisungen",
+    "hint": "Wähle Datenquellen (links) aus, die negiert werden sollen."
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1d3a40a778539d3c"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0008",
+  "kind": "action-type",
+  "name": "increment",
+  "title": "Werte addieren",
+  "category": "runtime-action",
+  "description": "Addiert numerische Werte auf bestehende Variablen oder Eigenschaften.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "changes",
+    "type": "keyvalue",
+    "label": "Zuweisungen",
+    "hint": "Wähle Datenquellen (links) und den Wert, der addiert werden soll (rechts)."
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:47f1d029149cf08e"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0009",
+  "kind": "action-type",
+  "name": "animate",
+  "title": "Komponente animieren",
+  "category": "runtime-action",
+  "description": "Startet eine Animation/Effekt auf einer Komponente.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Objekt",
+    "hint": "Das zu animierende Objekt (\"self\" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name). Mehrere Ziele durch Komma trennen, z.B. \"Karte1, Karte2\"."
+   },
+   {
+    "name": "effect",
+    "type": "select",
+    "label": "Effekt",
+    "options": [
+     "shake",
+     "pulse",
+     "bounce",
+     "fade",
+     "grow",
+     "shrink",
+     "explode",
+     "pop",
+     "implode",
+     "fadeIn",
+     "fadeOut",
+     "spin",
+     "wobble",
+     "flip",
+     "flip3d"
+    ]
+   },
+   {
+    "name": "duration",
+    "type": "number",
+    "label": "Dauer (ms)",
+    "hint": "Zeit in Millisekunden"
+   },
+   {
+    "name": "source",
+    "type": "select",
+    "label": "Quell-Objekt (Saug-Ziel)",
+    "hint": "Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte."
+   },
+   {
+    "name": "targetScale",
+    "type": "number",
+    "label": "Ziel-Skalierung",
+    "hint": "Für grow/shrink"
+   },
+   {
+    "name": "fragments",
+    "type": "number",
+    "label": "Fragmente",
+    "hint": "Für explode/pop"
+   },
+   {
+    "name": "spread",
+    "type": "number",
+    "label": "Ausbreitung (px)",
+    "hint": "Für explode"
+   },
+   {
+    "name": "degrees",
+    "type": "number",
+    "label": "Grad",
+    "hint": "Für spin"
+   },
+   {
+    "name": "intensity",
+    "type": "number",
+    "label": "Intensität",
+    "hint": "Für wobble/shake"
+   },
+   {
+    "name": "height",
+    "type": "number",
+    "label": "Sprunghöhe (px)",
+    "hint": "Für bounce"
+   },
+   {
+    "name": "targetOpacity",
+    "type": "number",
+    "label": "Ziel-Transparenz (0-1)",
+    "hint": "Für fade"
+   },
+   {
+    "name": "midpointTask",
+    "type": "select",
+    "label": "Midpoint-Task",
+    "hint": "Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln)."
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1eb4209f092cd4b4"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0010",
+  "kind": "action-type",
+  "name": "move_to",
+  "title": "Bewegen zu",
+  "category": "runtime-action",
+  "description": "Bewegt ein Objekt an eine bestimmte Position.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "object",
+    "label": "Ziel-Objekt",
+    "hint": "Objektname, \"self\" oder ${Var} mit Objekt-ID/Name"
+   },
+   {
+    "name": "x",
+    "type": "number",
+    "label": "Ziel-X"
+   },
+   {
+    "name": "y",
+    "type": "number",
+    "label": "Ziel-Y"
+   },
+   {
+    "name": "lockDuringMove",
+    "type": "boolean",
+    "label": "Während Bewegung nicht ziehbar"
+   },
+   {
+    "name": "duration",
+    "type": "number",
+    "label": "Dauer (ms)"
+   },
+   {
+    "name": "easing",
+    "type": "select",
+    "label": "Easing"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1dbc1b03bbebeab2"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0011",
+  "kind": "action-type",
+  "name": "sprite_animate",
+  "title": "Sprite-Frame Animation",
+  "category": "runtime-action",
+  "description": "Durchläuft die Frames einer TImageList von Start bis Ende (einmalig).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Sprite",
+    "hint": "Das Sprite mit einer TImageList (auch ${Var} mit Objekt-ID/Name)"
+   },
+   {
+    "name": "fromFrame",
+    "type": "number",
+    "label": "Start-Frame"
+   },
+   {
+    "name": "toFrame",
+    "type": "number",
+    "label": "End-Frame"
+   },
+   {
+    "name": "duration",
+    "type": "number",
+    "label": "Dauer (ms)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:49e645b38a6df793"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0012",
+  "kind": "action-type",
+  "name": "navigate",
+  "title": "Spiel wechseln",
+  "category": "runtime-action",
+  "description": "Wechselt zu einem anderen Projekt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "string",
+    "label": "Ziel-Projekt"
+   }
+  ],
+  "flags": {
+   "hidden": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6a2a60fedba6f8c1"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0013",
+  "kind": "action-type",
+  "name": "navigate_stage",
+  "title": "Stage wechseln",
+  "category": "runtime-action",
+  "description": "Wechselt zu einer anderen Stage innerhalb des Projekts.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "stageId",
+    "type": "select",
+    "label": "Ziel-Stage"
+   },
+   {
+    "name": "reset",
+    "type": "boolean",
+    "label": "Stage zurücksetzen",
+    "hint": "Wenn aktiviert, wird die Stage komplett neu aufgebaut (alle Komponenten auf Initialwerte)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c3926bd026ff16ff"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0014",
+  "kind": "action-type",
+  "name": "restart_game",
+  "title": "Spiel neu starten",
+  "category": "runtime-action",
+  "description": "Startet das komplette Spiel neu (inkl. Blueprint-Stage). Alle Variablen und Objekte werden auf ihre Initialwerte zurückgesetzt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:13a4920cd88d0e4b"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0015",
+  "kind": "action-type",
+  "name": "http",
+  "title": "HTTP Request",
+  "category": "runtime-action",
+  "description": "Führt einen API-Call aus (REST/JSON).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "url",
+    "type": "string",
+    "label": "URL"
+   },
+   {
+    "name": "method",
+    "type": "select",
+    "label": "Methode",
+    "options": [
+     "GET",
+     "POST",
+     "PUT",
+     "DELETE"
+    ]
+   },
+   {
+    "name": "body",
+    "type": "string",
+    "label": "Body (JSON-String oder Objekt)"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis speichern in"
+   },
+   {
+    "name": "resultPath",
+    "type": "string",
+    "label": "Daten-Pfad (Selektor)",
+    "hint": "Optional: Pfad zum Objekt in der Response (z.B. \"user\")"
+   },
+   {
+    "name": "selectFields",
+    "type": "string",
+    "label": "Felder (SELECT)",
+    "hint": "Kommagetrennte Liste der Felder oder count(*)"
+   },
+   {
+    "name": "queryProperty",
+    "type": "string",
+    "label": "Filter-Feld (WHERE)",
+    "hint": "z.B. id oder email"
+   },
+   {
+    "name": "queryOperator",
+    "type": "select",
+    "label": "Operator",
+    "options": [
+     "==",
+     "!=",
+     ">",
+     "<",
+     ">=",
+     "<=",
+     "CONTAINS"
+    ]
+   },
+   {
+    "name": "queryValue",
+    "type": "string",
+    "label": "Filter-Wert",
+    "hint": "Wert oder ${variable}"
+   },
+   {
+    "name": "directFetch",
+    "type": "boolean",
+    "label": "Direkter Abruf (keine Simulation)",
+    "hint": "Im Editor den ApiSimulator umgehen — z.B. für statische Dateien wie /videos/feature-videos.json"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9a1fb6ae68095d72"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0016",
+  "kind": "action-type",
+  "name": "respond_http",
+  "title": "HTTP Antwort senden",
+  "category": "runtime-action",
+  "description": "Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "requestId",
+    "type": "string",
+    "label": "Request ID",
+    "hint": "Wird automatisch vom onRequest-Event bereitgestellt."
+   },
+   {
+    "name": "status",
+    "type": "number",
+    "label": "HTTP Status"
+   },
+   {
+    "name": "data",
+    "type": "string",
+    "label": "Antwort-Daten (JSON)",
+    "hint": "Das Objekt, das als JSON gesendet wird."
+   }
+  ],
+  "flags": {
+   "requiresServer": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a18cd877b7a3b51d"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0017",
+  "kind": "action-type",
+  "name": "execute_login_request",
+  "title": "Login Request ausführen",
+  "category": "runtime-action",
+  "description": "Führt den Login-Request gegen das Backend aus.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "flags": {
+   "hidden": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d04bec9e68880557"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0018",
+  "kind": "action-type",
+  "name": "data_action",
+  "title": "Data Action",
+  "category": "runtime-action",
+  "description": "Führt eine Daten-Aktion aus (HTTP, SQL, etc.).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "dataStore",
+    "type": "select",
+    "label": "Data Store (Komponente)",
+    "hint": "Wähle eine TDataStore-Komponente (z.B. UserData)"
+   },
+   {
+    "name": "selectFields",
+    "type": "string",
+    "label": "Felder (SELECT)",
+    "hint": "Kommagetrennte Liste der Felder oder count(*)"
+   },
+   {
+    "name": "queryProperty",
+    "type": "string",
+    "label": "Filter-Feld (WHERE)",
+    "hint": "z.B. id oder email"
+   },
+   {
+    "name": "queryOperator",
+    "type": "select",
+    "label": "Operator",
+    "options": [
+     "==",
+     "!=",
+     ">",
+     "<",
+     ">=",
+     "<=",
+     "CONTAINS"
+    ]
+   },
+   {
+    "name": "queryValue",
+    "type": "string",
+    "label": "Filter-Wert",
+    "hint": "Wert oder ${variable}"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9e395b26c92aadc0"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0019",
+  "kind": "action-type",
+  "name": "handle_api_request",
+  "title": "API Request verarbeiten",
+  "category": "runtime-action",
+  "description": "Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [],
+  "flags": {
+   "requiresServer": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d4a2c559e7c2cb97"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0020",
+  "kind": "action-type",
+  "name": "spawn_object",
+  "title": "Objekt spawnen",
+  "category": "runtime-action",
+  "description": "Holt eine Instanz aus dem Object Pool eines TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "templateId",
+    "type": "string",
+    "label": "Template",
+    "hint": "Das TSpriteTemplate"
+   },
+   {
+    "name": "referenceObject",
+    "type": "string",
+    "label": "Spawnen bei Objekt",
+    "hint": "Optional: Koords von dieses Objekts übernehmen"
+   },
+   {
+    "name": "spawnMode",
+    "type": "select",
+    "label": "Template Spawn Modus",
+    "hint": "Gilt nur, wenn das Bezugsobjekt ein Template ist.",
+    "options": [
+     "normal",
+     "all_active",
+     "random_active"
+    ]
+   },
+   {
+    "name": "offsetX",
+    "type": "number",
+    "label": "Offset X",
+    "hint": "Verschiebung auf X-Achse"
+   },
+   {
+    "name": "offsetY",
+    "type": "number",
+    "label": "Offset Y",
+    "hint": "Verschiebung auf Y-Achse"
+   },
+   {
+    "name": "x",
+    "type": "number",
+    "label": "Absolute X-Position",
+    "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
+   },
+   {
+    "name": "y",
+    "type": "number",
+    "label": "Absolute Y-Position",
+    "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c1bdf6fcdf31e80a"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0021",
+  "kind": "action-type",
+  "name": "destroy_object",
+  "title": "Objekt zerstören",
+  "category": "runtime-action",
+  "description": "Gibt eine Pool-Instanz zurück (macht sie unsichtbar und verfügbar).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "string",
+    "label": "Ziel-Objekt",
+    "hint": "Pool-Instanz oder %Self%"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b476902c699b134f"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0022",
+  "kind": "action-type",
+  "name": "service",
+  "title": "Service aufrufen",
+  "category": "runtime-action",
+  "description": "Ruft eine Methode eines registrierten Services auf.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "service",
+    "type": "select",
+    "label": "Service"
+   },
+   {
+    "name": "method",
+    "type": "string",
+    "label": "Methode"
+   },
+   {
+    "name": "serviceParams",
+    "type": "json",
+    "label": "Parameter-Liste"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis speichern in"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:81c0214a0a1d3603"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0023",
+  "kind": "action-type",
+  "name": "create_room",
+  "title": "Multiplayer-Raum erstellen",
+  "category": "runtime-action",
+  "description": "Erstellt einen neuen Multiplayer-Raum.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "game",
+    "type": "string",
+    "label": "Spiel-Identifikator"
+   }
+  ],
+  "flags": {
+   "requiresMultiplayer": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ec28a6ba287c282a"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0024",
+  "kind": "action-type",
+  "name": "join_room",
+  "title": "Multiplayer-Raum beitreten",
+  "category": "runtime-action",
+  "description": "Tritt einem Multiplayer-Raum bei.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "code",
+    "type": "string",
+    "label": "Raum-Code"
+   }
+  ],
+  "flags": {
+   "requiresMultiplayer": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d39303647fcdd3f7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0025",
+  "kind": "action-type",
+  "name": "store_token",
+  "title": "Token speichern/löschen",
+  "category": "runtime-action",
+  "description": "Verwaltet Authentifizierungs-Token (JWT) im LocalStorage.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "operation",
+    "type": "select",
+    "label": "Operation",
+    "options": [
+     "set",
+     "delete"
+    ]
+   },
+   {
+    "name": "token",
+    "type": "string",
+    "label": "Token (Daten)"
+   },
+   {
+    "name": "tokenKey",
+    "type": "string",
+    "label": "Speicher-Schlüssel"
+   }
+  ],
+  "flags": {
+   "hidden": true
+  },
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:27cf84811a8945b8"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0026",
+  "kind": "action-type",
+  "name": "show_toast",
+  "title": "Toast anzeigen",
+  "category": "runtime-action",
+  "description": "Blendet eine kurze Nachricht am Bildschirmrand ein.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "message",
+    "type": "string",
+    "label": "Nachricht"
+   },
+   {
+    "name": "toastType",
+    "type": "select",
+    "label": "Typ",
+    "options": [
+     "info",
+     "success",
+     "warning",
+     "error"
+    ]
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:48ffba1ea5268cab"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0027",
+  "kind": "action-type",
+  "name": "call_method",
+  "title": "Methode aufrufen",
+  "category": "runtime-action",
+  "description": "Ruft eine Methode auf einem Objekt oder registrierten Service auf.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel (Objekt oder Service)"
+   },
+   {
+    "name": "method",
+    "type": "select",
+    "label": "Methode"
+   },
+   {
+    "name": "params",
+    "type": "json",
+    "label": "Parameter (Array)",
+    "hint": "[\"param1\", \"param2\"]"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis speichern in"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f8958a1242a9ef67"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0028",
+  "kind": "action-type",
+  "name": "play_audio",
+  "title": "Audio abspielen",
+  "category": "runtime-action",
+  "description": "Spielt ein TAudio-Element (zerolatenz via WebAudio) ab.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Audio-Objekt",
+    "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:638151e705aeb457"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0029",
+  "kind": "action-type",
+  "name": "stop_audio",
+  "title": "Audio stoppen",
+  "category": "runtime-action",
+  "description": "Stoppt ein laufendes TAudio-Element.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Audio-Objekt",
+    "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b706501fc72d9f38"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0030",
+  "kind": "action-type",
+  "name": "load_theme_map",
+  "title": "Theme (TStringMap) laden",
+  "category": "runtime-action",
+  "description": "Kopiert alle Strings aus einer Quell-TStringMap in eine Ziel-TStringMap (erlaubt sofortigen Theme-Wechsel).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel (z.B. MainThemes)",
+    "hint": "Welches Theme soll überschrieben werden?"
+   },
+   {
+    "name": "source",
+    "type": "select",
+    "label": "Quelle (z.B. DataThemeDark)",
+    "hint": "Welches Theme soll geladen werden?"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:786d6849f48f45b6"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0031",
+  "kind": "action-type",
+  "name": "set_active_theme",
+  "title": "Aktives Theme setzen",
+  "category": "runtime-action",
+  "description": "Wechselt das aktive Theme zur Laufzeit und optional als Spieler-Präferenz.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "themeId",
+    "type": "select",
+    "label": "Theme",
+    "hint": "Verfügbare Themes aus dem ThemeRegistry"
+   },
+   {
+    "name": "savePreference",
+    "type": "boolean",
+    "label": "Präferenz speichern"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9c4c68bbb29279b7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0032",
+  "kind": "action-type",
+  "name": "show_theme_dialog",
+  "title": "Theme-Dialog anzeigen",
+  "category": "runtime-action",
+  "description": "Zeigt einen TThemeDialog zur Theme-Auswahl an.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Theme-Dialog",
+    "hint": "Vorhandener TThemeDialog auf der Stage"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f2f72432183fb2d2"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0033",
+  "kind": "action-type",
+  "name": "close_overlay",
+  "title": "Overlay schließen",
+  "category": "runtime-action",
+  "description": "Schließt das laufende Overlay-Projekt und sendet ein Ergebnis an das Hauptspiel (TOverlay.onOverlayResult).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "result",
+    "type": "json",
+    "label": "Ergebnis (JSON)",
+    "hint": "{\"richtig\": 7, \"gesamt\": 10} — ${…} wird interpoliert"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:078c2040ce9d8b9c"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0034",
+  "kind": "action-type",
+  "name": "toggle_dialog",
+  "title": "Dialog ein-/ausblenden",
+  "category": "runtime-action",
+  "description": "Blendet einen TDialogRoot per Slide-Animation ein oder aus.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "object",
+    "label": "Dialog (TDialogRoot)",
+    "hint": "Name des Dialog-Objekts (auch ${Var} mit Objekt-ID/Name)"
+   },
+   {
+    "name": "mode",
+    "type": "select",
+    "label": "Modus",
+    "options": [
+     "toggle",
+     "show",
+     "hide"
+    ]
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:86839b0d8ced2433"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0035",
+  "kind": "action-type",
+  "name": "list_push",
+  "title": "Liste: Element hinzufügen",
+  "category": "runtime-action",
+  "description": "Hängt einen Wert an das Ende einer Liste an.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Wert"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a06091c8e4e3ddf3"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0036",
+  "kind": "action-type",
+  "name": "list_pop",
+  "title": "Liste: Letztes Element entfernen",
+  "category": "runtime-action",
+  "description": "Entfernt das letzte Element und speichert es optional in einer Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable (optional)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:af57047759f3cf9c"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0037",
+  "kind": "action-type",
+  "name": "list_get",
+  "title": "Liste: Element lesen",
+  "category": "runtime-action",
+  "description": "Liest ein Element an einer bestimmten Position.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "index",
+    "type": "string",
+    "label": "Index (0-basiert)"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feld (optional)"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable"
+   },
+   {
+    "name": "defaultValue",
+    "type": "string",
+    "label": "Standard-Wert (bei Fehler)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:5ee71f453fd27b56"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0038",
+  "kind": "action-type",
+  "name": "list_set",
+  "title": "Liste: Element setzen",
+  "category": "runtime-action",
+  "description": "Setzt ein Element an einer bestimmten Position.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "index",
+    "type": "string",
+    "label": "Index (0-basiert)"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Neuer Wert"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c3c5c12cfb48115b"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0039",
+  "kind": "action-type",
+  "name": "list_remove",
+  "title": "Liste: Element entfernen (Index)",
+  "category": "runtime-action",
+  "description": "Entfernt ein Element an einer bestimmten Position.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "index",
+    "type": "string",
+    "label": "Index (0-basiert)"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Entferntes Element in Variable (optional)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9e27953dd1f0cb96"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0040",
+  "kind": "action-type",
+  "name": "list_clear",
+  "title": "Liste: Leeren",
+  "category": "runtime-action",
+  "description": "Entfernt alle Elemente aus einer Liste.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a7423aea52db0ba8"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0041",
+  "kind": "action-type",
+  "name": "list_shuffle",
+  "title": "Liste: Mischen",
+  "category": "runtime-action",
+  "description": "Mischt eine Liste zufällig (Fisher-Yates). Optionaler Seed für Reproduzierbarkeit.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "seed",
+    "type": "string",
+    "label": "Seed (optional, für deterministisch)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f154c49b060ba832"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0042",
+  "kind": "action-type",
+  "name": "list_contains",
+  "title": "Liste: Enthält Element?",
+  "category": "runtime-action",
+  "description": "Prüft ob ein Wert in der Liste enthalten ist. Ergebnis (true/false) in Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Suchwert"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable (boolean)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:738750e4df83c5c7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0043",
+  "kind": "action-type",
+  "name": "list_length",
+  "title": "Liste: Länge",
+  "category": "runtime-action",
+  "description": "Ermittelt die Anzahl der Elemente in einer Liste.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Listen-Variable"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable (Zahl)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ce275e358cfe8eaa"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0044",
+  "kind": "action-type",
+  "name": "map_get",
+  "title": "Map: Wert lesen",
+  "category": "runtime-action",
+  "description": "Liest einen Wert aus einem Key-Value-Objekt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Map-Variable"
+   },
+   {
+    "name": "key",
+    "type": "string",
+    "label": "Schlüssel"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable"
+   },
+   {
+    "name": "defaultValue",
+    "type": "string",
+    "label": "Standard-Wert (bei fehlendem Key)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:089d630d9bdf22ee"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0045",
+  "kind": "action-type",
+  "name": "map_set",
+  "title": "Map: Wert setzen",
+  "category": "runtime-action",
+  "description": "Setzt einen Wert in einem Key-Value-Objekt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Map-Variable"
+   },
+   {
+    "name": "key",
+    "type": "string",
+    "label": "Schlüssel"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Wert"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4272a7767b1cc681"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0046",
+  "kind": "action-type",
+  "name": "map_delete",
+  "title": "Map: Schlüssel löschen",
+  "category": "runtime-action",
+  "description": "Entfernt einen Schlüssel aus einem Key-Value-Objekt.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Map-Variable"
+   },
+   {
+    "name": "key",
+    "type": "string",
+    "label": "Schlüssel"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2a91950d2f7f8455"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0047",
+  "kind": "action-type",
+  "name": "map_has",
+  "title": "Map: Schlüssel vorhanden?",
+  "category": "runtime-action",
+  "description": "Prüft ob ein Schlüssel in der Map existiert.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Map-Variable"
+   },
+   {
+    "name": "key",
+    "type": "string",
+    "label": "Schlüssel"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable (boolean)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:083de24244029968"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0048",
+  "kind": "action-type",
+  "name": "map_keys",
+  "title": "Map: Alle Schlüssel",
+  "category": "runtime-action",
+  "description": "Gibt alle Schlüssel einer Map als Liste zurück.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "variable",
+    "label": "Map-Variable"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis-Variable (Liste)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1b9da32c77c081e0"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0049",
+  "kind": "action-type",
+  "name": "bind_event",
+  "title": "Event zuweisen",
+  "category": "runtime-action",
+  "description": "Weist einer Komponente zur Laufzeit eine Task fuer ein Event zu (z.B. Pool-Sprite).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Komponente",
+    "hint": "Komponente oder Variable, die das Event-Mapping erhaelt (auch self bei Pool-Sprites)."
+   },
+   {
+    "name": "event",
+    "type": "select",
+    "label": "Event",
+    "hint": "Bei Variable als Target werden alle bekannten Events angeboten."
+   },
+   {
+    "name": "task",
+    "type": "select",
+    "label": "Task",
+    "hint": "Leer = Zuweisung entfernen."
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:072814a42331470c"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0050",
+  "kind": "action-type",
+  "name": "unbind_event",
+  "title": "Event entfernen",
+  "category": "runtime-action",
+  "description": "Entfernt eine Event-Zuweisung von einer Komponente.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Komponente"
+   },
+   {
+    "name": "event",
+    "type": "select",
+    "label": "Event"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:60c639ed0a59b8d1"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0051",
+  "kind": "action-type",
+  "name": "shake_screen",
+  "title": "Kamera-Shake",
+  "category": "runtime-action",
+  "description": "Lässt den Stage-Viewport kurz wackeln.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "intensity",
+    "type": "select",
+    "label": "Intensität",
+    "options": [
+     "light",
+     "medium",
+     "heavy"
+    ]
+   },
+   {
+    "name": "duration",
+    "type": "number",
+    "label": "Dauer (ms)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c6ea21a0d0468b08"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0052",
+  "kind": "action-type",
+  "name": "record_set",
+  "title": "Record: Wert setzen",
+  "category": "runtime-action",
+  "description": "Setzt ein Record-Feld fuer ein Objekt in einer TObjektliste.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Objekt"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feldname"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Wert"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0395fe3fd8aea929"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0053",
+  "kind": "action-type",
+  "name": "record_get",
+  "title": "Record: Wert lesen",
+  "category": "runtime-action",
+  "description": "Liest ein Record-Feld eines Objekts in eine Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Objekt"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feldname"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis in Variable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a408c2479af5e346"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0054",
+  "kind": "action-type",
+  "name": "record_index",
+  "title": "Record: Index ermitteln",
+  "category": "runtime-action",
+  "description": "Liefert den 0-basierten Listenindex eines Objekts in einer TObjectList.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "target",
+    "type": "select",
+    "label": "Ziel-Objekt"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis in Variable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:7c46d8d2c13aae58"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0055",
+  "kind": "action-type",
+  "name": "record_find",
+  "title": "Record: Zeilen suchen",
+  "category": "runtime-action",
+  "description": "Schreibt alle Objekt-IDs mit passendem Feldwert als Liste in eine Variable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feldname"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Gesuchter Wert"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis in Variable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:749224ac460838cc"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0056",
+  "kind": "action-type",
+  "name": "record_count",
+  "title": "Record: Zeilen zaehlen",
+  "category": "runtime-action",
+  "description": "Zaehlt alle Zeilen mit passendem Feldwert (z.B. Siegbedingung).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feldname"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Gesuchter Wert"
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnis in Variable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:95536f1575057b9c"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0057",
+  "kind": "action-type",
+  "name": "record_reset",
+  "title": "Record: Feld zuruecksetzen",
+  "category": "runtime-action",
+  "description": "Setzt ein Feld in allen Zeilen auf den Default oder einen festen Wert.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "list",
+    "type": "select",
+    "label": "Objekt-Liste"
+   },
+   {
+    "name": "field",
+    "type": "string",
+    "label": "Feldname"
+   },
+   {
+    "name": "value",
+    "type": "string",
+    "label": "Wert (leer = Default)"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0e41af75f74559d7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0058",
+  "kind": "action-type",
+  "name": "stage_input",
+  "title": "Stage-Eingang auslösen",
+  "category": "runtime-action",
+  "description": "Sendet ein Ereignis an einen deklarierten Eingang der aktiven Stage.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "eventName",
+    "type": "string",
+    "label": "Eventname"
+   },
+   {
+    "name": "payload",
+    "type": "json",
+    "label": "Nutzdaten (JSON)"
+   },
+   {
+    "name": "correlationId",
+    "type": "string",
+    "label": "Bezug zum Eingangs-Event",
+    "hint": "Leer: Kennung des auslösenden Stage-Events."
+   },
+   {
+    "name": "stageId",
+    "type": "string",
+    "label": "Ziel-Stage (leer = aktiv)"
+   },
+   {
+    "name": "eventId",
+    "type": "string",
+    "label": "Event-Kennung",
+    "hint": "Bei Wiederholung dieselbe Kennung senden; leer erzeugt eine neue."
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnisvariable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:654ce911eab80ec7"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "ACT-0059",
+  "kind": "action-type",
+  "name": "stage_output",
+  "title": "Stage-Ausgang senden",
+  "category": "runtime-action",
+  "description": "Meldet ein deklariertes Stage-Ereignis an verbundene Empfänger.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "parameters": [
+   {
+    "name": "eventName",
+    "type": "string",
+    "label": "Eventname"
+   },
+   {
+    "name": "payload",
+    "type": "json",
+    "label": "Nutzdaten (JSON)"
+   },
+   {
+    "name": "correlationId",
+    "type": "string",
+    "label": "Bezug zum Eingangs-Event",
+    "hint": "Leer: Kennung des auslösenden Stage-Events."
+   },
+   {
+    "name": "resultVariable",
+    "type": "variable",
+    "label": "Ergebnisvariable"
+   }
+  ],
+  "flags": {},
+  "sources": {
+   "code": [
+    "src/runtime/ActionRegistry.ts",
+    "src/runtime/actions/handlers/"
+   ],
+   "docs": [
+    "docs/inventory/action-metadata.json",
+    "docs/reference/actions.md"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:417b9817dbe0784f"
+  },
+  "provenance": {
+   "method": [
+    "registry-extract"
+   ],
+   "confidence": "verified"
+  }
+ }
+]

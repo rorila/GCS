@@ -1,0 +1,40 @@
+{
+ "schemaVersion": "1.0.0",
+ "generated": "2026-10-18T09:46:28.048Z",
+ "generatedBy": "build-knowledge-swe2.cjs",
+ "sourceCommit": "53e3dfb",
+ "counts": {
+  "entities": 688,
+  "byKind": {
+   "component": 128,
+   "feature": 12,
+   "action-type": 59,
+   "method": 38,
+   "event": 158,
+   "schema": 13,
+   "guide-chapter": 23,
+   "document": 242,
+   "concept": 15
+  },
+  "chunks": 1774
+ },
+ "idCounters": {
+  "SCM": 13,
+  "ACT": 59,
+  "MTH": 38,
+  "EVT": 158,
+  "GUIDE": 23,
+  "CON": 15
+ },
+ "files": {
+  "schema": "knowledge-schema-swe2.json",
+  "entities": "entities/",
+  "chunks": "chunks/chunks-swe2.jsonl",
+  "idMap": "id-map-swe2.json"
+ },
+ "provenanceLegend": {
+  "verified": "Quellcode-/Registry-belegt (getEvents, MethodRegistry, ActionRegistry, Schemas)",
+  "documented": "Dokumentations-Selbstauskunft (Inventar, Referenzkarten, Markdown)",
+  "inferred": "Abgeleitet, nicht vollständig verifiziert"
+ }
+}

@@ -1,0 +1,366 @@
+import { projectReferenceTracker } from '../../services/registry/ReferenceTracker';
+import { FlowElement } from '../flow/FlowElement';
+import { FlowConnection } from '../flow/FlowConnection';
+import { FlowAction } from '../flow/FlowAction';
+import { FlowDataAction } from '../flow/FlowDataAction';
+import { FlowCondition } from '../flow/FlowCondition';
+import { FlowTask } from '../flow/FlowTask';
+import { FlowVariable } from '../flow/FlowVariable';
+import { FlowThresholdVariable } from '../flow/FlowThresholdVariable';
+import { FlowTriggerVariable } from '../flow/FlowTriggerVariable';
+import { FlowTimerVariable } from '../flow/FlowTimerVariable';
+import { FlowRangeVariable } from '../flow/FlowRangeVariable';
+import { FlowListVariable } from '../flow/FlowListVariable';
+import { FlowRandomVariable } from '../flow/FlowRandomVariable';
+import { FlowLoop } from '../flow/FlowLoop';
+
+import { GameProject } from '../../model/types';
+import { RefactoringManager } from '../RefactoringManager';
+
+import { mediatorService } from '../../services/MediatorService';
+import { Logger } from '../../utils/Logger';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
+
+const logger = Logger.get('FlowGraphManager');
+
+
+export interface FlowGraphHost {
+    project: GameProject | null;
+    nodes: FlowElement[];
+    connections: FlowConnection[];
+    canvas: HTMLElement;
+    flowStage: any;
+    currentFlowContext: string;
+    editor: any;
+    showDetails: boolean;
+    selectedConnection: FlowConnection | null;
+    selectedNode: FlowElement | null;
+
+    syncToProject(): void;
+    loadFromProject(): void;
+    updateFlowSelector(): void;
+    getTargetFlowCharts(taskName?: string): any;
+    generateUniqueTaskName(base: string): string;
+    generateUniqueActionName(base: string): string;
+    generateUniqueVariableName(base: string): string;
+    ensureTaskExists(taskName: string, description?: string): void;
+    setupNodeListeners(node: FlowElement): void;
+    setupConnectionListeners(conn: FlowConnection): void;
+    selectNode(node: FlowElement | null): void;
+    onNodesChanged?: (nodes: FlowElement[]) => void;
+    onProjectChange?: () => void;
+    syncManager: any;
+}
+
+export class FlowGraphManager {
+    private static logger = Logger.get('FlowGraphManager', 'Task_Management');
+    private static lifecycleLogger = Logger.get('FlowSync', 'Action_Lifecycle');
+    private host: FlowGraphHost;
+
+    constructor(host: FlowGraphHost) {
+        this.host = host;
+    }
+
+    public async createNode(type: string, x: number, y: number, initialName?: string): Promise<FlowElement | null> {
+        FlowGraphManager.logger.info(`createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
+        let node: FlowElement;
+        const id = 'node-' + Date.now();
+        const baseType = type.includes(':') ? type.split(':')[0] : type;
+
+        switch (baseType) {
+            case 'action': {
+                const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
+                node = new FlowAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
+                    node.Name = initialName;
+                } else {
+                    node.Name = this.host.generateUniqueActionName(initialName || 'Action');
+                }
+                if (actionSubtype) {
+                    node.data = node.data || {};
+                    node.data.type = actionSubtype;
+                }
+                if (this.host.showDetails) {
+                    (node as FlowAction).setShowDetails(true, this.host.project);
+                }
+                break;
+            }
+            case 'data_action':
+                node = new FlowDataAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
+                    node.Name = initialName;
+                } else {
+                    node.Name = this.host.generateUniqueActionName(initialName || 'DataAction');
+                }
+                if (this.host.showDetails) {
+                    (node as FlowAction).setShowDetails(true, this.host.project);
+                }
+                break;
+            case 'condition':
+                node = new FlowCondition(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                node.Name = initialName || 'Bedingung';
+                break;
+            case 'task': {
+                let taskName = initialName;
+                if (!taskName) {
+                    taskName = await PromptDialog.show("Name für den neuen Task:", this.host.generateUniqueTaskName("ANewTask")) || undefined;
+                }
+                if (!taskName) return null;
+
+                if (!initialName) {
+                    taskName = this.host.generateUniqueTaskName(taskName);
+                }
+
+                node = new FlowTask(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                node.Name = taskName;
+                node.setText(taskName);
+                if (this.host.project) {
+                    (node as FlowTask).setProjectRef(this.host.project);
+                    if (taskName !== 'Task') {
+                        this.host.ensureTaskExists(taskName, "");
+                    }
+                }
+                break;
+            }
+            case 'VariableDecl': {
+                const kind = type.split(':')[1];
+                if (kind === 'threshold') {
+                    node = new FlowThresholdVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else if (kind === 'trigger') {
+                    node = new FlowTriggerVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else if (kind === 'timer') {
+                    node = new FlowTimerVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else if (kind === 'range') {
+                    node = new FlowRangeVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else if (kind === 'list') {
+                    node = new FlowListVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else if (kind === 'random') {
+                    node = new FlowRandomVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                } else {
+                    node = new FlowVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
+                }
+
+                const scope = this.host.currentFlowContext === 'global' ? 'global' : this.host.currentFlowContext;
+                const varName = this.host.generateUniqueVariableName('neueVariabel');
+                node.data = { variable: { name: varName, type: kind || 'integer', initialValue: 0, scope } };
+
+                if (kind === 'threshold') node.data.variable.threshold = 0;
+                if (kind === 'trigger') node.data.variable.triggerValue = '';
+                if (kind === 'timer') node.data.variable.duration = 5000;
+                if (kind === 'range') { node.data.variable.min = 0; node.data.variable.max = 100; }
+                if (kind === 'list') { node.data.variable.type = 'list'; node.data.variable.initialValue = '[]'; }
+                if (kind === 'random') { node.data.variable.min = 0; node.data.variable.max = 100; node.data.variable.isRandom = true; }
+
+                (node as FlowVariable).updateVisuals?.();
+                break;
+            }
+            case 'While':
+            case 'For':
+            case 'Foreach':
+            case 'Repeat': {
+                node = new FlowLoop(id, x, y, this.host.canvas, this.host.flowStage.cellSize, type as any);
+                node.Name = type;
+                (node as FlowLoop).updateVisuals?.();
+                break;
+            }
+
+            case 'Connection': {
+                const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);
+                conn.setGridConfig(this.host.flowStage.cellSize);
+                this.host.connections.push(conn);
+                this.host.setupConnectionListeners(conn);
+                conn.select();
+                this.host.selectedConnection = conn;
+                return null;
+            }
+            default:
+                return null;
+        }
+
+        this.host.canvas.appendChild(node.getElement());
+        this.host.nodes.push(node);
+
+        this.host.setupNodeListeners(node);
+        if (this.host.onNodesChanged) this.host.onNodesChanged(this.host.nodes);
+        this.host.selectNode(node);
+        this.host.syncToProject();
+
+        if (baseType === 'action' || baseType === 'data_action') {
+            FlowGraphManager.lifecycleLogger.info(`Action "${node.Name}" wurde im Flow-Diagramm erstellt.`);
+        }
+        return node;
+    }
+
+    public async deleteNode(node: FlowElement) {
+        const nodeName = node.Name || node.name;
+        const isInternal = node.data?.isEmbeddedInternal;
+
+        if (isInternal) {
+            if (!await ConfirmDialog.show('Dieser Knoten ist intern eingebettet. Möchtest du ihn wirklich aus dieser Ansicht entfernen?')) {
+                return;
+            }
+        } else {
+            if (!await ConfirmDialog.show(`Möchtest du den Knoten "${nodeName}" wirklich löschen?`)) {
+                return;
+            }
+        }
+
+        this.deleteNodeSilent(node);
+    }
+
+    public deleteNodeSilent(node: FlowElement) {
+        const nodeName = node.Name || node.name;
+        const nodeType = node.getType()?.toLowerCase(); // Normalize for safety
+
+        logger.info(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
+
+        if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'httpaction') {
+            FlowGraphManager.lifecycleLogger.info(`Action "${nodeName}" wurde aus dem Flow-Diagramm entfernt.`);
+        }
+
+        this.removeNode(node.id);
+        this.host.syncToProject();
+
+        // Check if the definition should also be removed
+        if (nodeName && nodeName !== 'Action' && nodeName !== 'Task' && nodeName !== 'Variable') {
+            setTimeout(async () => {
+                const refs = projectReferenceTracker.findReferences(nodeName);
+                if (refs.length === 0) {
+                    const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
+                        /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
+                        /^Task\d*$/.test(nodeName) || /^Aufruf\d*$/.test(nodeName) ||
+                        /^Variable\d*$/.test(nodeName);
+
+                    if (isGenericName) {
+                        if (nodeType === 'task') this.deleteElementFromProject('task', nodeName, undefined, true);
+                        else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                        else this.deleteElementFromProject('action', nodeName, undefined, true);
+                    } else {
+                        if (await ConfirmDialog.show(`Das Element "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll die Definition auch Global aus dem Projekt gelöscht werden?`)) {
+                            if (nodeType === 'task') this.deleteElementFromProject('task', nodeName, undefined, true);
+                            else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                            else this.deleteElementFromProject('action', nodeName, undefined, true);
+                        }
+                    }
+                }
+            }, 500);
+        }
+
+        // CENTRAL UI SYNC
+        mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+    }
+
+    public removeNode(id: string) {
+        const node = this.host.nodes.find(n => n.id === id);
+        if (!node) return;
+
+        // Visual remove
+        const el = node.getElement();
+        if (el && el.parentNode === this.host.canvas) {
+            this.host.canvas.removeChild(el);
+        }
+
+        // State remove
+        const idx = this.host.nodes.indexOf(node);
+        if (idx !== -1) this.host.nodes.splice(idx, 1);
+
+        // Remove connections
+        const toDelete = this.host.connections.filter(c => c.startTarget === node || c.endTarget === node);
+        toDelete.forEach(c => this.deleteConnection(c));
+
+        if (this.host.selectedNode === node) {
+            this.host.selectNode(null);
+        }
+
+        if (this.host.onNodesChanged) this.host.onNodesChanged(this.host.nodes);
+    }
+
+    public clearFlowCanvas(): void {
+        this.host.nodes.forEach(n => {
+            if (n.getElement().parentNode === this.host.canvas) {
+                this.host.canvas.removeChild(n.getElement());
+            }
+        });
+        this.host.nodes.length = 0; // Better way to clear array if public
+
+        this.host.connections.forEach(c => {
+            c.destroy();
+        });
+        this.host.connections.length = 0;
+    }
+
+    public deleteConnection(conn: FlowConnection) {
+        logger.info(`%c[FlowGraphManager:DELETE_CONN] ID=${conn.id}`, 'background: #440000; color: #fff');
+        const index = this.host.connections.indexOf(conn);
+        if (index !== -1) {
+            this.host.connections.splice(index, 1);
+            conn.getElement().remove();
+            conn.getStartHandle().remove();
+            conn.getEndHandle().remove();
+            if (this.host.selectedConnection === conn) {
+                this.host.selectedConnection = null;
+            }
+            this.host.syncToProject();
+            // Trigger logic sync immediately after connection deletion
+            if (this.host.syncManager) {
+                this.host.syncManager.syncToProject(this.host.currentFlowContext);
+            }
+        }
+    }
+
+    public restoreConnection(data: any) {
+        // Use Flow_Synchronization for connection restoration
+        const connLogger = Logger.get('FlowGraphManager', 'Flow_Synchronization');
+
+        const startId = data.startTargetId;
+        const endId = data.endTargetId;
+
+        const startNode = startId ? this.host.nodes.find(n => n.id === startId || (n as any).name === startId) : null;
+        const endNode = endId ? this.host.nodes.find(n => n.id === endId || (n as any).name === endId) : null;
+
+        let x1 = data.startX || 0;
+        let y1 = data.startY || 0;
+        let x2 = data.endX || 0;
+        let y2 = data.endY || 0;
+
+        const conn = new FlowConnection(this.host.canvas, x1, y1, x2, y2, data.id);
+        conn.setGridConfig(this.host.flowStage.cellSize);
+        if (data.data) conn.data = { ...data.data };
+
+        if (startNode) {
+            conn.attachStart(startNode);
+        }
+        if (endNode) {
+            conn.attachEnd(endNode);
+        }
+
+        conn.updatePosition();
+        this.host.connections.push(conn);
+        this.host.setupConnectionListeners(conn);
+
+        const status = (startNode && endNode) ? 'attached' : (startNode || endNode ? 'partially-attached' : 'floating');
+        connLogger.info(`[TRACE] restoreConnection successful: ID=${conn.id}, Status=${status}, Nodes: ${startId || 'none'} -> ${endId || 'none'}`);
+    }
+
+    public deleteElementFromProject(type: 'action' | 'task' | 'variable', name: string, _index?: number, _force: boolean = false) {
+        if (!this.host.project) return;
+
+        if (type === 'action') {
+            RefactoringManager.deleteAction(this.host.project, name);
+            if (this.host.onProjectChange) this.host.onProjectChange();
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+
+        } else if (type === 'task') {
+            RefactoringManager.deleteTask(this.host.project, name);
+            if (this.host.onProjectChange) this.host.onProjectChange();
+            this.host.updateFlowSelector();
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+
+        } else if ((type as string).toLowerCase() === 'variable') {
+            RefactoringManager.deleteVariable(this.host.project, name);
+            if (this.host.onProjectChange) this.host.onProjectChange();
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+        }
+    }
+}

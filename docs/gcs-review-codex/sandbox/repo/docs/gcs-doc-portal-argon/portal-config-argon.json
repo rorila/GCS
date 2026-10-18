@@ -1,0 +1,91 @@
+{
+  "portalId": "gcs-doc-portal-argon",
+  "title": "GCS Documentation Portal",
+  "subtitle": "Autoren-Handbuch · Komponentenreferenz · Feature-Katalog · Systemarchitektur · Entwicklerreferenz",
+  "edition": "Argon Modern Portal Edition",
+  "version": "1.0.0",
+  "sources": {
+    "userGuideDir": "docs/user-guide",
+    "componentsDir": "docs/reference/components",
+    "featuresDir": "docs/features",
+    "architectureDir": "docs/architecture",
+    "inventoryDir": "docs/inventory",
+    "inventoryJson": "docs/inventory/FEATURE-INVENTORY.json",
+    "actionMetadataJson": "docs/inventory/action-metadata.json",
+    "schemasDir": "docs/schemas",
+    "developerDocs": [
+      {
+        "id": "guidelines",
+        "title": "Developer Guidelines & Arbeitsanweisungen",
+        "category": "Standards & Workflow",
+        "path": "DEVELOPER_GUIDELINES.md",
+        "summary": "Verbindliche Entwicklungsrichtlinien, Reaktivitäts-Standards, Blueprint-Regeln, DO-NOT-Leitplanken und Testpflichten."
+      },
+      {
+        "id": "runtime-guide",
+        "title": "GCS Runtime & Ausführungs-Leitfaden",
+        "category": "Runtime & Engine",
+        "path": "docs/runtime-guide.md",
+        "summary": "Technische Referenz zur GameRuntime, TaskExecutor, ActionRegistry, Stage-Lebenszyklus und Variablenauflösung."
+      },
+      {
+        "id": "stage-interfaces",
+        "title": "Externe Stage-Schnittstellen & Event-Vertrag",
+        "category": "Runtime & Engine",
+        "path": "docs/Stage-Schnittstellen.md",
+        "summary": "Deklarative Stage-Ein- und Ausgänge (stage_input, stage_output), JSON-Nutzdaten und Korrelationskennungen."
+      },
+      {
+        "id": "id-schema",
+        "title": "ID-Schema & 3-Achsen-Statusmodell",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/ID-SCHEMA.md",
+        "summary": "Verbindliches Schema für FEAT-, COMP- und DOC-IDs sowie Entwicklungs-, Test- und Dokumentationsstatus."
+      },
+      {
+        "id": "technical-debt",
+        "title": "Technical Debt & Architektur-Befunde (TD-001 bis TD-017)",
+        "category": "Qualität & Befunde",
+        "path": "docs/inventory/TECHNICAL-DEBT.md",
+        "summary": "Kuratierte Liste erkannter technischer Schulden, Inkonsistenzen und priorisierter Lösungsoptionen."
+      },
+      {
+        "id": "security-plan",
+        "title": "Security-Plan & XSS-/Sandbox-Härtung",
+        "category": "Sicherheit",
+        "path": "docs/inventory/SECURITY-PLAN.md",
+        "summary": "Sicherheitsarchitektur, DOMPurify-Härtung, Electron-Pfadschutz und Vermeidung von dynamischer Code-Ausführung."
+      },
+      {
+        "id": "tooling",
+        "title": "Dokumentations- & Analyse-Tooling",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/TOOLING.md",
+        "summary": "Skripte und Generatoren zur automatisierten Extraktion von Komponenten-Karten, Action-Metadaten und Inventaren."
+      },
+      {
+        "id": "phase1-report",
+        "title": "Phase-1-Abschlussbericht (Inventarisierung)",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/PHASE1-ABSCHLUSSBERICHT.md",
+        "summary": "Zusammenfassung der Bestandsaufnahme über 12 Features, 128 Komponenten und 242 Dokumente."
+      }
+    ]
+  },
+  "swe2Integration": {
+    "enabled": true,
+    "schemaVersion": "1.0.0",
+    "description": "Dokumentierte Datenschnittstelle für die spätere Einbindung strukturierter KI-Agenten-Referenzdaten von SWE-2.",
+    "joinKeys": {
+      "component": "id (COMP-xxxx) oder name (T*)",
+      "feature": "id (FEAT-xxxx)",
+      "document": "id (DOC-xxxx) oder file (relativer Pfad)",
+      "action": "type (Action-Name)"
+    },
+    "optionalOverlayFiles": [
+      "docs/inventory/ai-agent-reference.json",
+      "docs/inventory/swe2-component-contracts.json",
+      "docs/inventory/swe2-action-contracts.json"
+    ]
+  }
+}

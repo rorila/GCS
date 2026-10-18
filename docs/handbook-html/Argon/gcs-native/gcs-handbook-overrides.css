@@ -1,0 +1,28 @@
+/* Argon GCS Native Edition — Stylesheet für TRichText & TouchHardening-Freigabe */
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1120; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+#run-stage { position: absolute; transform-origin: top left; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); }
+.TRichText, .TRichText * { touch-action: pan-y !important; user-select: text !important; -webkit-user-select: text !important; }
+#run-stage .gcs-doc-article { line-height: 1.65; font-size: 15px; }
+#run-stage .gcs-doc-header { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid rgba(16, 185, 129, 0.35); }
+#run-stage .gcs-h1 { margin: 10px 0 6px; font-size: 1.55em; }
+#run-stage .gcs-h2 { margin: 24px 0 10px; padding-bottom: 4px; border-bottom: 1px solid rgba(148, 163, 184, 0.3); font-size: 1.25em; }
+#run-stage .gcs-h3 { margin: 18px 0 8px; font-size: 1.08em; }
+#run-stage .gcs-status-note { font-size: 0.85em; opacity: 0.8; }
+#run-stage .gcs-callout { padding: 12px 16px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.1); }
+#run-stage .gcs-callout-proof { border-left-color: #64748b; background: rgba(100, 116, 139, 0.12); }
+#run-stage .gcs-callout-info { border-left-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+#run-stage .gcs-speaker-box { padding: 14px 18px; border-radius: 10px; margin: 14px 0; border: 2px solid #a855f7; background: rgba(168, 85, 247, 0.12); }
+#run-stage .gcs-speaker-title { font-weight: 700; color: #9333ea; margin-bottom: 6px; }
+#run-stage .gcs-media-slot { border: 2px dashed rgba(148, 163, 184, 0.6); border-radius: 10px; padding: 16px; margin: 14px 0; text-align: center; background: rgba(148, 163, 184, 0.08); }
+#run-stage .gcs-media-path { display: block; font-size: 0.82em; opacity: 0.7; margin-top: 4px; }
+#run-stage .gcs-table { margin: 14px 0; border: 1px solid rgba(148, 163, 184, 0.45); border-radius: 8px; overflow: hidden; }
+#run-stage .gcs-tr { display: flex; border-bottom: 1px solid rgba(148, 163, 184, 0.25); }
+#run-stage .gcs-tr:last-child { border-bottom: 0; }
+#run-stage .gcs-tr-head { font-weight: 700; background: rgba(148, 163, 184, 0.18); }
+#run-stage .gcs-th, #run-stage .gcs-td { flex: 1; padding: 7px 10px; font-size: 0.92em; border-right: 1px solid rgba(148, 163, 184, 0.25); }
+#run-stage .gcs-th:last-child, #run-stage .gcs-td:last-child { border-right: 0; }
+#run-stage .gcs-pre { background: rgba(15, 23, 42, 0.88); color: #e2e8f0; padding: 12px 14px; border-radius: 8px; overflow-x: auto; }
+#run-stage .gcs-code, #run-stage .gcs-code-comp { background: rgba(99, 102, 241, 0.16); padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.9em; }
+#run-stage .gcs-checklist-wrap { padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.06); margin: 14px 0; }
+#run-stage .gcs-checklist-title { font-weight: 700; margin-bottom: 6px; }
+#run-stage .gcs-inline-link { color: #10b981; font-weight: 600; text-decoration: underline; cursor: pointer; }

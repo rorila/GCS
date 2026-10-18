@@ -32,6 +32,7 @@ export interface EditorRenderHost {
     updateStageLabel(): void;
     objectStore: ObjectStore;
     getShelfObjects?(): any[];
+    refreshSidepanel?(): void;
 }
 
 export class EditorRenderManager {
@@ -103,6 +104,8 @@ export class EditorRenderManager {
 
             // ARCHITEKTUR: ObjectStore als Single Source of Truth aktualisieren.
             this.host.objectStore?.setObjects(allObjects);
+            // Auch refreshAllViews() rendert direkt über diesen Manager.
+            this.host.refreshSidepanel?.();
         } catch (err) {
             this.logger.error('Render error:', err);
         }

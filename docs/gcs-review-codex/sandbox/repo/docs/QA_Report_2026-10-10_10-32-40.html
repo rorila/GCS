@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GCS QA-Bericht — 10.10.2026, 10:32:40</title>
+<style>
+:root{--bg:#0f1420;--card:#182130;--line:#2a3547;--txt:#e6ecf5;--mut:#8fa0b8;--ok:#34d399;--fail:#f87171;--blocked:#fbbf24;--acc:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#141b2b,#141b2bee);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{font-size:18px;margin:0;font-weight:650}
+.meta{color:var(--mut);font-size:12.5px}
+.pill{padding:4px 12px;border-radius:999px;font-weight:600;font-size:12.5px}
+.pill.ok{background:#34d39922;color:var(--ok);border:1px solid #34d39955}
+.pill.fail{background:#f8717122;color:var(--fail);border:1px solid #f8717155}
+main{max-width:1100px;margin:0 auto;padding:20px 24px 60px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 26px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:700}.kpi .l{color:var(--mut);font-size:12px}
+.kpi.ok .v{color:var(--ok)}.kpi.fail .v{color:var(--fail)}.kpi.blocked .v{color:var(--blocked)}
+.controls{display:flex;gap:10px;margin-bottom:18px}
+.controls input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 12px;font:inherit}
+.controls input:focus{outline:1px solid var(--acc)}
+.controls button{background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 14px;cursor:pointer;font:inherit}
+.controls button:hover{border-color:var(--acc)}
+details.group{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+details.group>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;font-weight:600}
+details.group>summary::-webkit-details-marker{display:none}
+details.group>summary::before{content:'▸';color:var(--mut);transition:transform .15s}
+details.group[open]>summary::before{transform:rotate(90deg)}
+.gname{flex:1}.chips{display:flex;gap:6px}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:999px;font-weight:600}
+.chip.ok{background:#34d3991e;color:var(--ok)}.chip.fail{background:#f871711e;color:var(--fail)}.chip.blocked{background:#fbbf241e;color:var(--blocked)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:8px 16px;border-top:1px solid var(--line)}
+td{padding:9px 16px;border-top:1px solid var(--line);vertical-align:top}
+tr.row.fail td{background:#f8717108}
+.badge{white-space:nowrap;font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px}
+.badge.ok{background:#34d3991e;color:var(--ok)}.badge.fail{background:#f871711e;color:var(--fail)}.badge.blocked{background:#fbbf241e;color:var(--blocked)}
+td.id{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap;color:var(--acc)}
+.theme{display:block;color:var(--mut);font-size:11px;font-family:inherit}
+.detail{color:var(--mut);font-size:12px;margin-top:3px}
+h2{font-size:14px;color:var(--mut);margin:28px 0 10px;text-transform:uppercase;letter-spacing:.5px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
+.hidden{display:none}
+</style></head><body>
+<header>
+  <h1>🛡️ GCS QA-Bericht</h1>
+  <span class="pill ok">ALLE TESTS BESTANDEN</span>
+  <span class="meta">10.10.2026, 10:32:40 · Gesamtlauf 2.5s</span>
+</header>
+<main>
+  <section class="kpis">
+    <div class="kpi"><div class="v">388</div><div class="l">Prüfungen gesamt</div></div>
+    <div class="kpi ok"><div class="v">388</div><div class="l">Bestanden</div></div>
+    <div class="kpi fail"><div class="v">0</div><div class="l">Fehlgeschlagen</div></div>
+    <div class="kpi blocked"><div class="v">0</div><div class="l">Blockiert</div></div>
+    <div class="kpi"><div class="v">48</div><div class="l">Themenbereiche</div></div>
+  </section>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Tests durchsuchen … (z.B. ELTERN, Spiel, Sitzung)">
+    <button id="onlyFail">Nur offene Punkte</button>
+  </div>
+  
+    <details class="group" open>
+      <summary><span class="gname">Action CRUD</span><span class="chips"><span class="chip ok">4 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Action Create<div class="detail">Action erfolgreich in Blueprint-Stage erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Action Read<div class="detail">Action-Eigenschaften korrekt gelesen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Action Update (Rename)<div class="detail">Refactoring erfolgreich: Task &amp; FlowChart aktualisiert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Action Delete<div class="detail">Aktion (Normal &amp; Data) restlos entfernt.</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Action Registration</span><span class="chips"><span class="chip ok">3 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Action-Registrierung beim Drop<div class="detail">Action gefunden, Target=Box1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Global Scope Handling<div class="detail">In Projekt-Aktionen gefunden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Stage-Scope Fix: Action in Task-Stage registriert<div class="detail">Action in Stage A gefunden (nicht in Stage B)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Action Stage Routing &amp; Duplicates</span><span class="chips"><span class="chip ok">9 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-1 createAction routes to target stage (not blueprint)<div class="detail">Action in stage_main, nicht in Blueprint.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-2 fallback routes to active stage (not blueprint)<div class="detail">Fallback in Blueprint-Stage (korrekt ohne Editor).</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-3 cross-stage override allowed (per-stage uniqueness only)<div class="detail">Beide Definitionen koexistieren mit eigenen Werten.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-4 minimal link skipped<div class="detail">Reine Referenz erzeugt keine Action-Definition.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-5 validator ignores cross-stage same-name (allowed override)<div class="detail">Kein Konflikt gemeldet.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-6 validator detects intra-stage duplicate<div class="detail">Intra-Stage-Duplikat als error gemeldet.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-7 auto-repair removes intra-stage phantom hull<div class="detail">Phantom entfernt, echte Definition bleibt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-7b auto-repair preserves real intra-stage duplicates<div class="detail">Beide bleiben, error gemeldet.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TC-8 update keeps single entry, fields refreshed<div class="detail">Update korrekt; keine Duplikate.</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">AgentController</span><span class="chips"><span class="chip ok">42 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Record-API: list/field ohne erfundenes key</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Record-API: fehlende Listenparameter ablehnen</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addObject — verschiedene Namen ohne IDs</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addObject — Upsert über vorhandenen Namen</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addObject — Upsert über vorhandene ID</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addTaskCall — Gutfall<div class="detail">Task-Referenz korrekt eingefügt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addTaskCall — Schlechtfall<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>setTaskTriggerMode — Gutfall<div class="detail">TriggerMode korrekt gesetzt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>setTaskTriggerMode — Schlechtfall<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addTaskParam — Gutfall<div class="detail">2 Parameter korrekt hinzugefügt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addTaskParam — Update<div class="detail">Param aktualisiert, kein Duplikat.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>moveActionInSequence — Gutfall<div class="detail">Reihenfolge korrekt: B, C, A.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>moveActionInSequence — Schlechtfall<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createSprite — Gutfall<div class="detail">Sprite mit Physik-Defaults korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createLabel — Gutfall<div class="detail">Label mit Binding + Style korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>setSpriteCollision — Gutfall<div class="detail">Collision korrekt gesetzt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>setSpriteVelocity — Gutfall<div class="detail">Velocity korrekt gesetzt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>getComponentSchema — Gutfall<div class="detail">TSprite: 27 Props, 12 Events. TTimer: 3 Methods. Unknown: null.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addVariable — Threshold mit Tasks<div class="detail">Threshold-Variable korrekt mit Tasks erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>connectVariableEvent — Gutfall<div class="detail">Variable-Event korrekt verbunden.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>connectVariableEvent — Schlechtfall<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createTimer / createIntervalTimer<div class="detail">Timer korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createThresholdVariable<div class="detail">Stage-Threshold-Variable korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addAction — Neue Action-Typen<div class="detail">Neue Action-Typen korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>validate — keine fehlenden Referenzen<div class="detail">Validierung ohne Fehler.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integration: PingPong via API<div class="detail">Vollständiges PingPong erstellt: 5 Objekte, 3 Tasks, 2 Variablen, Events gebunden. Validierung: 3 Warnungen, 0 Fehler.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>executeBatch — Gutfall<div class="detail">4 Ops erfolgreich: Variable + Task + Action + TriggerMode.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>executeBatch — Rollback<div class="detail">Fehler erkannt + Variable rollbacked.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integration: Tennis via Batch<div class="detail">Tennis-Spiel komplett: 20 Batch-Ops, 3 Stages, 6 Objekte, 3 Tasks, 3 Variablen, Events gebunden, Validierung OK.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integration: Spiel mit Shortcuts<div class="detail">5 Objekte (3 Sprites + 2 Labels), 2 Variablen, 1 Task, Event gebunden.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Gutfall<div class="detail">ForEach-Sequenzitem korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Schlechtfall (leere sourceArray)<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addWhile — Gutfall<div class="detail">While-Sequenzitem korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addWhile — Schlechtfall (leere conditionVariable)<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addFor — Gutfall<div class="detail">For-Sequenzitem korrekt erstellt.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addFor — Schlechtfall (step = 0)<div class="detail">Fehler korrekt geworfen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>validate — Loop-Body-Actions nicht als verwaist markiert<div class="detail">Validierung korrekt: keine Fehler, keine false-positiven Warnungen.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>generateTaskFlow — Loop-Node in flowLayout<div class="detail">Loop-Node 'ForEach: el in list' korrekt im flowLayout.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Map iterationMode=keys<div class="detail">Map-Keys-Iteration korrekt konfiguriert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Map iterationMode=values<div class="detail">Map-Values-Iteration korrekt konfiguriert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Map iterationMode=entries<div class="detail">Map-Entries-Iteration korrekt konfiguriert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>addForeach — Schlechtfall (entries ohne keyVar)<div class="detail">Fehler korrekt geworfen.</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">AgentScriptIO</span><span class="chips"><span class="chip ok">49 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export Objekt (backgroundImage)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export Task</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export Task (Stage-Action)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export Scope</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export Stage Config</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Import Stage Config</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Stage-Config Roundtrip (generisch)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ID-Mismatch Fallback</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Condition Roundtrip (Array-Form)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Condition Roundtrip (Shortcut-Form)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Condition Roundtrip (body/elseBody-Form)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Variablen-Scope Roundtrip (global bleibt global)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Import Variable</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Konflikt Error-Modus</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Konflikt Rename-Modus</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>DryRun</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Asset Export</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Asset Warnung</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Validator Methode</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Asset Remap</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Konflikt Override</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Selection Export</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Repository</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — Gutfall</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — Update (kein Duplikat)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — featureId-Sync</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — featureId-Entfernung</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — Schlechtfall (fehlende id)<div class="detail">Feature requires an id.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>createFeature — Schlechtfall (Stage nicht gefunden)<div class="detail">Stage 'stage_ghost' not found.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>deleteFeature — Gutfall</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>exportFeature — Gutfall</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>exportFeature — Schlechtfall (keine Tasks)<div class="detail">Keine Tasks für Feature 'feat-empty' gefunden.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Daten frisch von Platte (kein Feld) → accept</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Basis == Platte → accept</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: neue Datei (null == null) → accept</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard (Schlechtfall): alter Browserstand R1, KI-Datei R2 → conflict</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard (Schlechtfall): unverifizierter Browserstand (null), Datei existiert → conflict</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Undo-Snapshot nach eigenem AutoSave (Session-Revision) → accept</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard (Schlechtfall): Session-Revision unverifiziert → conflict</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>readBaseRevision unterscheidet „fehlt&quot; von „null&quot;</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>isServerManagedPath: relativ ja, Windows-absolut nein</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>stampDiskProject setzt _sourcePath und _diskRevision</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>project-file liefert Inhalt aus game-server/public (inkl. BOM-Toleranz)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>project-file und project-version liefern identische Revision</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Kette (Schlechtfall): Browserstand R1 vs. KI-Datei R2 → Konflikt erkannt</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Kette: AutoSave mit Basis-Revision wird abgelehnt (409), KI-Stand bleibt erhalten</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>project-file: fehlende Datei → exists=false</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>project-file (Schlechtfall): Pfad außerhalb projects/ → 403</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>project-file (Schlechtfall): ungültiges JSON → 422</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">CMS UI-Integritaet</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>CMS UI-Integritaet und Generator-Wiederholung<div class="detail">10 Einzeltests bestanden</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Code Quality &amp; Security Guards</span><span class="chips"><span class="chip ok">6 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Component Registrierung (Barrel + Registry)<div class="detail">Alle 107 Komponenten korrekt registriert</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: DTO-to-Registry Compliance (T-11b)<div class="detail">Alle serialisierbaren Klassen haben eine Factory</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Keine unerlaubten console.* Aufrufe<div class="detail">Erlaubt (Baseline 32), Aktuell: 9</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Dateigroesse &lt; 1000 Zeilen<div class="detail">Baseline 12 eingehalten, Aktuell: 3</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: bundle:runtime Freshness<div class="detail">Bundle aktuell</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Guard: Kein new Function() RCE-Risiko<div class="detail">Sauber</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Component Events</span><span class="chips"><span class="chip ok">29 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TComponent.getEvents includes Hover Events<div class="detail">Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd, onFlipMidpoint, onFocus, onBlur</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ComponentRegistry Fallback includes Hover Events<div class="detail">Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TVariable</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TIntegerVariable</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TListVariable</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TStringMap</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TTimer</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TIntervalTimer</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TGameLoop</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TGameState</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TInputController</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TAudio</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TSpawner</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TAnimation</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TDataStore</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TAPIServer</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TGameServer</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: THandshake</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: THeartbeat</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TStageController</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TObjectList</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: TImageList</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nonvisual Inspector: DTO-Werte bleiben erhalten</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TButton</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TSprite</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TSpriteTemplate</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TToast</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TStatusBar</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Visueller Inspector bleibt erhalten: TStickyNote</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Coordinate Binding</span><span class="chips"><span class="chip ok">3 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>should resolve numeric bindings in x and y coordinates</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>should resolve numeric bindings in width and height</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>should handle nested math in coordinates</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Electron Security</span><span class="chips"><span class="chip ok">5 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Safe Path Access (Inside UserData)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Path Traversal Breakout 1 (../ trick)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Arbitrary Absolute File Path Access</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Temp Directory Access</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Dynamic Whitelist (Dialog File Selection)</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Event Actions (bind/unbind)</span><span class="chips"><span class="chip ok">10 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event registered</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>unbind_event registered</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event sets events[event] = task<div class="detail">{&quot;onClick&quot;:&quot;TaskA&quot;}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event with empty task removes binding<div class="detail">{}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event overwrites existing binding<div class="detail">{&quot;onClick&quot;:&quot;NewTask&quot;}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>unbind_event removes only specified event<div class="detail">{&quot;onHover&quot;:&quot;TaskB&quot;}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event initializes events object if missing<div class="detail">{&quot;onCollision&quot;:&quot;Boom&quot;}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event with unknown target does not throw</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event ignores empty event name</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>bind_event metadata exposes target/event/task params<div class="detail">params: target,event,task</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Export Integrity</span><span class="chips"><span class="chip ok">5 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export-Integrität: GameExporter.ts</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export-Integrität: ProjectPersistenceService.ts</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export-Integrität: player-standalone.ts</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export-Integrität: GameRuntime.ts</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Export-Integrität: GameLoopManager.ts</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">FlowDataAction Inspector</span><span class="chips"><span class="chip ok">8 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Inspector enthält selectFields<div class="detail">selectFields: vorhanden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Sektionen-Reihenfolge korrekt<div class="detail">Erwartet: Allgemein → FROM / Datenquelle → SELECT / Felder → INTO / Ergebnis → WHERE / Filter → HTTP / Request → Aktionen, Gefunden: Allgemein → FROM / Datenquelle → SELECT / Felder → INTO / Ergebnis → WHERE / Filter → HTTP / Request → Aktionen</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>dataStore source=dataStores<div class="detail">Source: dataStores</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>queryProperty source=dataStoreFields<div class="detail">Source: dataStoreFields</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>queryProperty type=select<div class="detail">Type: select</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>resultVariable in INTO-Sektion<div class="detail">Sektion: INTO / Ergebnis</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>GROUP_COLORS Mapping<div class="detail">Einträge: 29, FROM: true, WHERE: true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Erweiterte Operatoren (CONTAINS, IN)<div class="detail">CONTAINS: true, IN: true</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">FlowSync</span><span class="chips"><span class="chip ok">5 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowSync: Elemente = Sequence-Länge<div class="detail">Flow-Actions=2, Sequence=2</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowSync: Action-Namen konsistent<div class="detail">Flow=[ResetScore,ShowWelcome], Seq=[ResetScore,ShowWelcome]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowSync: Keine Blueprint/Stage Task-Duplikate<div class="detail">Duplikate=[]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowSync: Connections referenzieren gültige Elemente<div class="detail">Alle Connections gültig</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowSync: Korrupte Task-Daten erkannt<div class="detail">Gefunden: 2 korrupte Einträge</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">GameLoopManager Physics</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>GameLoopManager Tests</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Gezieltes Auffrischen</span><span class="chips"><span class="chip ok">5 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ReactiveRuntime: nur abhaengige Objekte je Variable<div class="detail">1 Objekt(e) fuer &quot;timeLeft&quot; (erwartet 1: Zeitanzeige)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ReactiveRuntime: alle Abhaengigen einer Variable<div class="detail">2 Objekt(e) fuer &quot;score&quot; (erwartet 2)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ReactiveRuntime: unbekannte Variable meldet leer<div class="detail">0 Objekt(e) (erwartet 0 als Rueckfall-Signal)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ReactiveRuntime: zusammengesetzte Abhaengigkeit erkannt<div class="detail">1 Objekt(e) fuer &quot;StageTimer&quot; (erwartet 1)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ReactiveRuntime: Zeitanzeige frischt nicht die Karten auf<div class="detail">1 von 33 Objekten (vorher alle 33)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Jump &amp; Run Components</span><span class="chips"><span class="chip ok">7 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>JumpAndRun Komponenten registriert</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TParallaxBackground lokale Scroll-Integration</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TParallaxBackground scrollSource Binding</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TSpawner Spawn &amp; Recycle</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TSpeedlines Properties</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TSprite Gravity</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>EffectActions shake_screen Registration</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Login-Logic</span><span class="chips"><span class="chip ok">5 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TestUser Login</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Admin Login</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Bug User Login</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Ungültiger PIN</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Teil-Eingabe (Prefix)</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Mathe-Quiz</span><span class="chips"><span class="chip ok">10 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Grundstruktur: 2 Stages<div class="detail">Blueprint + Quiz</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Blueprint: GameLoop + GameState<div class="detail">GameLoop=true, GameState=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Quiz-Objekte: Random, Score, Timer, Edit<div class="detail">Zahl1=true, Zahl2=true, Score=true, Timer=true, Edit=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>5 Tasks vorhanden<div class="detail">Tasks: NeueAufgabe, QuizStarten, OnTimerTick, AntwortPruefen, QuizBeenden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>AntwortPruefen: Condition-Branch<div class="detail">Verzweigung für Richtig/Falsch vorhanden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Bindings: Zahl1Label + ScoreLabel<div class="detail">Zahl1Label.text=&quot;${Zahl1}&quot;, ScoreLabel.text=&quot;${Score}&quot;</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Events: Start, OK, Timer, GameOver<div class="detail">Start=QuizStarten, OK=AntwortPruefen, Timer=OnTimerTick, Max=QuizBeenden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TaskCall: QuizStarten → NeueAufgabe<div class="detail">Task-Aufruf vorhanden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>FlowLayouts: Alle 5 Tasks haben Layouts<div class="detail">5/5 Tasks mit FlowLayout</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Validierung: 0 Fehler<div class="detail">0 Warnungen, 0 Fehler</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Pascal Code Generator</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Nested Task Declaration Generation<div class="detail">Recursive Tasks successfully output</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Project Integrity</span><span class="chips"><span class="chip ok">8 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Projekt laden<div class="detail">Stages: 4</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Keine verwaisten FlowCharts<div class="detail">Alle FlowCharts haben Tasks</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Keine Task-Duplikate<div class="detail">Keine Duplikate</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Event→Task-Mappings gültig<div class="detail">Alle Mappings OK</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Actions in Sequences definiert<div class="detail">Alle Actions gefunden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Blueprint-Stage vorhanden<div class="detail">stage_blueprint gefunden</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Keine korrupten Task-Einträge<div class="detail">Alle Task-Namen gültig</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integrität: Keine Inline-Actions<div class="detail">Alle Sequences nutzen Referenzen</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">ProjectStore</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ProjectStore Tests</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Raketen-Countdown</span><span class="chips"><span class="chip ok">2 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Integration: Raketen-Countdown via Batch<div class="detail">Vollständiges Raketen-Demo: 20 Batch-Ops, 4 Objekte, 2 Blueprint-Objekte (GameLoop+GameState), 3 Tasks, 6 Actions, 1 Variable, 3 Events, Binding OK. Validierung: 3 Warnungen, 0 Fehler.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Struktur: Sprite + Task + Action<div class="detail">Sprite mit velocityY=0, Task mit set_property Action korrekt erstellt.</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">RefactoringManager</span><span class="chips"><span class="chip ok">10 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Rename Task: AttemptLogin → DoLogin<div class="detail">Task=true, Event=true, ObjEvent=true, FlowChart=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Rename Action: ValidatePin → CheckPinCode<div class="detail">Action=true, Sequence=true, Flow=false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Rename Variable: currentUser → activeUser<div class="detail">Var=true, Formula=true, ResultVar=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Rename Object: LoginButton → SignInButton<div class="detail">Object=true, ActionTarget=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Delete Task: AttemptLogin<div class="detail">TaskGone=true, EventCleared=true, FlowChartGone=true, ObjEventCleared=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Delete Action: SetupVars<div class="detail">ActionGone=true, SequenceCleaned=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Delete Variable: pin<div class="detail">VariableGone=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Usage Report: AttemptLogin<div class="detail">Referenzen=2, Orte=2</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Sanitize: Root-Duplikate entfernt<div class="detail">Root-Tasks nach Sanitize=0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Delete Task: Bereinigt Variablen-Events<div class="detail">varEventCleared=true</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Renaming Robustness</span><span class="chips"><span class="chip ok">3 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Multi-Feld-Matching: Erfasst teil-aktualisierte Knoten<div class="detail">data.taskName=SolidTask, properties.name=SolidTask</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Condition-Update: thenTask/elseTask Referenzen<div class="detail">thenTask=SolidTask</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Case-Insensitivity: Erkennt &quot;task&quot; und &quot;TASK&quot;<div class="detail">lower=New, upper=New2</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SELECT COUNT(*)</span><span class="chips"><span class="chip ok">2 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TDataAction: SELECT count(*) Only<div class="detail">Expected: 3, Got: 3</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TDataAction: SELECT id, count(*)<div class="detail">Expected: Array(3) with count:1, Got: {&quot;id&quot;:1,&quot;count&quot;:1}</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Serialization</span><span class="chips"><span class="chip ok">10 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: TButton<div class="detail">className=TButton, name=TestButton, caption=Klick mich</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: TIntegerVariable<div class="detail">className=TIntegerVariable, value=42, isVariable=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: isVariable bleibt true<div class="detail">isVariable=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Unknown Class (kein Crash)<div class="detail">Ergebnis-Länge=0 (erwartet: 0)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Round-Trip (toJSON → hydrate)<div class="detail">name=MyShape, x=50, text=⭐</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Container mit Children<div class="detail">Children-Anzahl=2, Typen=[TButton, TLabel]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Events/Tasks-Fallback<div class="detail">events.onClick=DoLogin</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Style-Merge<div class="detail">bgColor=#333, borderRadius=8px</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: TSprite ImageList<div class="detail">imageListId=imglist_hero, imageIndex=2</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Hydrate: Prototype Pollution Regression<div class="detail">Object.prototype blieb unveraendert</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SidePanel</span><span class="chips"><span class="chip ok">4 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Defaults und Vererbung (TDialogRoot)<div class="detail">Alle Defaults korrekt (modal=false, centerOnShow=false).</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Synchronisation von side und slideDirection<div class="detail">Eigenschaft panelSide steuert slideDirection mit.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Serialisierung toDTO<div class="detail">Alle Side-Panel Eigenschaften korrekt serialisiert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>DOM Runtime Element<div class="detail">Methodengarantie: createRuntimeElement ist überladen.</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Smart-Mapping &amp; Discovery</span><span class="chips"><span class="chip ok">7 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SmartMapping: Root Extraction<div class="detail">Path: </div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SmartMapping: Single Level<div class="detail">Path: success</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SmartMapping: Nested Level<div class="detail">Path: data.user</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SmartMapping: Deep Property<div class="detail">Path: data.user.name</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SmartMapping: Invalid Path<div class="detail">Path: data.unknown</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Discovery: DB Keys found<div class="detail">Keys: users</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Discovery: Users collection exists</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SnapshotManager</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SnapshotManager Tests</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SpawnObject Variable Support</span><span class="chips"><span class="chip ok">3 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>spawn_object: Resolve templateId from variable<div class="detail">Expected bullet_id/50/60, got bullet_id/50/60</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>spawn_object: Resolve referenceObject from variable<div class="detail">Expected bullet_id/110/220, got bullet_id/110/220</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>spawn_object: Metadata check<div class="detail">templateId type: string, refObj type: string</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Spracheingabe und Karteikasten-Quiz</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Spracheingabe, Quizablauf und Transportgrenzen<div class="detail">21 Einzeltests bestanden</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Sprite-Geometrie</span><span class="chips"><span class="chip ok">15 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: Verzerrung 16:9-Frame in 5:3-Box<div class="detail">Frame 256x144, Verzerrung 1.0667 (erwartet &gt; 1.02)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: scaleX und scaleY getrennt ausgewiesen<div class="detail">scaleX=1.280 scaleY=1.200 (erwartet 1.280 / 1.200)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: containFit zentriert ohne Verzerrung<div class="detail">w=100% h=93.75% top=3.125% (erwartet 100 / 93.75 / 3.125)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: 1:1-Sheet bleibt unangetastet<div class="detail">Verzerrung 1.0000, Fit 100x100%, scale 1.000</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: hoher Frame in breiter Box<div class="detail">w=30.00% left=35.00% (erwartet 30 / 35)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: kleinste verzerrungsfreie Zellengroesse<div class="detail">Vorschlag 16x9 Zellen = 320x180px (erwartet 16x9 = 320x180)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: unpraktikables Verhaeltnis wird abgelehnt<div class="detail">255:143 ergibt 0 Vorschlaege (erwartet 0)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: empfohlene Sheet-Groesse fuer 1:1<div class="detail">400x360 (erwartet 400x360)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: Frame-Verschiebung 2x3, Frame 4<div class="detail">tx=0% ty=-66.667% (erwartet 0 / -66.667)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: letztes Frame verschiebt nicht ueber das Blatt hinaus<div class="detail">tx=-50% ty=-66.667% (erwartet -50 / -66.667)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: Einzelbild ohne Verschiebung<div class="detail">tx=0% ty=0%</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: fehlende Masse ergeben null<div class="detail">analyze() liefert null statt NaN-Werten</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: wholeFrameSize rundet auf ganze Frames<div class="detail">399x288@2x2 -&gt; 400x288 (Frame 200x144)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: wholeFrameSize haelt Frame-Raster ein<div class="detail">511x300@3x2 -&gt; 510x300 (Frame 170x150)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>SpriteGeometry: wholeFrameSize beschuetzt vor Null<div class="detail">0x0@2x2 -&gt; 1x1 pro Frame</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Stage-Import</span><span class="chips"><span class="chip ok">8 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Basis-Import (Objekte, Tasks, Actions, Variables)<div class="detail">2 Objekte, 1 Task, 2 Actions, 1 Variable korrekt kopiert</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>ID-Remap (keine Original-IDs)<div class="detail">Alle IDs neu generiert</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Blueprint-Merge (GlobalAction + GlobalTimer)<div class="detail">GlobalAction=true, GlobalTimer=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Duplikat-Schutz (kein Blueprint-Duplikat)<div class="detail">GlobalAction-Anzahl=1, Stages=4</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Blueprint → Standard (Type-Konvertierung)<div class="detail">Type=standard</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Stage ohne Abhängigkeiten<div class="detail">1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Events bleiben erhalten (Rakete.onClick)<div class="detail">onClick=StartCountdown</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>navigate_stage Auto-Remap<div class="detail">GoToSpiel.stageId=stage_import_1791621159199_iy (erwartet: stage_import_1791621159199_iy), BackToLobby.stageId=stage_import_1791621159199_b2 (erwartet: stage_import_1791621159199_b2)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Stage-Transition Regression</span><span class="chips"><span class="chip ok">26 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A1: handleStageChange enthält glm.init()<div class="detail">GameLoopManager wird bei Stage-Wechsel korrekt re-initialisiert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A2: slide-up nutzt cellSize-Division<div class="detail">slide-up Offset wird korrekt durch cellSize geteilt (Grid-Zellen statt Pixel).</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A3: handleStageChange KEIN eigener triggerStartAnimation<div class="detail">Korrekt: Animation wird nur über start() → initMainGame() ausgelöst.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A4: updateSpritePositions dedupliziert via Map<div class="detail">Map-basierte Deduplizierung vorhanden → kein Rubber-Banding.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A5: shouldAnimate filtert parentId-Kinder<div class="detail">parentId-Filter aktiv → Kinder reiten auf dem Parent mit (kein Drift).</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>A6: initMainGame enthält triggerStartAnimation<div class="detail">Animation wird korrekt in initMainGame ausgelöst (einziger Aufrufpunkt).</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B1: TDialogRoot Default-Werte<div class="detail">Alle Defaults korrekt: modal=true, closable=true, draggable=true, centerOnShow=true, visible=false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B2: show()/hide() Toggle-Zyklus<div class="detail">show/hide wechseln Sichtbarkeit korrekt, Doppelaufrufe sind idempotent.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B3: close() setzt visible=false<div class="detail">close() macht Dialog unsichtbar.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B4: cancel() setzt visible=false<div class="detail">cancel() macht Dialog unsichtbar.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B5: toggle() Zyklus<div class="detail">toggle() wechselt korrekt: false→true→false→true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>B6: toDTO() serialisiert Dialog-Properties<div class="detail">Alle Properties (modal, closable, draggable, centerOnShow, slideDirection, title, Events) korrekt serialisiert.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: API (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Controller (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Direkt (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Splash (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Legacy-Splash (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Reset (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Reset verzögert (direkt)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: API (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Controller (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Direkt (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Splash (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Legacy-Splash (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Reset (reaktiv)</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Runtime-Lifecycle: Reset verzögert (reaktiv)</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncRefactor P0: FlowAction Aliases</span><span class="chips"><span class="chip ok">6 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: actionType setzt type korrekt<div class="detail">def.type=navigate, proxy.type=navigate, proxy.actionType=navigate</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: changes liest both propertyChanges und changes<div class="detail">A(propertyChanges)=true, B(changes)=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: changes-Setter schreibt korrektes Feld<div class="detail">Legacy→propertyChanges=true, Modern→changes=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: variable ↔ variableName bidirektional<div class="detail">read=true, write=true, final=lives</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: method liest method und methodName<div class="detail">Legacy(methodName)=true, Modern(method)=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Alias: formula-Setter löscht Legacy expression<div class="detail">read=true, write=true, legacyDeleted=true, alias=true</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncRefactor P0: Inspector Writeback</span><span class="chips"><span class="chip ok">9 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: applyChange schreibt in SSoT<div class="detail">actionDef.target=NewSprite</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: applyChange spiegelt in this.data<div class="detail">data.target=NewSprite</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: type-Wechsel → Re-Render-Signal<div class="detail">reRender=true, type=navigate</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: effect-Wechsel → Re-Render-Signal<div class="detail">reRender=true, effect=explode</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: normaler Change → kein Re-Render<div class="detail">reRender=false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: Registry-Parameter ohne Setter → SSoT + data<div class="detail">SSoT.duration=500, data.duration=500</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: changes-Objekt → SSoT + data<div class="detail">SSoT.changes={&quot;visible&quot;:false,&quot;opacity&quot;:0.5}, data.changes={&quot;visible&quot;:false,&quot;opacity&quot;:0.5}</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: Konsistenz nach Mehrfach-applyChange<div class="detail">SSoT: target=B, type=navigate, url=/menu</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Writeback: FlowNodeFactory.createNode füllt Defaults<div class="detail">data.effect=fade, data.duration=300</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncRefactor P0: Store SET_PROPERTY</span><span class="chips"><span class="chip ok">6 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: SET_PROPERTY mutiert Ziel-Objekt<div class="detail">x: 10 → 99, dispatch=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: SET_PROPERTY mit Dot-Path (style.textAlign)<div class="detail">style.textAlign=right, dispatch=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: SET_PROPERTY ohne Projekt → false<div class="detail">dispatch=false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: Listener wird nach Mutation aufgerufen<div class="detail">listenerCalled=true, mutation.path=y</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: SET_PROPERTY auf Action-Definition<div class="detail">type=navigate, dispatch=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>LayerA: SET_PROPERTY Isolation — andere Objekte unverändert<div class="detail">target.x=42, action.type=property (unverändert: property)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncRefactor P0: SyncValidator Strict</span><span class="chips"><span class="chip ok">7 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R0: Sauberes Projekt → 0 Verletzungen<div class="detail">Keine Verletzungen</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R1: Verwaiste Action erkannt, NICHT repariert<div class="detail">R1-Verletzungen=1, Ghost noch da=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R2: FlowChart ohne Task erkannt, NICHT repariert<div class="detail">R2-Verletzungen=1, Phantom noch da=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R3: Kaputte Connection erkannt<div class="detail">R3-Verletzungen=1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R4: Typ-Desync erkannt<div class="detail">R4-Verletzungen=1, msg=Action &quot;BlueprintAction&quot;: Flow-Node hat type=&quot;navigate&quot;, Definition hat type=&quot;property&quot; — Typ-Desync!</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R5: Task-Duplikat erkannt<div class="detail">R5-Verletzungen=0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Strict R6: FlowChart Split-Brain erkannt, NICHT repariert<div class="detail">R6-Verletzungen=1, Root noch da=true</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncRefactor P1: SchemaMigrator</span><span class="chips"><span class="chip ok">12 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Alle Aliase normalisiert<div class="detail">type=property, changes=true, variableName=score, method=doStuff, formula=2 + 2</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Gemischt → kanonisch gewinnt<div class="detail">type=navigate, changes.x=1, aliasDeleted=true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: schemaVersion = 4.0.0<div class="detail">schemaVersion=4.0.0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Idempotenz (2. Aufruf = 0 Änderungen)<div class="detail">1. Durchlauf: 13 migriert, 2. Durchlauf: 0 migriert, JSON identisch: true</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Leeres Projekt → keine Exception<div class="detail">null=0, empty=0, minimal=0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: FlowChart node.data migriert<div class="detail">type=animate, formula=shake, method=play</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Stage-Actions migriert<div class="detail">type=property, changes.color=red</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase1: Rückgabewert = korrekte Anzahl<div class="detail">count=13 (erwartet: 13)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase2: Registry-Defaults aufgefüllt<div class="detail">filled=3, effect=shake, duration=500, targetScale=2, target=Sprite1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase2: Vorhandene Werte nicht überschrieben<div class="detail">filled=0, effect=explode, duration=1000</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase2: Unbekannter Typ → 0 Defaults<div class="detail">filled=0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Phase2: Stage-Actions erhalten Defaults<div class="detail">filled=2, effect=shake, duration=500</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">SyncValidator</span><span class="chips"><span class="chip ok">10 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R0: Sauberes Projekt → 0 Verletzungen<div class="detail">Keine Verletzungen</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R1: Verwaiste Action-Referenz erkennen<div class="detail">Erkannt: Task &quot;BlueprintTask&quot;: 1 verwaiste Action-Referenz(en): [NichtExistierendeAction]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R1: Auto-Repair entfernt verwaiste Referenz<div class="detail">Vorher: 2, Nachher: 1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R2: FlowChart ohne Task erkennen<div class="detail">Erkannt: Stage &quot;MainStage&quot;: FlowChart &quot;PhantomTask&quot; hat keine zugehörige Task-Definition.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R2: Auto-Repair entfernt verwaisten FlowChart<div class="detail">PhantomTask-Schlüssel entfernt</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R3: Kaputte Connection erkennen<div class="detail">Erkannt: Flow &quot;BlueprintTask&quot;: Connection &quot;broken-conn&quot; zeigt auf nicht-existierenden Start-Node &quot;non-existent-node&quot;.</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R5: Task-Duplikat erkennen<div class="detail">Keine R5-Verletzung (Cross-Stage Overrides erlaubt)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R6: FlowChart Split-Brain erkennen<div class="detail">Erkannt: FlowChart &quot;BlueprintTask&quot; existiert sowohl in Root als auch in Stage &quot;Blueprint&quot; — Split-Brain!</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>R6: Auto-Repair entfernt Root-Duplikat<div class="detail">Root-FlowChart entfernt, Stage-Version behalten</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Spot-Validierung: Konsistentes Objekt → 0 Verletzungen<div class="detail">Keine Desync</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">TaskExecutor</span><span class="chips"><span class="chip ok">9 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Stage-Task → 1 Action<div class="detail">Ausgeführt: [StageAction]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Blueprint-Lookup (Hierarchie)<div class="detail">Ausgeführt: [GlobalAction1, GlobalAction2]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Unbekannter Task (kein Crash)<div class="detail">Ausgeführt: 0 (erwartet: 0)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Action Resolution (Name → Definition)<div class="detail">Target=LoginBtn (erwartet: LoginBtn)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Condition TRUE → thenTask<div class="detail">Ausgeführt: [StageAction]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Condition FALSE → elseTask<div class="detail">Ausgeführt: [GlobalAction1, GlobalAction2]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Max Recursion Depth Guard<div class="detail">Kein Endlos-Loop</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Task in Composite Action<div class="detail">Ausgeführt: [InnerAction, FinalAction]</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Execute: Blueprint-Referenz verdeckt echte Action nicht<div class="detail">Ausgeführt: [EnableMoving:property]</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">TTable Smart-Unwrap</span><span class="chips"><span class="chip ok">2 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTable: Smart-Unwrap TObjectList<div class="detail">Data: 1, Cols: 1 (Inherited: Name)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTable: Smart-Unwrap TListVariable<div class="detail">Data: 2, First: Value 1</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">TTimer Variable Resolution</span><span class="chips"><span class="chip ok">3 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Auflösung aus contextVars<div class="detail">Ergebnis: 5 (erwartet: 5)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Mathematische Ausdrücke<div class="detail">Ergebnis: 13 (erwartet: 13)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Fallback bei fehlenden Variablen<div class="detail">Ergebnis: 0 (erwartet: 0)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">TTimer/TIntervalTimer Reactive Properties</span><span class="chips"><span class="chip ok">8 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Standardmäßig nicht aktiviert (enabled=false)<div class="detail">enabled: false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TIntervalTimer: Standardmäßig nicht aktiviert (enabled=false)<div class="detail">enabled: false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Reaktives Starten bei enabled = true zur Laufzeit<div class="detail">Vorher Intervalle: 0, Nachher: 1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: Reaktives Stoppen bei enabled = false zur Laufzeit<div class="detail">Gestartet: true, Nach enabled=false Intervalle: 0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TIntervalTimer: Reaktives Starten bei enabled = true zur Laufzeit<div class="detail">Vorher Timeouts: 0, Nachher: 1</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TIntervalTimer: Reaktives Stoppen bei enabled = false zur Laufzeit<div class="detail">Gestartet: true, Nach enabled=false Timeouts: 0</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: currentInterval Tick-Updates lösen reaktiv Watcher aus<div class="detail">Intervals: 2 (erwartet: 2), Watcher-Triggers: 2 (erwartet: 2)</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TTimer: TLabel Binding an StageTimer.currentInterval wird reaktiv aktualisiert<div class="detail">Initial: &quot;2&quot; (erwartet: 0), Tick 1: &quot;2&quot; (erwartet: 1), Tick 2: &quot;2&quot; (erwartet: 2)</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Unification &amp; Auto-Unwrap</span><span class="chips"><span class="chip ok">4 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Unification: PropertyHelper Traversal<div class="detail">Value: Rolf (Expected: 'Rolf')</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Unification: ExpressionParser Interpolation<div class="detail">Result: Hello Rolf</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Unification: Source-Level Unwrapping (Sim)<div class="detail">Type: object, IsArray: false</div></td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>Unification: Deep Path Auto-Unwrap<div class="detail">Version: 123</div></td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">VideoToSpriteSheet Tool</span><span class="chips"><span class="chip ok">1 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>VideoToSpriteSheet Tool</td></tr></tbody></table>
+    </details>
+
+    <details class="group" open>
+      <summary><span class="gname">Virtual Gamepad</span><span class="chips"><span class="chip ok">2 ✓</span></span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody><tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TVirtualGamepad detects keys from TInputController</td></tr>
+<tr class="row ok"><td><span class="badge ok">✓ Bestanden</span></td><td class="id">—</td><td>TVirtualGamepad property check</td></tr></tbody></table>
+    </details>
+  <h2>Laufzeiten der Suiten</h2>
+  <details class="group"><summary><span class="gname">Timing-Übersicht</span></summary>
+    <table><thead><tr><th>Suite</th><th>Dauer</th><th>Status</th></tr></thead><tbody><tr><td>Code Quality &amp; Security Guards</td><td class="num">1.0s</td><td>✅</td></tr>
+<tr><td>Spracheingabe und Karteikasten-Quiz</td><td class="num">0.6s</td><td>✅</td></tr>
+<tr><td>CMS UI-Integritaet</td><td class="num">0.6s</td><td>✅</td></tr>
+<tr><td>AgentScriptIO</td><td class="num">0.1s</td><td>✅</td></tr>
+<tr><td>Stage-Transition Regression</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>AgentController</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Coordinate Binding</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Mathe-Quiz</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Component Events</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Export Integrity</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>TTimer/TIntervalTimer Reactive Properties</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>TaskExecutor</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>RefactoringManager</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>GameLoopManager Physics</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Project Integrity</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncRefactor P1: SchemaMigrator</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>ProjectStore</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Stage-Import</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Serialization</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncValidator</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Raketen-Countdown</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>VideoToSpriteSheet Tool</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>FlowDataAction Inspector</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Login-Logic</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Smart-Mapping &amp; Discovery</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Action Stage Routing &amp; Duplicates</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Jump &amp; Run Components</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Pascal Code Generator</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Action CRUD</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>FlowSync</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SpawnObject Variable Support</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncRefactor P0: Store SET_PROPERTY</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncRefactor P0: SyncValidator Strict</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SidePanel</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Unification &amp; Auto-Unwrap</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SnapshotManager</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Action Registration</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Virtual Gamepad</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Event Actions (bind/unbind)</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Sprite-Geometrie</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncRefactor P0: FlowAction Aliases</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SyncRefactor P0: Inspector Writeback</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>TTimer Variable Resolution</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Gezieltes Auffrischen</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Renaming Robustness</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Electron Security</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>SELECT COUNT(*)</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>TTable Smart-Unwrap</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>Playwright E2E</td><td class="num">0.0s</td><td>✅</td></tr>
+<tr><td>CMS-Aufbauläufe</td><td class="num">0.0s</td><td>✅</td></tr></tbody></table>
+  </details>
+</main>
+<footer>Automatisch erstellt vom GCS Test Runner · QA_Report.html</footer>
+<script>
+const q=document.getElementById('q'),of=document.getElementById('onlyFail');
+let failOnly=false;
+function apply(){
+  const term=q.value.toLowerCase();
+  document.querySelectorAll('tr.row').forEach(r=>{
+    const txt=r.textContent.toLowerCase();
+    const okTxt=!term||txt.includes(term);
+    const okFail=!failOnly||!r.classList.contains('ok');
+    r.classList.toggle('hidden',!(okTxt&&okFail));
+  });
+  document.querySelectorAll('details.group').forEach(g=>{
+    const vis=g.querySelectorAll('tr.row:not(.hidden)').length;
+    g.classList.toggle('hidden',vis===0);
+  });
+}
+q.addEventListener('input',apply);
+of.addEventListener('click',()=>{failOnly=!failOnly;of.style.borderColor=failOnly?'var(--fail)':'';apply();});
+</script>
+</body></html>

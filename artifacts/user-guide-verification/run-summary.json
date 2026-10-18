@@ -1,0 +1,22 @@
+{
+  "completedSteps": 8,
+  "stepsWithDeviations": 3,
+  "deviations": 5,
+  "pageErrors": 0,
+  "videoSeconds": 33.84,
+  "requestedScopeUnchanged": true,
+  "unchangedExistingFileCount": 584,
+  "otherChangedFiles": [
+    "docs/user-guide/README.md"
+  ],
+  "additionalFilesDuringRun": [
+    "docs/user-guide/kapitel-08-flow-editor.md",
+    "docs/user-guide/kapitel-09-wachstumsstufen.md",
+    "docs/user-guide/kapitel-10-durst-timer.md",
+    "docs/user-guide/kapitel-11-bilder-media.md",
+    "docs/user-guide/kapitel-12-game-state.md",
+    "docs/user-guide/kapitel-13-run-test.md",
+    "docs/user-guide/kapitel-14-export.md",
+    "docs/user-guide/kapitel-15-feintuning.md"
+  ]
+}

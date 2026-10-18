@@ -255,7 +255,6 @@ export class Editor implements IViewHost {
         } else {
             this.renderManager.render();
         }
-        this.refreshSidepanel();
     }
     public addObject(type: string, x: number, y: number) { this.commandManager.addObject(type, x, y); }
     public removeObject(id: string) { this.commandManager.removeObject(id); }

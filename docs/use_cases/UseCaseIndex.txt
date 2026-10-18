@@ -1,3 +1,19 @@
+### 2026-10-18
+[UC-2026-10-18-Autoren-Handbuch-HTML-Editionen]
+Beschreibung: Zwei unabhängige, moderne und offlinefähige HTML-Anwendungen für das 23-teilige GCS-Autoren-Handbuch (Teil A: 15 Kapitel „Mein erster interaktiver Baum", Teil B: 8 Kapitel „Der wachsende Baum") aus der einzigen Markdown-Quelle `docs/user-guide/`. Zusätzlich zu `docs/handbook-html/` vollständig und isoliert unter `docs/handbook-html/Argon/` bereitgestellt: Version 1 (`Argon/modern/`) als „Editorial Studio"-SPA mit Spotlight-Suche, interaktiven Einzel-Checklisten und einblendbaren Sprecher-Drehbüchern; Version 2 (`Argon/gcs-native/`) als echtes, im GCS-Editor ladbares Projekt (`handbook-project.json`) auf `runtime-standalone.js` mit `stage_blueprint`-Host und 100% Action-Referenzen.
+Beteiligte Dateien:
+- docs/handbook-html/Argon/build-handbook-argon.cjs (Z. 1–657): [NEU] Build-Pipeline & Markdown-Parser für die Argon-Editionen (`escapeHtml` Z. 72–78, `slugify` Z. 80–86, `formatInline` Z. 94–134, `parseMarkdownChapter` Z. 136–398, `renderModernHtml` Z. 400–502, `renderGcsNativeRichTextHtml` Z. 504–591).
+- docs/handbook-html/Argon/build-gcs-native-argon.cjs (Z. 1–355): [NEU] Deklarativer GCS-Projektgenerator für `Argon/gcs-native/` (`buildGcsNativeProject` Z. 9–245, `writeGcsNativeFiles` Z. 247–353).
+- docs/handbook-html/Argon/modern/index.html (Z. 1–278): [NEU] Einstiegspunkt der Argon Modern Web Edition („Editorial Studio" 3-Spalten-Layout, Spotlight-Suchdialog, Sprechertext-Panel).
+- docs/handbook-html/Argon/modern/styles.css (Z. 1–491): [NEU] Stylesheet der Argon Modern Web Edition (Dark/Light-Theme, Kartenraster, Checklisten, Medien-Platzhalter).
+- docs/handbook-html/Argon/modern/app.js (Z. 1–658): [NEU] SPA-Logik der Argon Modern Web Edition (`loadState` Z. 32–49, `saveState` Z. 51–57, `applyTheme` Z. 63–72, `applySpeakerMode` Z. 74–92, `renderSidebar` Z. 122–188, `renderOverview` Z. 190–255, `openChapter` Z. 269–395, `performSearch` Z. 466–556).
+- docs/handbook-html/Argon/gcs-native/index.html (Z. 1–94), handbook-project.json, project.js & gcs-handbook-overrides.css (Z. 1–38): [NEU] Argon GCS Native Edition (26 Stages, `TProgressBar`, `TToast`, `BtnSprecher`-Umschalter, `store_token`-Persistenz).
+- docs/handbook-html/Argon/README.md (Z. 1–138): [NEU] Dokumentation, Windows-11-Startanleitung, GCS-Konformitätsnachweis und 8-Punkte-Vergleich.
+- scripts/build-handbook.cjs (Z. 1–719), docs/handbook-html/modern/ & docs/handbook-html/gcs-native/: [BESTEHEND] Parallel-Edition im Hauptordner `docs/handbook-html/`.
+- tests/handbook_html.test.ts (Z. 1–205): [GEÄNDERT] Automatisierte Testsuite (`runHandbookHtmlTests` Z. 27–204) prüft sowohl `docs/handbook-html/` als auch `docs/handbook-html/Argon/` inkl. `checkIntegrity()`-Prüfung (0 Befunde).
+- scripts/test_runner.ts (Z. 55, 448–451): [GEÄNDERT] Suite `Handbuch-HTML` registriert.
+Ergebnis: Beide HTML-Editionen unter `docs/handbook-html/Argon/` (und `docs/handbook-html/`) sind offline per `file://` lauffähig, alle 23 Kapitel vollständig erreichbar, `checkIntegrity()` liefert 0 Fehler/Warnungen, alle Tests grün.
+
 ### 2026-10-11
 [UC-2026-10-11-Game-Lifecycle-Flow-Overview]
 Beschreibung: Interaktive Spielablauf- & Konzept-Übersicht (Game Lifecycle) im Flow-Editor mit anklickbaren Tasks und Features. Visualisiert Spielphasen (Stages), Transitions (navigate_stage), Features und Tasks als interaktives Mermaid-Diagramm. Klick auf einen Task öffnet direkt dessen Flow; Klick auf ein Feature öffnet den Feature-Kontext.
@@ -1679,3 +1695,18 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 - Dateien: docs/Aufgabenbereich-Plan-und-Eventvertrag.md, docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md, scripts/cms/cms-task-events.cjs, scripts/cms/cms-build-task-area.cjs, scripts/test-task-area.cjs, scripts/test-task-area-ui.cjs
 - Methoden: command, choose, emit, view, build, TestReceiver_Receive, Area_Apply
 - Beschreibung: Gemeinsame Papierkarte für verschiedene Aufgabenarten, Leitner und schnelle Wiederholung. Aufgabenereignisse und korrelierter Rückkanal mit echtem Empfangslabel; keine Spielwelt. Sprites unterstützen onImageReady/onImageError für fehlersichere Zählaufgaben.
+
+## UseCase: GCS Documentation Portal — Argon Edition (Entwicklungsauftrag ARGON)
+- Dateien:
+  - docs/gcs-doc-portal-argon/portal-config-argon.json (Zeilen 1-85 — Deklarative Quellpfade & SWE-2-Datenschnittstelle swe2Integration)
+  - docs/gcs-doc-portal-argon/parser-argon.cjs (Zeilen 1-442 — Methoden: escapeHtml Z. 9, slugify Z. 17, stripMarkdown Z. 27, resolveInternalHref Z. 38, linkifyInline Z. 70, classifyBlockquote Z. 119, parseMediaSection Z. 136, parseMarkdownBlocks Z. 166, parseHandbookChapter Z. 350)
+  - docs/gcs-doc-portal-argon/build-argon.cjs (Zeilen 1-439 — Methoden: readUtf8 Z. 18, listMdFiles Z. 23, extractSectionLines Z. 37, parseMarkdownTable Z. 53, parseComponentMarkdown Z. 70, parseGenericDoc Z. 164, parseTechnicalDebtItems Z. 199, main Z. 221)
+  - docs/gcs-doc-portal-argon/index-argon.html (Zeilen 1-247 — Portal-Shell mit 6-Bereichs-Topbar, Kontext-Sidebar, Lese-/Detailansichten & Spotlight-Suchmodal)
+  - docs/gcs-doc-portal-argon/styles-argon.css (Zeilen 1-432 — Editorial-Studio-Designsystem mit Dark/Light-Theme, Spezifikations-Grids & Status-Pills)
+  - docs/gcs-doc-portal-argon/views-argon.js (Zeilen 1-973 — Methoden: esc Z. 9, statusPill Z. 17, renderPortalHome Z. 32, renderHandbookOverview Z. 194, renderComponentsCatalog Z. 283, renderComponentDetail Z. 365, renderFeaturesCatalog Z. 454, renderFeatureDetail Z. 541, renderArchitectureOverview Z. 649, renderGenericDocDetail Z. 682, renderDevRefOverview Z. 733)
+  - docs/gcs-doc-portal-argon/app-argon.js (Zeilen 1-647 — Methoden: loadState Z. 48, saveState Z. 63, isChapterDone Z. 129, updateGlobalProgressUI Z. 139, applyTheme Z. 158, applySpeakerMode Z. 165, renderSidebar Z. 185, renderRightToc Z. 326, bindDashboardEvents Z. 371, renderChapterView Z. 462, handleRoute Z. 585, performSearch Z. 732, init Z. 808)
+  - docs/gcs-doc-portal-argon/README-ARGON.md (Zeilen 1-118 — Start- und Bedienungsanleitung)
+  - docs/gcs-doc-portal-argon/ARCHITEKTUR-ARGON.md (Zeilen 1-162 — 4-Schichten-Architektur & SWE-2-Datenschnittstelle)
+  - tests/handbook_html.test.ts (Methode: runHandbookHtmlTests, Zeilen 204-286 — Gut- und Schlechtfall-Tests für das Argon Documentation Portal)
+- Beschreibung: Erweiterung der modernen Argon-Handbuchoberfläche zu einer vollständigen, offlinefähigen GCS-Dokumentationsplattform mit 6 Bereichen (23 Handbuch-Kapitel, 128 Komponenten in 11 Kategorien, 12 Features + 12 Fachartikel, 4 kanonische Architektur-Dokumente, Entwicklerreferenz mit 59 Runtime-Actions & 242 inventarisierten Dokumenten sowie globaler Volltextsuche) und dokumentierter SWE-2-Datenschnittstelle.
+

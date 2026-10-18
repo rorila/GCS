@@ -267,6 +267,21 @@
                     "value": "${selectedObject.threshold}"
                 },
                 {
+                    "className": "TDropdown",
+                    "name": "comparison",
+                    "label": "Vergleich",
+                    "visible": "${selectedObject.type === 'threshold'}",
+                    "options": [
+                        { "value": ">=", "label": "≥ erreicht" },
+                        { "value": "<=", "label": "≤ unterschritten" },
+                        { "value": "==", "label": "= gleich" },
+                        { "value": ">", "label": "> größer als" },
+                        { "value": "<", "label": "< kleiner als" },
+                        { "value": "!=", "label": "≠ ungleich" }
+                    ],
+                    "selectedValue": "${selectedObject.comparison}"
+                },
+                {
                     "className": "TEdit",
                     "name": "triggerValue",
                     "label": "Auslöser-Wert",

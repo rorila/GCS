@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GCS Documentation Portal — Argon Edition</title>
+  <link rel="stylesheet" href="styles-argon.css" />
+</head>
+<body>
+  <a href="#main-content" class="hb-skip-link">Direkt zum Hauptinhalt springen</a>
+
+  <!-- Topbar mit 6-Bereichs-Navigation -->
+  <header class="hb-topbar" role="banner">
+    <div class="hb-topbar-left">
+      <button type="button" id="btn-sidebar-toggle" class="hb-icon-btn hb-mobile-only" aria-label="Seitenleiste ein-/ausblenden" title="Menü">
+        ☰
+      </button>
+      <a href="#home" class="hb-brand" id="link-home">
+        <span class="hb-brand-logo" aria-hidden="true">🌳</span>
+        <div class="hb-brand-text">
+          <span class="hb-brand-title">GCS Documentation Portal</span>
+          <span class="hb-brand-sub">Argon Editorial Studio · v1.0</span>
+        </div>
+      </a>
+
+      <!-- Primäre Bereichs-Navigation -->
+      <nav class="hb-area-nav" id="area-nav" aria-label="Dokumentationsbereiche">
+        <a href="#home" class="hb-area-tab is-active" data-area="home">
+          <span class="hb-area-icon">🏠</span><span>Portal</span>
+        </a>
+        <a href="#handbook" class="hb-area-tab" data-area="handbook">
+          <span class="hb-area-icon">📖</span><span>Handbuch</span><span class="hb-area-badge" id="badge-count-handbook">23</span>
+        </a>
+        <a href="#components" class="hb-area-tab" data-area="components">
+          <span class="hb-area-icon">🧩</span><span>Komponenten</span><span class="hb-area-badge" id="badge-count-components">128</span>
+        </a>
+        <a href="#features" class="hb-area-tab" data-area="features">
+          <span class="hb-area-icon">✨</span><span>Features</span><span class="hb-area-badge" id="badge-count-features">12</span>
+        </a>
+        <a href="#architecture" class="hb-area-tab" data-area="architecture">
+          <span class="hb-area-icon">🏛️</span><span>Architektur</span><span class="hb-area-badge" id="badge-count-architecture">4</span>
+        </a>
+        <a href="#devref" class="hb-area-tab" data-area="devref">
+          <span class="hb-area-icon">🛠️</span><span>Entwickler</span><span class="hb-area-badge" id="badge-count-devref">59</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="hb-topbar-center">
+      <button type="button" id="btn-open-search" class="hb-search-trigger" aria-label="Globale Portal-Suche öffnen (Strg+K)">
+        <span class="hb-search-icon" aria-hidden="true">🔍</span>
+        <span class="hb-search-placeholder">Globale Suche im gesamten Portal…</span>
+        <kbd class="hb-kbd">Strg K</kbd>
+      </button>
+    </div>
+
+    <div class="hb-topbar-right">
+      <div class="hb-progress-pill" id="topbar-progress-pill" title="Dein gespeicherter Handbuch-Lernfortschritt">
+        <div class="hb-progress-ring-wrap">
+          <svg class="hb-progress-ring" width="26" height="26" viewBox="0 0 28 28">
+            <circle class="hb-ring-bg" cx="14" cy="14" r="11" />
+            <circle class="hb-ring-fill" id="progress-ring-circle" cx="14" cy="14" r="11" stroke-dasharray="69.1" stroke-dashoffset="69.1" />
+          </svg>
+        </div>
+        <span id="progress-label" class="hb-progress-text">0 / 23</span>
+      </div>
+
+      <button type="button" id="btn-toggle-speaker-global" class="hb-pill-btn" aria-pressed="false" title="Deutsche Sprecher-Drehbücher im Handbuch ein-/ausblenden">
+        <span aria-hidden="true">🎙️</span>
+        <span class="hb-btn-label">Sprechertext</span>
+      </button>
+
+      <button type="button" id="btn-toggle-theme" class="hb-icon-btn" aria-label="Hell-/Dunkelmodus umschalten" title="Hell-/Dunkelmodus umschalten">
+        <span id="theme-icon" aria-hidden="true">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Spalten-Arbeitsbereich -->
+  <div class="hb-layout">
+    <!-- Linke Kontext-Sidebar -->
+    <aside class="hb-sidebar" id="sidebar" aria-label="Bereichs-Navigation">
+      <div class="hb-sidebar-header">
+        <a href="#home" id="btn-course-overview" class="hb-overview-btn is-active">
+          <span>🏠</span>
+          <span id="sidebar-overview-label">Portal-Startseite</span>
+        </a>
+        <div class="hb-sidebar-filter-wrap">
+          <input type="search" id="sidebar-quick-filter" class="hb-sidebar-filter" placeholder="Navigation filtern…" aria-label="Seitenleiste filtern" />
+        </div>
+      </div>
+
+      <nav class="hb-nav-tree" id="chapter-nav-tree">
+        <!-- Dynamisch je nach aktivem Bereich durch app-argon.js befüllt -->
+      </nav>
+
+      <div class="hb-sidebar-footer">
+        <button type="button" id="btn-reset-progress" class="hb-reset-btn" title="Gespeicherten Handbuch-Fortschritt zurücksetzen">
+          ↺ Handbuch-Fortschritt zurücksetzen
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mittlerer Hauptbereich -->
+    <main class="hb-main" id="main-content" tabindex="-1">
+      <!-- Ansicht 1: Dynamisches Bereichs-/Portal-Dashboard (Übersichten & Kataloge) -->
+      <section id="view-dashboard" class="hb-view"></section>
+
+      <!-- Ansicht 2: Handbuch-Kapitel-Leseansicht (23 Kapitel) -->
+      <article id="view-chapter" class="hb-view hb-hidden">
+        <header class="hb-chapter-header">
+          <div class="hb-chapter-breadcrumb">
+            <a href="#home" class="hb-crumb-link">Portal</a>
+            <span aria-hidden="true">›</span>
+            <a href="#handbook" class="hb-crumb-link">Autoren-Handbuch</a>
+            <span aria-hidden="true">›</span>
+            <span id="chap-group-label">Teil A</span>
+            <span aria-hidden="true">›</span>
+            <span id="chap-num-badge" class="hb-badge-num">A1</span>
+          </div>
+
+          <div class="hb-chapter-title-row">
+            <h1 id="chap-title" class="hb-h1">Kapitel-Titel</h1>
+            <button type="button" id="btn-mark-complete" class="hb-complete-btn" aria-pressed="false">
+              <span id="complete-icon">☐</span>
+              <span id="complete-text">Als erledigt markieren</span>
+            </button>
+          </div>
+
+          <div id="chap-status-note" class="hb-status-banner"></div>
+          <div id="chap-components-row" class="hb-comp-row"></div>
+        </header>
+
+        <!-- Einblendbares deutsches Sprecher-Drehbuch & Video-Konzept -->
+        <section id="chap-speaker-panel" class="hb-speaker-panel hb-hidden" aria-label="Deutsches Sprecher-Drehbuch">
+          <div class="hb-speaker-head">
+            <div class="hb-speaker-title-wrap">
+              <span class="hb-speaker-icon">🎙️</span>
+              <div>
+                <div class="hb-speaker-kicker">Begleitendes Video- &amp; Audio-Konzept (Deutsch)</div>
+                <h2 id="speaker-video-title" class="hb-speaker-title">Video-Vorschlag</h2>
+              </div>
+            </div>
+            <button type="button" id="btn-close-speaker" class="hb-speaker-close" title="Sprecher-Drehbuch ausblenden">✕</button>
+          </div>
+          <div class="hb-speaker-body">
+            <div class="hb-video-placeholder">
+              <div class="hb-video-play-icon">▶</div>
+              <div class="hb-video-placeholder-text">
+                <strong>Video-Platzhalter</strong>
+                <span id="speaker-sync-notes">Synchronisations-Hinweise</span>
+              </div>
+            </div>
+            <div class="hb-speaker-script-box">
+              <div class="hb-speaker-script-label">Deutscher Sprechertext (Voice-Over):</div>
+              <p id="speaker-script-text" class="hb-speaker-script"></p>
+            </div>
+          </div>
+        </section>
+
+        <div id="chap-body" class="hb-prose"></div>
+
+        <footer class="hb-chapter-footer">
+          <div class="hb-footer-complete-bar">
+            <div>
+              <strong>Kapitel abgeschlossen?</strong>
+              <p class="hb-muted">Hake die Checkliste oben ab oder markiere das Kapitel direkt als erledigt.</p>
+            </div>
+            <button type="button" id="btn-mark-complete-bottom" class="hb-complete-btn">
+              <span>☐</span>
+              <span>Kapitel erledigt</span>
+            </button>
+          </div>
+
+          <nav class="hb-prev-next" aria-label="Vorheriges und nächstes Kapitel">
+            <a href="#handbook" id="link-prev-chap" class="hb-pn-card hb-pn-prev">
+              <span class="hb-pn-dir">← Vorheriges Kapitel</span>
+              <strong id="prev-chap-title" class="hb-pn-title">Startseite</strong>
+            </a>
+            <a href="#handbook" id="link-next-chap" class="hb-pn-card hb-pn-next">
+              <span class="hb-pn-dir">Nächstes Kapitel →</span>
+              <strong id="next-chap-title" class="hb-pn-title">Weiter</strong>
+            </a>
+          </nav>
+        </footer>
+      </article>
+
+      <!-- Ansicht 3: Detailansicht für Komponente, Feature, Architektur oder Entwicklerreferenz -->
+      <article id="view-detail" class="hb-view hb-hidden"></article>
+    </main>
+
+    <!-- Rechte Spalte: „Auf dieser Seite“ & Kontext-Querverweise -->
+    <aside class="hb-toc" id="toc-aside" aria-label="Auf dieser Seite und Querverweise">
+      <div class="hb-toc-sticky">
+        <div class="hb-toc-title" id="toc-heading">Auf dieser Seite</div>
+        <nav id="toc-list" class="hb-toc-list"></nav>
+
+        <div id="toc-context-card" class="hb-toc-speaker-card"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Globales Spotlight-Suchmodal (Strg+K) über alle 6 Portal-Bereiche -->
+  <div id="search-modal" class="hb-modal-backdrop hb-hidden" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
+    <div class="hb-modal">
+      <div class="hb-modal-searchbar">
+        <span class="hb-search-icon" aria-hidden="true">🔍</span>
+        <input
+          type="search"
+          id="search-input"
+          class="hb-modal-input"
+          placeholder="Suche in 23 Kapiteln, 128 Komponenten, 12 Features, Architektur & 59 Actions…"
+          autocomplete="off"
+          aria-labelledby="search-modal-title"
+        />
+        <button type="button" id="btn-close-search" class="hb-kbd-btn" title="Schließen (Esc)">ESC</button>
+      </div>
+
+      <!-- Bereichs-Filter im Suchdialog -->
+      <div class="hb-search-scope-bar" id="search-scope-bar" role="tablist" aria-label="Suchbereich eingrenzen">
+        <button type="button" class="hb-scope-pill is-active" data-scope="all">Alle Bereiche</button>
+        <button type="button" class="hb-scope-pill" data-scope="handbook">📖 Handbuch</button>
+        <button type="button" class="hb-scope-pill" data-scope="components">🧩 Komponenten</button>
+        <button type="button" class="hb-scope-pill" data-scope="features">✨ Features</button>
+        <button type="button" class="hb-scope-pill" data-scope="architecture">🏛️ Architektur</button>
+        <button type="button" class="hb-scope-pill" data-scope="devref">🛠️ Entwickler &amp; Actions</button>
+      </div>
+
+      <div id="search-meta" class="hb-modal-meta">
+        Gib einen Suchbegriff ein — z. B. <code>TSprite</code>, <code>Wasser</code>, <code>FEAT-0001</code>, <code>navigate_stage</code>, <code>TD-009</code> oder <code>Blueprint</code>
+      </div>
+      <div id="search-results" class="hb-search-results" role="listbox"></div>
+      <div class="hb-modal-footer">
+        <span><kbd>↵</kbd> Öffnen</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> Navigieren</span>
+        <span><kbd>Esc</kbd> Schließen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generierte Offline-Datenbank (ermöglicht Direktstart per file://) -->
+  <script src="data/portal-data-argon.js"></script>
+  <script src="swe2-adapter-argon.js"></script>
+  <script src="views-argon.js"></script>
+  <script src="app-argon.js"></script>
+</body>
+</html>

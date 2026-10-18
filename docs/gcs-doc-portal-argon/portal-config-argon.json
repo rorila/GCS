@@ -1,0 +1,106 @@
+{
+  "portalId": "gcs-doc-portal-argon",
+  "title": "GCS Documentation Portal",
+  "subtitle": "Autoren-Handbuch · Komponentenreferenz · Feature-Katalog · Systemarchitektur · Entwicklerreferenz · SWE-2 Wissensbasis",
+  "edition": "Argon Modern Portal Edition (SWE-2 Integrated)",
+  "version": "1.1.0",
+  "sources": {
+    "userGuideDir": "docs/user-guide",
+    "componentsDir": "docs/reference/components",
+    "featuresDir": "docs/features",
+    "architectureDir": "docs/architecture",
+    "inventoryDir": "docs/inventory",
+    "inventoryJson": "docs/inventory/FEATURE-INVENTORY.json",
+    "actionMetadataJson": "docs/inventory/action-metadata.json",
+    "schemasDir": "docs/schemas",
+    "developerDocs": [
+      {
+        "id": "guidelines",
+        "title": "Developer Guidelines & Arbeitsanweisungen",
+        "category": "Standards & Workflow",
+        "path": "DEVELOPER_GUIDELINES.md",
+        "summary": "Verbindliche Entwicklungsrichtlinien, Reaktivitäts-Standards, Blueprint-Regeln, DO-NOT-Leitplanken und Testpflichten."
+      },
+      {
+        "id": "runtime-guide",
+        "title": "GCS Runtime & Ausführungs-Leitfaden",
+        "category": "Runtime & Engine",
+        "path": "docs/runtime-guide.md",
+        "summary": "Technische Referenz zur GameRuntime, TaskExecutor, ActionRegistry, Stage-Lebenszyklus und Variablenauflösung."
+      },
+      {
+        "id": "stage-interfaces",
+        "title": "Externe Stage-Schnittstellen & Event-Vertrag",
+        "category": "Runtime & Engine",
+        "path": "docs/Stage-Schnittstellen.md",
+        "summary": "Deklarative Stage-Ein- und Ausgänge (stage_input, stage_output), JSON-Nutzdaten und Korrelationskennungen."
+      },
+      {
+        "id": "id-schema",
+        "title": "ID-Schema & 3-Achsen-Statusmodell",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/ID-SCHEMA.md",
+        "summary": "Verbindliches Schema für FEAT-, COMP- und DOC-IDs sowie Entwicklungs-, Test- und Dokumentationsstatus."
+      },
+      {
+        "id": "technical-debt",
+        "title": "Technical Debt & Architektur-Befunde (TD-001 bis TD-017)",
+        "category": "Qualität & Befunde",
+        "path": "docs/inventory/TECHNICAL-DEBT.md",
+        "summary": "Kuratierte Liste erkannter technischer Schulden, Inkonsistenzen und priorisierter Lösungsoptionen."
+      },
+      {
+        "id": "security-plan",
+        "title": "Security-Plan & XSS-/Sandbox-Härtung",
+        "category": "Sicherheit",
+        "path": "docs/inventory/SECURITY-PLAN.md",
+        "summary": "Sicherheitsarchitektur, DOMPurify-Härtung, Electron-Pfadschutz und Vermeidung von dynamischer Code-Ausführung."
+      },
+      {
+        "id": "tooling",
+        "title": "Dokumentations- & Analyse-Tooling",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/TOOLING.md",
+        "summary": "Skripte und Generatoren zur automatisierten Extraktion von Komponenten-Karten, Action-Metadaten und Inventaren."
+      },
+      {
+        "id": "phase1-report",
+        "title": "Phase-1-Abschlussbericht (Inventarisierung)",
+        "category": "Inventar & Governance",
+        "path": "docs/inventory/PHASE1-ABSCHLUSSBERICHT.md",
+        "summary": "Zusammenfassung der Bestandsaufnahme über 12 Features, 128 Komponenten und 242 Dokumente."
+      }
+    ]
+  },
+  "swe2Integration": {
+    "enabled": true,
+    "schemaVersion": "1.0.0",
+    "contractFile": "docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md",
+    "knowledgeDir": "docs/gcs-knowledge-swe2",
+    "manifestFile": "docs/gcs-knowledge-swe2/knowledge-index-swe2.json",
+    "description": "Verbindliche Integration der SWE-2-Wissensbasis (688 Entities in 9 Kategorien + 1.774 Volltext-Chunks) gemäß docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md.",
+    "entityFiles": {
+      "components": "docs/gcs-knowledge-swe2/entities/components-swe2.json",
+      "features": "docs/gcs-knowledge-swe2/entities/features-swe2.json",
+      "actionTypes": "docs/gcs-knowledge-swe2/entities/action-types-swe2.json",
+      "methods": "docs/gcs-knowledge-swe2/entities/methods-swe2.json",
+      "events": "docs/gcs-knowledge-swe2/entities/events-swe2.json",
+      "schemas": "docs/gcs-knowledge-swe2/entities/schemas-swe2.json",
+      "guideChapters": "docs/gcs-knowledge-swe2/entities/guide-chapters-swe2.json",
+      "documents": "docs/gcs-knowledge-swe2/entities/documents-swe2.json",
+      "concepts": "docs/gcs-knowledge-swe2/entities/concepts-swe2.json"
+    },
+    "chunksFile": "docs/gcs-knowledge-swe2/chunks/chunks-swe2.jsonl",
+    "joinKeys": {
+      "component": "id (COMP-0001..COMP-0128) | name (T*)",
+      "feature": "id (FEAT-0001..FEAT-0012)",
+      "actionType": "id (ACT-0001..ACT-0059) | name",
+      "method": "id (MTH-0001..MTH-0038) | name",
+      "event": "id (EVT-0001..EVT-0158) | name",
+      "schema": "id (SCM-0001..SCM-0013) | name",
+      "guideChapter": "id (GUIDE-0001..GUIDE-0023) | name (A01..B08)",
+      "document": "id (DOC-0001..DOC-0242) | sources.docs[0]",
+      "concept": "id (CON-0001..CON-0015) | name"
+    }
+  }
+}

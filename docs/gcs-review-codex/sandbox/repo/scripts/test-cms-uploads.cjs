@@ -1,0 +1,72 @@
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto'),assert=require('node:assert/strict'),sharp=require('sharp'),{chromium}=require('playwright');
+const {createServer}=require('./cms/cms-server.cjs');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-uploads-')),dataPath=path.join(dir,'cms.json'),app=createServer({dataPath}),base='http://127.0.0.1:15187',checks=[];let browser;
+ const check=(n,v)=>{assert.ok(v,n);checks.push(n)},password=crypto.randomBytes(20).toString('hex'),salt=crypto.randomBytes(16).toString('hex');fs.writeFileSync(path.join(dir,'cms-admin-auth.json'),JSON.stringify([{username:'uploader',personId:'demo-adult',salt,hash:crypto.scryptSync(password,salt,64).toString('hex')}]));app.core.db.roles.push({personId:'demo-adult',role:'superAdmin',areaId:'root',active:true});
+ const grid={cols:32,rows:20,cellSize:18,visible:false},game={meta:{id:'upload-test',name:'Upload-Test'},activeStageId:'stage_main',stage:{grid},stages:[{id:'stage_main',type:'main',grid,objects:[{id:'label',className:'TLabel',name:'TestLabel',x:2,y:2,width:20,height:3,text:'Upload funktioniert'}],tasks:[],actions:[],variables:[]}],objects:[],tasks:[],actions:[],variables:[]},bytes=Buffer.from(JSON.stringify(game)),png=await sharp({create:{width:12,height:12,channels:3,background:'#229977'}}).png().toBuffer();let cookie='',token='';
+ const post=async(route,body,auth=cookie)=>{const r=await fetch(base+route,{method:'POST',headers:{Origin:base,'Content-Type':'application/json',Cookie:auth},body:JSON.stringify(body)});return {status:r.status,data:await r.json()}};
+ const upload=async(kind,data,auth=cookie,meta)=>{const r=await fetch(base+'/api/cms/upload/'+kind,{method:'POST',headers:{Origin:base,Cookie:auth,Authorization:'Bearer '+token,'X-Upload-Metadata':encodeURIComponent(JSON.stringify(meta||{title:'Mein Testspiel',description:'Test',ownerId:'demo-child'}))},body:data});return {status:r.status,data:await r.json()}};
+ try{await new Promise(r=>app.server.listen(15187,'127.0.0.1',r));check('Spielupload ohne Verwaltung gesperrt',(await upload('game',bytes,'')).status===403);
+ const login=await fetch(base+'/admin-login',{method:'POST',redirect:'manual',headers:{Origin:base},body:new URLSearchParams({username:'uploader',password})});cookie=login.headers.get('set-cookie').split(';')[0];
+ const childLogin=await post('/api/cms/login',{sequence:['dog','tree','house','elephant']});token=childLogin.data.token;
+ check('Ein-Rollen-Kind ohne Rollenwahl',childLogin.data.needRole===false);
+ // Rollenwahl (Verwaltung): demo-adult trägt superAdmin + HouseAdmin →
+ // Login führt auf /roles, Rechte bleiben bis zur Wahl gesperrt.
+ check('Mehrfachrollen führen zur Rollenwahl',login.headers.get('location')==='/roles');
+ const admRoles=(await post('/api/cms/admin/roles')).data.roles;
+ check('Verwaltungsrollen ohne Raumrolle',admRoles.length>=2&&admRoles.every(r=>r.role==='superAdmin'||(r.role==='areaAdmin'&&app.core.db.areas.find(a=>a.id===r.areaId)?.type==='house')));
+ check('Ausstehende Rollenwahl sperrt Verwaltungsrechte',(await upload('game',bytes)).status===403);
+ check('Fremde Verwaltungsrolle abgelehnt',!(await post('/api/cms/admin/role',{role:'areaAdmin',areaId:'nix'})).data.ok);
+ const pickSuper=await post('/api/cms/admin/role',{role:'superAdmin',areaId:'root'});
+ check('SuperAdmin-Rolle gewählt',pickSuper.data.ok===true&&pickSuper.data.target==='/super');
+ check('Einzel-HTML als Fremdspiel akzeptiert',(await upload('game',Buffer.from('<!doctype html><html><body>x</body></html>'))).status===200);check('Binarer Restmüll als Spiel abgelehnt',(await upload('game',Buffer.from([0x4d,0x5a,0x90,0x00,0x03,0xde,0xad,0xbe,0xef]))).status===400);check('Server-Größenlimit greift',(await upload('avatar',Buffer.alloc(2097153))).status===413);check('SVG als Avatar abgelehnt',(await upload('avatar',Buffer.from('<svg/>'))).status===400);
+ const role=app.core.db.roles.find(r=>r.role==='superAdmin');role.active=false;check('HouseAdmin darf keine Spiele hochladen',(await upload('game',bytes)).status===403);role.active=true;const saved=await upload('game',bytes);check('GCS-Spiel als Entwurf gespeichert',saved.data.ok&&saved.data.status==='draft');const id=saved.data.id;check('Eigentümer aus Sitzung',app.core.db.games.find(g=>g.id===id).ownerId==='demo-adult');
+ const owned=app.core.db.games.find(g=>g.id===id);owned.ownerId='demo-child';check('Fremdes Spiel nicht veröffentlichbar',!(await post('/api/cms/upload-library',{operation:'publish',id,published:true})).data.ok);owned.ownerId='demo-adult';check('Entwurf nicht spielbar',!(await post('/api/cms/launch',{token,areaId:'garden',gameId:id})).data.ok);await post('/api/cms/upload-library',{operation:'publish',id,published:true});app.core.db.grants.push({gameId:id,areaId:'garden',active:true});const launch=(await post('/api/cms/launch',{token,areaId:'garden',gameId:id})).data.launch;const played=await fetch(base+launch);check('Hochgeladenes Spiel startbar',played.ok);check('Spiel läuft in isolierter Sandbox',played.headers.get('content-security-policy').includes('sandbox allow-scripts'));
+ const avatar=await upload('avatar',png);check('Avatar geprüft gespeichert',avatar.data.ok&&avatar.data.avatarImage.endsWith('.png'));check('Nur eigene Person verändert',app.core.db.people.find(p=>p.id==='demo-child').avatarImage===avatar.data.avatarImage&&!app.core.db.people.find(p=>p.id==='demo-adult').avatarImage);
+ check('Avatar als PNG abrufbar',(await fetch(base+avatar.data.avatarImage)).headers.get('content-type')==='image/png');
+ // Fremd-Avatare: personId in den Upload-Metadaten — die Berechtigung
+ // erzwingt ausschließlich der Server (SuperAdmin, HouseAdmin des Hauses,
+ // bestätigter Erziehungsberechtigter des Kindes).
+ const uploadFor=async(personId,tok)=>{const r=await fetch(base+'/api/cms/upload/avatar',{method:'POST',headers:{Origin:base,Cookie:cookie,Authorization:'Bearer '+tok,'X-Upload-Metadata':encodeURIComponent(JSON.stringify({personId}))},body:png});return {status:r.status,data:await r.json()}};
+ app.core.db.people.push({id:'demo-kid2',name:'Nestkind',kind:'child',active:true});
+ app.core.db.memberships.push({personId:'demo-kid2',areaId:'demo-house',active:true});
+ app.core.db.people.push({id:'demo-stranger',name:'Fremdkind',kind:'child',active:true});
+ check('Kind darf kein fremdes Avatarbild setzen',(await uploadFor('demo-adult',token)).status===403);
+ check('Unbekannte Zielperson abgelehnt',(await uploadFor('person-gibt-es-nicht',token)).status===404);
+ role.active=false;
+ const pickHouse=await post('/api/cms/admin/role',{role:'areaAdmin',areaId:'demo-house'});
+ check('HouseAdmin-Rolle gewählt',pickHouse.data.ok===true&&pickHouse.data.target==='/house?house=demo-house');
+ const forKid2=await uploadFor('demo-kid2','');check('HouseAdmin setzt Avatarbild für Hausbewohner',forKid2.data.ok===true&&app.core.db.people.find(p=>p.id==='demo-kid2').avatarImage===forKid2.data.avatarImage);
+ check('HouseAdmin für Person ohne Hausbezug abgelehnt',(await uploadFor('demo-stranger','')).status===403);
+ let adultToken=(await post('/api/cms/login',{sequence:['cat','cat','tree','house']})).data.token;
+ const forChild=await uploadFor('demo-child',adultToken);check('Erziehungsberechtigter setzt Avatarbild fürs eigene Kind',forChild.data.ok===true&&app.core.db.people.find(p=>p.id==='demo-child').avatarImage===forChild.data.avatarImage);
+ check('Erziehungsberechtigter für fremdes Kind abgelehnt',(await uploadFor('demo-kid2',adultToken)).status===403);
+ // Rollenwahl (Konto): der Erwachsene erhält Spieler- und Raumverwaltungsrolle
+ // per Emoji-Sitzung; die Wahl scopet die Sitzung auf den Raum.
+ let kontoRollen=(await post('/api/cms/account-roles',{token:adultToken})).data.roles;
+ if(!kontoRollen.some(r=>r.role==='areaAdmin')){app.core.db.roles.push({personId:'demo-adult',role:'areaAdmin',areaId:'garden',active:true});adultToken=(await post('/api/cms/login',{sequence:['cat','cat','tree','house']})).data.token;kontoRollen=(await post('/api/cms/account-roles',{token:adultToken})).data.roles;}
+ check('Konto-Rollen: Spieler und Raumverwaltung',kontoRollen.some(r=>r.role==='player')&&kontoRollen.some(r=>r.role==='areaAdmin'));
+ const raum=kontoRollen.find(r=>r.role==='areaAdmin');
+ const pickRaum=await post('/api/cms/account-role',{token:adultToken,role:raum.role,areaId:raum.areaId});
+ check('RaumAdmin über Emoji-Sitzung wählbar',pickRaum.data.ok===true&&pickRaum.data.stage==='stage_room_overview');
+ check('RaumAdmin ohne Avatarmandat abgelehnt',(await uploadFor('demo-kid2',adultToken)).status===403);
+ role.active=true;
+ await post('/api/cms/admin/role',{role:'superAdmin',areaId:'root'});
+ check('SuperAdmin setzt Avatarbild für fremde Person',(await uploadFor('demo-stranger','')).data.ok===true);
+ const mpGame=JSON.parse(JSON.stringify(game));mpGame.meta.multiplayer={minPlayers:2,maxPlayers:4,scope:'house'};const mpSaved=await upload('game',Buffer.from(JSON.stringify(mpGame)));check('meta.multiplayer landet im Spieledatensatz',app.core.db.games.find(g=>g.id===mpSaved.data.id)?.multiplayer?.maxPlayers===4);
+ const badGame=JSON.parse(JSON.stringify(game));badGame.meta.multiplayer={minPlayers:4,maxPlayers:2};check('Ungültige meta.multiplayer abgelehnt',(await upload('game',Buffer.from(JSON.stringify(badGame)))).status===400);
+ const soloGame=JSON.parse(JSON.stringify(game));delete soloGame.meta.multiplayer;const replaced=await upload('game',Buffer.from(JSON.stringify(soloGame)),cookie,{title:'Mein Testspiel',description:'Test',gameId:mpSaved.data.id,replace:'true'});check('Ersetzen ohne Flag entfernt multiplayer',replaced.data.ok&&!app.core.db.games.find(g=>g.id===mpSaved.data.id).multiplayer);
+ check('Spiel ohne Flag bleibt Solospiel',!app.core.db.games.find(g=>g.id===id).multiplayer);
+ browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage({viewport:{width:1400,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.context().addCookies([{name:'cms_admin',value:cookie.split('=')[1],url:base,httpOnly:true,sameSite:'Strict'}]);await page.goto(base+'/library?trace=1');await page.locator('[name=SpielTitel]').waitFor();await page.evaluate(()=>{const p=document.getElementById('debug-log-panel');if(p)p.style.pointerEvents='none'});await page.locator('[name=SpielTitel]').fill('Browser-Spiel');await page.locator('[name=SpielBeschreibung]').fill('Native Upload-Komponenten');
+ const choose=page.waitForEvent('filechooser');await page.locator('[data-id="upload_DateiWaehlen"]').click();await(await choose).setFiles({name:'spiel.json',mimeType:'application/json',buffer:bytes});await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielDatei').filename==='spiel.json');check('Native Dateiauswahl funktioniert',true);
+ await page.locator('[data-id="upload_Hochladen"]').click();await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').result.ok===true);check('Nativer Spieleupload funktioniert',app.core.db.games.some(g=>g.title==='Browser-Spiel'));await page.waitForTimeout(500);await page.screenshot({path:path.join(__dirname,'../docs/cms-spiele-upload.png')});
+ check('Fortschritt erreicht 100 Prozent',await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').progress===100));
+ let pending;await page.route('**/api/cms/upload/game',route=>{pending=route});await page.locator('[data-id="upload_Hochladen"]').click();await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').busy);await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').cancel());await page.waitForFunction(()=>!window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').busy);check('Upload abbrechbar',await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='SpielUpload').message.includes('abgebrochen')));if(pending)await pending.abort().catch(()=>{});await page.unroute('**/api/cms/upload/game');
+ await page.goto(base+launch);await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='TestLabel'));check('Spiel rendert in Sandbox',true);
+ await page.goto(base+'/');await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Emoji_dog'));const click=async n=>{await page.evaluate(n=>{const rt=window.player.runtime;rt.handleEvent(rt.getObjects().find(o=>o.name===n).id,'onClick')},n);await page.waitForTimeout(100);await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Busy').value===0)};
+ for(const n of ['Emoji_dog','Emoji_tree','Emoji_house','Emoji_elephant','Anmelden','MeinBereich'])await click(n);
+ const avatarChoose=page.waitForEvent('filechooser');await page.locator('[data-id="upload_AvatarDateiWaehlen"]').click();await(await avatarChoose).setFiles({name:'avatar.png',mimeType:'image/png',buffer:png});await page.locator('[data-id="upload_AvatarHochladen"]').click();await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='AvatarUpload').result.ok===true);check('Nativer Avatarupload funktioniert',true);
+ const tooLarge=page.waitForEvent('filechooser');await page.locator('[data-id="upload_AvatarDateiWaehlen"]').click();await(await tooLarge).setFiles({name:'zu-gross.png',mimeType:'image/png',buffer:Buffer.alloc(2097153)});await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='AvatarDatei').message.includes('zu groß'));check('Dateiauswahl meldet Größenfehler',true);
+ await page.waitForTimeout(300);await page.screenshot({path:path.join(__dirname,'../docs/cms-avatar-upload.png')});check('Keine Browserfehler',errors.length===0);
+ fs.writeFileSync(path.join(__dirname,'../docs/cms-uploads-test.json'),JSON.stringify({passed:checks.length,checks,errors},null,2));console.log(JSON.stringify({passed:checks.length,checks}));
+ }finally{if(browser)await browser.close();await new Promise(r=>app.server.close(r));if(path.resolve(dir).startsWith(path.resolve(os.tmpdir())+path.sep)&&path.basename(dir).startsWith('gcs-uploads-'))fs.rmSync(dir,{recursive:true,force:true});}
+})().catch(e=>{console.error(e);process.exitCode=1});

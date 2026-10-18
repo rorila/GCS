@@ -1,0 +1,646 @@
+[
+ {
+  "id": "GUIDE-0001",
+  "kind": "guide-chapter",
+  "name": "B01",
+  "title": "Teil B · Kapitel 1 — Die Aufgaben-Stufe: „Der wachsende Baum\"",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 1 — Die Aufgaben-Stufe: „Der wachsende Baum\"",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-01-aufgaben-stufe.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1ff97219b8ffa2c8"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0002",
+  "kind": "guide-chapter",
+  "name": "B02",
+  "title": "Teil B · Kapitel 2 — Lernfortschritt zählen: `RichtigeAntworten`",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 2 — Lernfortschritt zählen: `RichtigeAntworten`",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-02-richtige-antworten.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:37f3f849b4a4de40"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0003",
+  "kind": "guide-chapter",
+  "name": "B03",
+  "title": "Teil B · Kapitel 3 — Weltreaktion: Der Baum reagiert aufs Lernen",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 3 — Weltreaktion: Der Baum reagiert aufs Lernen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-03-weltreaktion.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:f268d2da098e632b"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0004",
+  "kind": "guide-chapter",
+  "name": "B04",
+  "title": "Teil B · Kapitel 4 — Das Baumhaus entsteht",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 4 — Das Baumhaus entsteht",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-04-baumhaus.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:14600d35da3cf86c"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0005",
+  "kind": "guide-chapter",
+  "name": "B05",
+  "title": "Teil B · Kapitel 5 — Dekor-Sprites per Drag-and-drop",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 5 — Dekor-Sprites per Drag-and-drop",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-05-dragdrop.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:078c81e4b064f665"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0006",
+  "kind": "guide-chapter",
+  "name": "B06",
+  "title": "Teil B · Kapitel 6 — Selbst entscheiden: der freiwillige Neustart",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 6 — Selbst entscheiden: der freiwillige Neustart",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-06-neustart.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:4c06be7ffc1d5643"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0007",
+  "kind": "guide-chapter",
+  "name": "B07",
+  "title": "Teil B · Kapitel 7 — Neue Aufgaben automatisch: Zufall & Formel",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 7 — Neue Aufgaben automatisch: Zufall & Formel",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-07-zufallsaufgaben.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:7f4b4dc5e58f6af9"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0008",
+  "kind": "guide-chapter",
+  "name": "B08",
+  "title": "Teil B · Kapitel 8 — Feinschliff: Startmenü, Übergang, Klang",
+  "category": "teil-b",
+  "description": "Autoren-Handbuch, Teil B (Der wachsende Baum): Teil B · Kapitel 8 — Feinschliff: Startmenü, Übergang, Klang",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/b-kapitel-08-feinschliff.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a11868f82469b806"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0009",
+  "kind": "guide-chapter",
+  "name": "A01",
+  "title": "Kapitel 1 — Editor starten und das Projekt anlegen",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 1 — Editor starten und das Projekt anlegen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-01-projekt-anlegen.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:167beb647a977242"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0010",
+  "kind": "guide-chapter",
+  "name": "A02",
+  "title": "Kapitel 2 — Der Arbeitsplatz: Editor-Bereiche kennenlernen",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 2 — Der Arbeitsplatz: Editor-Bereiche kennenlernen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-02-arbeitsplatz.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:3abc7be212ebf8d2"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0011",
+  "kind": "guide-chapter",
+  "name": "A03",
+  "title": "Kapitel 3 — Den Baum platzieren",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 3 — Den Baum platzieren",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-03-baum-platzieren.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:a3bfcd00973f3d27"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0012",
+  "kind": "guide-chapter",
+  "name": "A04",
+  "title": "Kapitel 4 — Variablen: der Wasservorrat",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 4 — Variablen: der Wasservorrat",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-04-variablen-wasser.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:1e6124fd700212aa"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0013",
+  "kind": "guide-chapter",
+  "name": "A05",
+  "title": "Kapitel 5 — Tasks verstehen",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 5 — Tasks verstehen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-05-tasks-verstehen.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:cabe623273641365"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0014",
+  "kind": "guide-chapter",
+  "name": "A06",
+  "title": "Kapitel 6 — Aktionen: der Gieß-Knopf",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 6 — Aktionen: der Gieß-Knopf",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-06-giess-knopf.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c28cb7d8439f74ed"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0015",
+  "kind": "guide-chapter",
+  "name": "A07",
+  "title": "Kapitel 7 — Bedingungen: wann wächst der Baum",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 7 — Bedingungen: wann wächst der Baum",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-07-bedingungen.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:2d9c2b9ed39dc9d9"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0016",
+  "kind": "guide-chapter",
+  "name": "A08",
+  "title": "Kapitel 8 — Der Flow-Editor im Detail",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 8 — Der Flow-Editor im Detail",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-08-flow-editor.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:c5c1be163dca9fc9"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0017",
+  "kind": "guide-chapter",
+  "name": "A09",
+  "title": "Kapitel 9 — Bilder wechseln: Wachstumsstufen",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 9 — Bilder wechseln: Wachstumsstufen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-09-wachstumsstufen.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:139efa7c46894423"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0018",
+  "kind": "guide-chapter",
+  "name": "A10",
+  "title": "Kapitel 10 — Der Durst-Timer",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 10 — Der Durst-Timer",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-10-durst-timer.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:fb4b0aad273ccebf"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0019",
+  "kind": "guide-chapter",
+  "name": "A11",
+  "title": "Kapitel 11 — Bildquellen & Media-Tools",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 11 — Bildquellen & Media-Tools",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-11-bilder-media.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:ca069fbb76218e05"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0020",
+  "kind": "guide-chapter",
+  "name": "A12",
+  "title": "Kapitel 12 — Spielzustand: „Gewonnen!\"",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 12 — Spielzustand: „Gewonnen!\"",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-12-game-state.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:8807ac0507629a5f"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0021",
+  "kind": "guide-chapter",
+  "name": "A13",
+  "title": "Kapitel 13 — Im Run-Modus testen",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 13 — Im Run-Modus testen",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-13-run-test.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:da2a7eee28788b6f"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0022",
+  "kind": "guide-chapter",
+  "name": "A14",
+  "title": "Kapitel 14 — Speichern & Export",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 14 — Speichern & Export",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-14-export.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:5cad07a837ae1d78"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "GUIDE-0023",
+  "kind": "guide-chapter",
+  "name": "A15",
+  "title": "Kapitel 15 — Feintuning & Abschluss des Grundkurses",
+  "category": "teil-a",
+  "description": "Autoren-Handbuch, Teil A (Mein erster interaktiver Baum): Kapitel 15 — Feintuning & Abschluss des Grundkurses",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "fachlich freigegeben"
+  },
+  "sources": {
+   "docs": [
+    "docs/user-guide/kapitel-15-feintuning.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "contentHash": "sha256:80e0f18b4f603c2d"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ }
+]

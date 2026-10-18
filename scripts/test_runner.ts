@@ -52,6 +52,7 @@ import { runTimerReactiveTests } from '../tests/timer_reactive.test.js';
 import { runVideoToSpriteSheetTests } from '../tests/video_to_spritesheet.test.js';
 import { runTests as runAgentScriptIOTests } from '../tests/agent_script_io.test.js';
 import { runDiskRevisionGuardTests } from '../tests/disk_revision_guard.test.js';
+import { runHandbookHtmlTests } from '../tests/handbook_html.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -442,6 +443,11 @@ async function main() {
             console.log('🏃 Starte AgentScriptIO Tests (Feature-Gruppierung)...');
             allResults.push(...await runAgentScriptIOTests());
             allResults.push(...await runDiskRevisionGuardTests());
+        });
+
+        await timer.measure('Handbuch-HTML', async () => {
+            console.log('🏃 Starte Handbuch-HTML Tests (Modern & GCS Native)...');
+            allResults.push(...await runHandbookHtmlTests());
         });
 
         await timer.measure('Raketen-Countdown', async () => {

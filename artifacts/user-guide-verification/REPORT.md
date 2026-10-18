@@ -4,9 +4,11 @@ Prüfdatum: 17.10.2026. Grundlage: die unveränderten Kapitel 1–5 unter `docs/
 
 ## Ergebnis
 
-Projekt-Assistent, Stage-Erzeugung, Eigenschaftseingabe, Stage-Variable, Flow-Task und Speichern/Wiederöffnen lassen sich über die echte Oberfläche ausführen. **Die Kapitel sind trotzdem noch nicht vollständig für einen unveränderten Bildschirmablauf freigegeben:** Der Start-Button wird verdeckt, der Variablen-Inspector entspricht nicht der Beschreibung, die Sprite-Farbe wird nicht entsprechend der gespeicherten Eigenschaft dargestellt und das Regal aktualisiert die Variablenanzeige nicht sofort.
+Projekt-Assistent, Stage-Erzeugung, Eigenschaftseingabe, Stage-Variable, Flow-Task und Speichern/Wiederöffnen lassen sich über die echte Oberfläche ausführen. **Die Kapitel sind trotzdem noch nicht vollständig für einen unveränderten Bildschirmablauf freigegeben:** Der Start-Button wird verdeckt, der Variablen-Inspector entspricht nicht der Beschreibung, die Sprite-Farbe wird nicht entsprechend der gespeicherten Eigenschaft dargestellt und Regal bzw. Inspector aktualisieren bestimmte Anzeigen nicht sofort. Fünf reproduzierbare Abweichungen sind unten aufgeführt.
 
 Es wurden weder GCS-Anwendungslogik noch Handbuchkapitel bearbeitet. Die Prüfausgaben enthalten echte Playwright-Screenshots und eine echte Browseraufzeichnung. Fehlgeschlagene Bedienversuche wurden nicht durch nachgebaute Ansichten ersetzt.
+
+Der Abschlusslauf beendet alle **acht Prüfabschnitte**: fünf ohne festgestellte Abweichung, drei mit dokumentierten Abweichungen. Es wurden keine unbehandelten Browser-JavaScript-Fehler erfasst. Der gespeicherte und erneut geöffnete Projektstand besteht den Inhaltsvergleich. [Kompakte Laufzusammenfassung](run-summary.json).
 
 ## Testumgebung und Reichweite
 
@@ -18,6 +20,8 @@ Es wurden weder GCS-Anwendungslogik noch Handbuchkapitel bearbeitet. Die Prüfau
 - JavaScript-Auswertungen lesen Projekt- und DOM-Zustände. Projektobjekte werden ausschließlich durch Bedienung der Oberfläche angelegt und geändert.
 - [Quellintegrität](source-integrity.json) protokolliert SHA-256-Prüfsummen von `src/` und `docs/user-guide/` vor und nach dem Lauf.
 
+Integritätshinweis zum gemeinsam benutzten Workspace: **Anwendungsquellen und Kapitel 1–5 blieben unverändert** (`requestedScopeUnchanged: true`). Parallel zur Prüfung/Qualitätssicherung kamen weitere Handbuchkapitel hinzu und die Handbuch-README wurde geändert; die [Dateiliste](source-changes.json) hält diese Änderungen außerhalb des Prüfauftrags fest. Deshalb ist der Gesamtverzeichnisvergleich `unchanged: false`. Von den 585 zu Beginn erfassten Dateien blieben 584 unverändert. Die hier erstellten Testskripte schreiben ausschließlich Testartefakte und erzeugen oder bearbeiten keine Handbuchkapitel.
+
 ## Ergebnisse je Kapitel
 
 | Kapitel / Prüfpunkt | Tatsächliches Ergebnis | Bewertung |
@@ -25,7 +29,7 @@ Es wurden weder GCS-Anwendungslogik noch Handbuchkapitel bearbeitet. Die Prüfau
 | 1: Projekt anlegen | Name `Mein erster interaktiver Baum`, Testautor, Beschreibung, „Etwas anderes“, ein Spieler, eine Stage, keine Features über den Projekt-Assistenten eingegeben. | Assistent bestanden |
 | 1: Stage erzeugen | ID `wiese`, Name `Die Wiese`, Maussteuerung, Hintergrund und Buttons, Übergang „Bedingung erfüllt“. Raster 64 × 40 mit Rasterfang. | Erstellung bestanden; Buttondarstellung siehe UI-01 |
 | 2: Arbeitsplatz | Bearbeiten/Rückgängig, Game-Kategorie, Events/Eigenschaften, JSON/Stage und Inspector-Größenänderung bedient. Sechs Menüs, elf Kategorien mit zusammen 84 Einträgen und neun Ansichten erfasst. | Mit Abweichung: direkte Start-Auswahl blockiert, Auswahl über Inspector-Dropdown möglich |
-| 3: Baum | Sprite über die ausdrücklich erlaubte Klick-Alternative angelegt; Name, Position 28/20, Größe 8 × 8 und `spriteColor=#2d8a3e` eingestellt. Verschieben/Rasterfang und anschließendes Zurücksetzen werden separat protokolliert. | Daten korrekt; sichtbare Farbe siehe UI-03 |
+| 3: Baum | Sprite über die ausdrücklich erlaubte Klick-Alternative angelegt; Name, Position 28/20, Größe 8 × 8 und `spriteColor=#2d8a3e` eingestellt. Verschieben/Rasterfang und anschließendes Zurücksetzen werden separat protokolliert. | Daten korrekt; sichtbare Farbe siehe UI-03, Positionsanzeige siehe UI-05 |
 | 4: Wasser | Variable über Toolbox angelegt, im Regal ausgewählt; Name `Wasser`, Integer, Standardwert 0 und aktueller Wert 0 über die tatsächlichen Inspector-Felder eingegeben. Eigentümer ist die Stage `wiese`, Scope `stage`. | Persistenz korrekt; beschriebenes Inspector-Layout und unmittelbare Regalanzeige abweichend |
 | 5: Giessen | Flow → Rechtsklick auf freie Fläche → „Task hinzufügen“ → Namensdialog → `Giessen`; Knoten ausgewählt und zurück zur Stage. | Bestanden; Task hat eine leere `actionSequence` |
 | Speichern | „Datei → Projekt Speichern“, Erfolgsmeldung und tatsächlich geschriebene JSON-Datei im Testadapter geprüft. | Bestanden im isolierten Speicher-Fallback |
@@ -87,6 +91,22 @@ Erwartet: `Wasser`, Integer und 0. Tatsächlich: Der Inspector enthält die neue
 
 Belege: [Regal neben Inspector](05-wasser.png), [erneut geöffneter Stand](08-erneut-oeffnen.png). Eine fehlende sofortige Anzeige darf deshalb nicht mit fehlender Speicherung verwechselt werden.
 
+### UI-05 – Positionsfelder im Inspector bleiben nach Drag veraltet
+
+Betroffen: Kapitel 3, Schritt 3 und Selbstprüfung. Relevanz: mittel.
+
+1. Baum auf 28/20 setzen, Größe 8 × 8.
+2. Das sichtbare Quadrat mit der Maus etwas nach rechts/unten verschieben.
+3. Projektposition, Stage-Darstellung und Inspector-Felder vergleichen.
+
+Erwartet: Der Sprite rastet ein und die Positionsfelder zeigen die neue Position. Tatsächlich: Der Sprite wird bewegt und die Koordinaten im Projekt sind ganzzahlig, die Inspector-Felder zeigen zunächst noch die vorherigen Werte. Ein Test allein gegen diese Felder würde fälschlich einen fehlgeschlagenen Drag melden.
+
+Der reproduzierbare Test liest deshalb die echte Projektposition zusätzlich aus, dokumentiert die veraltete Anzeige und wählt über die Inspector-Objektauswahl zunächst Background, dann Baum erneut aus. Anschließend setzt er die Koordinaten über die Oberfläche auf den gewünschten Endstand 28/20 zurück.
+
+Belege: [Positionsvergleich](drag-snap.json), [Inspector nach Drag](abweichung-inspector-nach-drag.png). Frühere fehlgeschlagene Prüfversuche sind unter `diagnostics/` als solche aufbewahrt; sie werden nicht als erfolgreiche Handbuch-Screenshots verwendet.
+
+Zusätzliche Beobachtung beim Wiederöffnen: Im [Wiederöffnungs-Screenshot](08-erneut-oeffnen.png) zeigen Stage und Regal bereits die geladenen Daten, während der Inspector zunächst noch die vorherigen Standard-Stage-Daten enthält. Die Inhaltsprüfung liest deshalb das tatsächlich geladene Projekt. Dieser weitere Anzeigeeffekt wurde nicht als eigener, isoliert wiederholter Fehler gezählt.
+
 ## Screenshots
 
 | Aufnahme | Inhalt |
@@ -107,7 +127,7 @@ Belege: [Regal neben Inspector](05-wasser.png), [erneut geöffneter Stand](08-er
 
 ## Pilotvideo: „Ein neues GCS-Projekt anlegen“
 
-[Pilotvideo als MP4](pilot-neues-projekt.mp4). Die genaue Dauer und technischen Daten stehen in [video-metadata.json](video-metadata.json).
+[Pilotvideo als MP4](pilot-neues-projekt.mp4): **33,84 Sekunden**, 1600 × 1000 Pixel, H.264. Die technischen Daten stehen in [video-metadata.json](video-metadata.json). Drei echte Videoframes sind zur Sichtkontrolle in einem [Prüfbild](video-contact.png) zusammengestellt; dieses ist kein Handbuch-Screenshot.
 
 Das Video zeigt den realen Projekt-Assistenten einschließlich Name, Autor, Beschreibung, Spielart, Spielerzahl, Struktur und Feature-Auswahl sowie den anschließenden Stage-Assistenten. Es wurde aus der durchgehenden Playwright-Aufnahme zeitlich zugeschnitten und mit FFmpeg als H.264/MP4 ausgegeben. Keine nachgebauten Ansichten, keine künstlichen Zwischenbilder, keine Zeitbeschleunigung. Der Pilot ist ohne Ton/Sprecher aufgenommen.
 

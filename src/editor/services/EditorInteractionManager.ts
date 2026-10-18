@@ -27,6 +27,8 @@ export interface EditorInteractionHost {
     moveObjectFromSidepanel(id: string): void;
     canMoveToSidepanel(obj: any): boolean;
     projectStore?: any;
+    currentSelectedId?: string | null;
+    inspector?: { update(object: any): unknown } | null;
 }
 
 export class EditorInteractionManager {
@@ -34,6 +36,13 @@ export class EditorInteractionManager {
 
     constructor(host: EditorInteractionHost) {
         this.host = host;
+    }
+
+    private refreshSelectedInspector(): void {
+        const id = this.host.currentSelectedId;
+        if (!id || !this.host.inspector) return;
+        const object = this.getOriginalObject(id) || this.host.findObjectById(id);
+        if (object) this.host.inspector.update(object);
     }
 
     private getOriginalObject(id: string, name?: string): any {
@@ -148,9 +157,9 @@ export class EditorInteractionManager {
             }
 
             this.host.render();
+            this.refreshSelectedInspector();
             this.host.autoSaveToLocalStorage();
-            // Inspector-Refresh: DATA_CHANGED auslösen damit x/y-Felder aktualisiert werden
-            // --- Dies passiert nun implizit über die Store-Bridge! ---
+            // Die Store-Bridge ist entprellt; die beendete Geste ist bereits synchron sichtbar.
         };
 
         stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
@@ -186,6 +195,7 @@ export class EditorInteractionManager {
             }
 
             this.host.render();
+            this.refreshSelectedInspector();
             this.host.autoSaveToLocalStorage();
         };
 

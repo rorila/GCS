@@ -5,6 +5,75 @@ import { InspectorLegacyRenderer } from './InspectorLegacyRenderer';
 import { InspectorRegistry } from '../InspectorRegistry';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { isShelfVariable } from '../../EditorShelfModel';
+
+/**
+ * Spezial-Variablenklassen tragen ihren Datentyp nicht als serialisiertes
+ * Feld – er folgt aus der Klasse (gleiche Abbildung wie
+ * EditorDataManager.morphVariable und RuntimeVariableManager). Für die
+ * Variablen-Vorlage wird er abgeleitet, damit die bedingten Spezialfelder
+ * (threshold, triggerValue, min/max, …) sichtbar werden.
+ */
+const VARIABLE_TYPE_BY_CLASSNAME: Record<string, string> = {
+    TIntegerVariable: 'integer',
+    TRealVariable: 'real',
+    TStringVariable: 'string',
+    TBooleanVariable: 'boolean',
+    TObjectVariable: 'object',
+    TListVariable: 'list',
+    TRangeVariable: 'range',
+    TRandomVariable: 'random',
+    TThresholdVariable: 'threshold',
+    TTriggerVariable: 'trigger'
+};
+
+/**
+ * Regal-Ressourcen (Map/List/Store) werden wie Variablen geführt, nutzen aber
+ * eigene generische Inspector-Sections (z. B. StringMapEditorDialog) und
+ * dürfen nicht auf die Variablen-Vorlage umgeleitet werden.
+ */
+const NON_VARIABLE_SHELF_CLASSNAMES = ['TStringMap', 'TObjectList', 'TKeyStore'];
+
+/**
+ * Zentrale Routing-Entscheidung: Objekte, die über den Smart Variable
+ * Inspector (inspector_variable.json mit Scope-Auswahl und typabhängigen
+ * Spezialfeldern) konfiguriert werden.
+ */
+export function usesVariableInspectorTemplate(obj: any): boolean {
+    if (!obj || typeof obj !== 'object') return false;
+    if (NON_VARIABLE_SHELF_CLASSNAMES.includes(obj.className)) return false;
+    return isShelfVariable(obj);
+}
+
+/**
+ * Effektiver Datentyp für die Variablen-Vorlage: das serialisierte `type`-Feld
+ * hat Vorrang; bei Spezialklassen ohne eigenes `type`-Feld wird der Typ aus
+ * dem Klassennamen abgeleitet.
+ */
+export function resolveVariableInspectorType(obj: any): string | undefined {
+    if (!obj || typeof obj !== 'object') return undefined;
+    if (obj.type !== undefined) return obj.type;
+    return VARIABLE_TYPE_BY_CLASSNAME[obj.className];
+}
+
+/**
+ * Liefert ein Sicht-Objekt für die Variablen-Vorlage: bei Spezialklassen ohne
+ * serialisiertes `type`-Feld liest ein Proxy den abgeleiteten Typ mit, ohne
+ * das Objekt selbst zu verändern. Schreibzugriffe (Scope, Werte, Typwechsel)
+ * gehen unverändert an das Original.
+ */
+export function getVariableInspectorTarget(obj: any): any {
+    const derivedType = VARIABLE_TYPE_BY_CLASSNAME[obj?.className];
+    if (!derivedType || obj.type !== undefined) return obj;
+    return new Proxy(obj, {
+        get(target: any, prop: string) {
+            if ((prop === 'type' || prop === 'variableType') && target[prop] === undefined) {
+                return derivedType;
+            }
+            return target[prop];
+        }
+    });
+}
 
 export class InspectorPropertiesRenderer {
     public static async renderPropertiesContent(obj: any, parent: HTMLElement, context: IInspectorContext): Promise<void> {
@@ -22,12 +91,17 @@ export class InspectorPropertiesRenderer {
             }
         }
 
-        if (isInspectable(obj)) {
+        // TVariable und alle Spezialvariablen (TThresholdVariable,
+        // TTriggerVariable, TRandomVariable, …) teilen die gemeinsame
+        // Variablen-Vorlage mit Scope-Auswahl und typabhängigen Spezialfeldern.
+        // Die geerbten generischen Sections dürfen diese nicht verdrängen.
+        const useVariableTemplate = usesVariableInspectorTemplate(obj);
+        if (!useVariableTemplate && isInspectable(obj)) {
             InspectorSectionRenderer.renderSections(obj, parent, context);
             return;
         }
 
-        if (!isInspectable(obj) && obj.className) {
+        if (!useVariableTemplate && !isInspectable(obj) && obj.className) {
             const instance = componentRegistry.createInstance(obj);
             if (instance && isInspectable(instance)) {
                 const proxy = new Proxy(obj, {
@@ -74,7 +148,11 @@ export class InspectorPropertiesRenderer {
             inspectorFile = (obj as any).getInspectorFile();
         }
 
-        const staticObjects = await context.templateLoader.loadTemplate(inspectorFile, obj);
+        // Spezialvariablen erhalten ein Sicht-Objekt mit abgeleitetem `type`,
+        // damit die bedingten Spezialfelder der Vorlage gerendert werden.
+        const renderTarget = useVariableTemplate ? getVariableInspectorTarget(obj) : obj;
+
+        const staticObjects = await context.templateLoader.loadTemplate(inspectorFile, renderTarget);
 
         const isDefaultInspector = inspectorFile === './inspector.json';
 
@@ -93,7 +171,7 @@ export class InspectorPropertiesRenderer {
         const uiObjects = [...staticObjects, ...dynamicObjects];
 
         uiObjects.forEach(def => {
-            const el = InspectorLegacyRenderer.renderUIDefinition(def, obj, context);
+            const el = InspectorLegacyRenderer.renderUIDefinition(def, renderTarget, context);
             if (el) parent.appendChild(el);
         });
     }

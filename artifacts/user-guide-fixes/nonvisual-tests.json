@@ -1,0 +1,191 @@
+[
+  {
+    "name": "Nonvisual Inspector: TVariable",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TIntegerVariable",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TListVariable",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TStringMap",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TTimer",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TIntervalTimer",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TGameLoop",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TGameState",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TInputController",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TAudio",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TSpawner",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TAnimation",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TDataStore",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TAPIServer",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TGameServer",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: THandshake",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: THeartbeat",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TStageController",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TObjectList",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: TImageList",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Nonvisual Inspector: DTO-Werte bleiben erhalten",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TButton",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TSprite",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TSpriteTemplate",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TToast",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TStatusBar",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  },
+  {
+    "name": "Visueller Inspector bleibt erhalten: TStickyNote",
+    "type": "Inspector",
+    "passed": true,
+    "expectedSuccess": true,
+    "actualSuccess": true
+  }
+]

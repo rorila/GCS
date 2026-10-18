@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GCS Autoren-Handbuch — Modern Web Edition</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Skip Link für Tastaturbedienbarkeit -->
+  <a href="#main-content" class="skip-link">Direkt zum Hauptinhalt springen</a>
+
+  <!-- Top Header / App-Bar -->
+  <header class="hb-topbar" role="banner">
+    <div class="hb-topbar-left">
+      <button type="button" id="sidebar-toggle-btn" class="hb-icon-btn" aria-label="Kapitel-Navigation ein-/ausblenden" title="Navigation umschalten (Menü)">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <a href="#overview" class="hb-brand" id="brand-home-link">
+        <span class="hb-brand-logo" aria-hidden="true">🌱</span>
+        <div class="hb-brand-text">
+          <span class="hb-brand-title">GCS Autoren-Handbuch</span>
+          <span class="hb-brand-badge">Modern Web Edition</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="hb-topbar-center">
+      <button type="button" id="open-search-btn" class="hb-search-trigger" aria-label="Volltextsuche öffnen (Strg+K)">
+        <span class="hb-search-icon" aria-hidden="true">🔍</span>
+        <span class="hb-search-placeholder">Handbuch durchsuchen (23 Kapitel, Bausteine, Begriffe)…</span>
+        <kbd class="hb-kbd">Strg + K</kbd>
+      </button>
+    </div>
+
+    <div class="hb-topbar-right">
+      <!-- Gesamtfortschritt-Anzeige -->
+      <div class="hb-progress-pill" id="header-progress-pill" title="Dein gespeicherter Lernfortschritt im Browser">
+        <div class="hb-progress-meta">
+          <span class="hb-progress-label">Fortschritt</span>
+          <strong id="header-progress-text">0 / 23</strong>
+        </div>
+        <div class="hb-progress-bar-bg" role="progressbar" aria-valuemin="0" aria-valuemax="23" aria-valuenow="0" id="header-progressbar">
+          <div class="hb-progress-bar-fill" id="header-progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Globaler Umschalter für deutsche Sprecher-Drehbücher -->
+      <button type="button" id="toggle-speaker-btn" class="hb-action-btn" aria-pressed="false" title="Deutsche Sprecher-Drehbücher ein-/ausblenden (Taste S)">
+        <span aria-hidden="true">🎙️</span>
+        <span class="hb-btn-label">Sprechertext</span>
+      </button>
+
+      <!-- Hell-/Dunkelmodus -->
+      <button type="button" id="toggle-theme-btn" class="hb-icon-btn" aria-label="Hell-/Dunkelmodus umschalten (Taste T)" title="Hell-/Dunkelmodus umschalten (Taste T)">
+        <span id="theme-icon" aria-hidden="true">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Haupt-Arbeitsbereich (3-Spalten-Layout: Sidebar | Content | Auf dieser Seite) -->
+  <div class="hb-layout" id="hb-layout">
+    <!-- Linke Kapitel-Navigation -->
+    <aside class="hb-sidebar" id="hb-sidebar" aria-label="Kapitel-Navigation">
+      <div class="hb-sidebar-header">
+        <a href="#overview" class="hb-overview-nav-btn" id="nav-overview-link">
+          <span>🏠 Kursübersicht &amp; Startseite</span>
+        </a>
+        <div class="hb-part-filter" role="tablist" aria-label="Kursteil filtern">
+          <button type="button" class="hb-filter-tab active" data-filter="all" role="tab" aria-selected="true">Alle (23)</button>
+          <button type="button" class="hb-filter-tab" data-filter="A" role="tab" aria-selected="false">🌱 Teil A (15)</button>
+          <button type="button" class="hb-filter-tab" data-filter="B" role="tab" aria-selected="false">🌳 Teil B (8)</button>
+        </div>
+      </div>
+      <nav class="hb-nav-list" id="chapter-nav-list" aria-label="Kapitelliste">
+        <!-- Wird dynamisch aus window.GCS_HANDBOOK_DATA gerendert -->
+      </nav>
+      <div class="hb-sidebar-footer">
+        <button type="button" id="reset-progress-btn" class="hb-reset-btn" title="Gespeicherten Lernfortschritt zurücksetzen">
+          ↺ Lernfortschritt zurücksetzen
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mittlerer Hauptinhalt -->
+    <main class="hb-main" id="main-content" tabindex="-1">
+      <!-- Ansicht 1: Startseite / Kursübersicht -->
+      <section id="view-overview" class="hb-view">
+        <div class="hb-hero">
+          <div class="hb-hero-content">
+            <div class="hb-hero-eyebrow">GCS · Game Creation System · Autoren-Handbuch</div>
+            <h1 class="hb-hero-title">Entwickle eigene interaktive Spiele &amp; Lernwelten</h1>
+            <p class="hb-hero-subtitle">
+              Schritt für Schritt ohne Programmierkenntnisse: Vom ersten Setzling auf der Wiese bis zum vollständigen Mathematik-Lernspiel mit Wachstumsstufen, Baumhaus und Drag-&amp;-Drop.
+            </p>
+            <div class="hb-hero-actions">
+              <a href="#kapitel-01" id="hero-continue-btn" class="hb-primary-btn">
+                ▶ Mit Kapitel 1 starten
+              </a>
+              <button type="button" id="hero-search-btn" class="hb-secondary-btn">
+                🔍 Kapitel durchsuchen
+              </button>
+            </div>
+          </div>
+
+          <div class="hb-hero-stats-card">
+            <div class="hb-stats-header">
+              <span>Dein Kurs-Status</span>
+              <span class="hb-stats-percent" id="overview-percent-badge">0%</span>
+            </div>
+            <div class="hb-stats-grid">
+              <div class="hb-stat-item">
+                <span class="hb-stat-val" id="stat-total-done">0 / 23</span>
+                <span class="hb-stat-lbl">Kapitel erledigt</span>
+              </div>
+              <div class="hb-stat-item">
+                <span class="hb-stat-val" id="stat-part-a-done">0 / 15</span>
+                <span class="hb-stat-lbl">🌱 Teil A (Einsteiger)</span>
+              </div>
+              <div class="hb-stat-item">
+                <span class="hb-stat-val" id="stat-part-b-done">0 / 8</span>
+                <span class="hb-stat-lbl">🌳 Teil B (Lernwelt)</span>
+              </div>
+              <div class="hb-stat-item">
+                <span class="hb-stat-val" id="stat-checks-done">0</span>
+                <span class="hb-stat-lbl">✅ Checklisten-Punkte</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zwei Lernwege Erklärung -->
+        <div class="hb-paths-grid">
+          <div class="hb-path-card hb-path-a">
+            <div class="hb-path-header">
+              <span class="hb-path-icon">🌱</span>
+              <div>
+                <h2>Teil A: „Mein erster interaktiver Baum“</h2>
+                <span class="hb-path-meta">15 Kapitel · Einsteiger-Tutorial (Kapitel 1–15)</span>
+              </div>
+            </div>
+            <p>
+              Ein Setzling steht auf einer Wiese. Per Knopfdruck gießt man ihn — bei genug Wasser wächst er in Stufen. Ein Timer lässt den Wasservorrat wieder sinken. Du lernst den kompletten GCS-Arbeitsplatz, Variablen, Tasks, Actions, Bedingungen, den Flow-Editor, Spritesheets und den ZIP-Export kennen.
+            </p>
+          </div>
+
+          <div class="hb-path-card hb-path-b">
+            <div class="hb-path-header">
+              <span class="hb-path-icon">🌳</span>
+              <div>
+                <h2>Teil B: „Der wachsende Baum“</h2>
+                <span class="hb-path-meta">8 Kapitel · Pädagogische Lernwelt (Kapitel B1–B8)</span>
+              </div>
+            </div>
+            <p>
+              Das Kind beantwortet Mathematik-Aufgaben. Richtige Antworten erhöhen die Variable <code>RichtigeAntworten</code> und lösen automatisch Reaktionen in der Spielwelt aus: Der Baum wächst, ein Baumhaus entsteht, Deko-Sprites werden per Drag-&amp;-Drop platziert und Zufallsaufgaben entstehen automatisch.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filter & Kapitel-Karten-Grid -->
+        <div class="hb-overview-Controls">
+          <h2 class="hb-section-heading">Alle 23 Kapitel im Überblick</h2>
+          <div class="hb-overview-filter-pills">
+            <button type="button" class="hb-pill active" data-overview-filter="all">Alle 23 Kapitel</button>
+            <button type="button" class="hb-pill" data-overview-filter="A">🌱 Nur Teil A (1–15)</button>
+            <button type="button" class="hb-pill" data-overview-filter="B">🌳 Nur Teil B (B1–B8)</button>
+            <button type="button" class="hb-pill" data-overview-filter="open">⏳ Noch offen</button>
+          </div>
+        </div>
+
+        <div id="overview-chapters-container" class="hb-chapters-container">
+          <!-- Wird dynamisch nach Gruppen gerendert -->
+        </div>
+      </section>
+
+      <!-- Ansicht 2: Einzelkapitel-Leseansicht -->
+      <article id="view-chapter" class="hb-view hb-chapter-view" hidden>
+        <!-- Kapitel-Kopf -->
+        <div class="hb-chapter-header">
+          <div class="hb-breadcrumbs" id="chapter-breadcrumbs"></div>
+          <h1 class="hb-chapter-title" id="chapter-title"></h1>
+          <div class="hb-chapter-meta-bar">
+            <span class="hb-status-badge" id="chapter-status-note"></span>
+            <div class="hb-component-tags" id="chapter-components"></div>
+          </div>
+        </div>
+
+        <!-- Optional einblendbares Deutsches Sprecher-Drehbuch (Video/Audio-Begleitkarte) -->
+        <section id="speaker-script-panel" class="hb-speaker-card" hidden aria-label="Deutsches Sprecher-Drehbuch">
+          <div class="hb-speaker-card-header">
+            <div class="hb-speaker-card-title">
+              <span class="hb-speaker-badge">🎙️ SPRECHER-DREHBUCH (DEUTSCH)</span>
+              <strong id="speaker-video-title"></strong>
+            </div>
+            <button type="button" id="close-speaker-panel-btn" class="hb-speaker-close" title="Sprecher-Drehbuch ausblenden">✕</button>
+          </div>
+          <div class="hb-speaker-card-body">
+            <blockquote class="hb-speaker-quote" id="speaker-script-text"></blockquote>
+            <div class="hb-speaker-sync" id="speaker-sync-notes"></div>
+          </div>
+        </section>
+
+        <!-- Gerenderter Markdown-Inhalt des Kapitels -->
+        <div id="chapter-content-body" class="hb-prose"></div>
+
+        <!-- Kapitel-Abschluss & Vor/Zurück-Navigation -->
+        <footer class="hb-chapter-footer">
+          <div class="hb-complete-banner" id="chapter-complete-banner">
+            <div class="hb-complete-info">
+              <strong id="complete-banner-title">Hast du dieses Kapitel durchgearbeitet?</strong>
+              <span id="complete-banner-sub">Markiere das Kapitel als abgeschlossen, um deinen Lernfortschritt zu speichern.</span>
+            </div>
+            <button type="button" id="toggle-chapter-done-btn" class="hb-done-btn">
+              <span id="done-btn-icon">☐</span>
+              <span id="done-btn-label">Kapitel als erledigt markieren</span>
+            </button>
+          </div>
+
+          <nav class="hb-prev-next" aria-label="Kapitel-Blätternavigation">
+            <a href="#overview" id="prev-chapter-link" class="hb-nav-card hb-prev-card">
+              <span class="hb-nav-dir">◀ Vorheriges Kapitel</span>
+              <strong class="hb-nav-title" id="prev-chapter-title">Zur Kursübersicht</strong>
+            </a>
+            <a href="#kapitel-02" id="next-chapter-link" class="hb-nav-card hb-next-card">
+              <span class="hb-nav-dir">Nächstes Kapitel ▶</span>
+              <strong class="hb-nav-title" id="next-chapter-title">Kapitel 2</strong>
+            </a>
+          </nav>
+        </footer>
+      </article>
+    </main>
+
+    <!-- Rechte Spalte: „Auf dieser Seite" (Inhaltsverzeichnis des aktuellen Kapitels) -->
+    <aside class="hb-toc-sidebar" id="hb-toc-sidebar" aria-label="Abschnitte in diesem Kapitel" hidden>
+      <div class="hb-toc-Sticky">
+        <div class="hb-toc-title">Auf dieser Seite</div>
+        <ul class="hb-toc-list" id="chapter-toc-list"></ul>
+        <div class="hb-toc-shortcuts">
+          <div class="hb-shortcut-title">Tastaturkürzel</div>
+          <div class="hb-shortcut-row"><kbd>←</kbd> / <kbd>→</kbd> <span>Kapitel blättern</span></div>
+          <div class="hb-shortcut-row"><kbd>Strg+K</kbd> <span>Volltextsuche</span></div>
+          <div class="hb-shortcut-row"><kbd>S</kbd> <span>Sprecher-Drehbuch</span></div>
+          <div class="hb-shortcut-row"><kbd>T</kbd> <span>Hell-/Dunkelmodus</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Volltextsuche Modal (Spotlight-Style) -->
+  <div id="search-modal" class="hb-modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
+    <div class="hb-search-modal">
+      <div class="hb-search-modal-header">
+        <span class="hb-search-modal-icon" aria-hidden="true">🔍</span>
+        <input
+          type="search"
+          id="search-modal-input"
+          class="hb-search-modal-input"
+          placeholder="Suche in allen 23 Kapiteln (z. B. „Wasser“, „onClick“, „Flow-Editor“, „Baumhaus“, „TEdit“)…"
+          autocomplete="off"
+          aria-label="Suchbegriff eingeben"
+        />
+        <button type="button" id="close-search-btn" class="hb-kbd-btn" title="Schließen (Esc)">Esc</button>
+      </div>
+      <div class="hb-search-modal-meta" id="search-results-count">
+        Gib einen Suchbegriff ein, um alle 23 Kapitel in Echtzeit zu durchsuchen.
+      </div>
+      <div class="hb-search-results" id="search-results-list" role="listbox"></div>
+    </div>
+  </div>
+
+  <!-- Gemeinsamer SSoT-Datensatz (aus docs/user-guide/*.md generiert) -->
+  <script src="../shared/handbook-data.js"></script>
+  <!-- Anwendungslogik Version 1 -->
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -75,6 +75,10 @@ Der Baum soll etwa mittig im unteren Bereich stehen:
 > (`EditorInteractionManager.ts` Z. 91–117). Größenfelder sind normale
 > Inspector-Eigenschaften.
 
+> Nach dem Verschieben stehen die neuen Koordinaten sofort auch in den
+> Inspector-Feldern (`x`/`y`) — seit der Korrektur TD-019 werden sie nach
+> jedem Ziehen synchron aktualisiert.
+
 `[SCREENSHOT FEHLT: Sprite „Baum" mittig auf der Stage, Inspector mit x=28, y=20]`
 
 ### Schritt 4 — Baum-Grün (optional)
@@ -89,6 +93,8 @@ Im Inspector unter der Gruppe **Appearance** gibt es die Farbe
 
 Auf der Stage „Die Wiese" steht jetzt ein grünes 8×8-Quadrat namens
 **„Baum"** bei Position 28/20 — daneben der „Start"-Button aus Kapitel 1.
+*(Die Sprite-Farbe wird seit der Korrektur TD-017 direkt und auch nach
+Speichern + Wiederöffnen korrekt angezeigt.)*
 
 ## Selbst prüfen (Funktionsprüfung)
 

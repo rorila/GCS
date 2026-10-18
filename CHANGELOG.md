@@ -1,5 +1,28 @@
 # Änderungen der technischen Kopie
 
+## 2026-10-18 (GCS Documentation Portal — Argon Edition unter `docs/gcs-doc-portal-argon/`)
+
+- **Vollständige GCS-Dokumentationsplattform (`docs/gcs-doc-portal-argon/`):**
+  - **6 integrierte Portal-Bereiche (`index-argon.html`, `styles-argon.css`, `app-argon.js`, `views-argon.js`):**
+    1. **Portal-Startseite (`#home`):** Rollenbasierter Einstieg für Einsteiger/Autoren, fortgeschrittene Spielentwickler und Engine-/KI-Entwickler (SWE-2).
+    2. **Autoren-Handbuch (`#handbook`):** Alle 23 Kapitel (15 Teil A + 8 Teil B) mit interaktiven Checklisten, Fortschrittsring (`localStorage`), deutschen Sprecher-Drehbüchern und klickbaren Komponenten-Badges (`T*`).
+    3. **Komponentenreferenz (`#components`):** Alle 128 Komponenten (`COMP-0001` bis `COMP-0128`) aus `FEATURE-INVENTORY.json` und 121 Markdown-Referenzkarten mit Kategorien-Filter, Live-Suche, Eigenschaften, Events, Methoden, Vererbungskette und bidirektionalen Querverweisen.
+    4. **Feature-Katalog (`#features`):** Alle 12 inventarisierten Haupt-Features (`FEAT-0001` bis `FEAT-0012`) sowie 12 aufbereitete Fachartikel aus `docs/features/` und `docs/GCS_FEATURE_MAP.md`.
+    5. **Architektur-Dokumentation (`#architecture`):** Die 4 kanonischen Architektur-Dokumente (`overview.md`, `module-map.md`, `execution-flow.md`, `README.md`).
+    6. **Entwicklerreferenz (`#devref`):** Durchsuchbarer Action-Katalog (59 Actions aus `action-metadata.json`), Dokumenten-Inventar (242 Einträge), Technical-Debt-Register (`TD-001`…`TD-017`), Developer Guidelines, Runtime-Guide, Stage-Schnittstellen, Security-Masterplan und SWE-2-Datenschnittstelle.
+  - **Globale Volltextsuche (`Strg+K` / `/`):** Bereichsübergreifende Spotlight-Suche über 246 indexierte Portal-Einträge mit Bereichs-Filter-Pills und `<mark>`-Hervorhebung.
+  - **Read-Only-Build & SWE-2-Schnittstelle (`build-argon.cjs`, `parser-argon.cjs`, `portal-config-argon.json`, `ARCHITEKTUR-ARGON.md`, `README-ARGON.md`):** Reproduzierbarer Build nach `data/portal-data-argon.json` und `data/portal-data-argon.js` (`file://`-offlinefähig); unveränderte Bestandsdateien anderer Agenten; Tests in `tests/handbook_html.test.ts`.
+
+## 2026-10-18 (GCS-Autoren-Handbuch: Modern Web Edition & GCS Native Edition inkl. Argon-Ausgabe)
+
+
+- **Vollständige Argon-Ausgabe (`docs/handbook-html/Argon/`):**
+  - **Build & Gemeinsame Datenquelle (`build-handbook-argon.cjs`, `shared/handbook-data.json`, `shared/handbook-data.js`):** Extrahiert alle 23 Kapitel aus `docs/user-guide/` (inkl. Lernzielen, einzeln abhakbaren Checklisten, Komponenten-Badges, Screenshot-Platzhaltern und deutschen Sprecher-Drehbüchern für alle 23 Kapitel).
+  - **Version 1 — Modern Web Edition (`docs/handbook-html/Argon/modern/`):** „Editorial Studio"-Design mit 3-Spalten-Layout (Sidebar, Lesebereich, dynamisches Inhaltsverzeichnis rechts), Spotlight-Volltextsuche (`Strg+K`) mit `<mark>`-Hervorhebung, interaktiven Einzel-Checklisten (`localStorage`), Fortschrittsring, Hell-/Dunkelmodus und einblendbaren deutschen Sprecher-Drehbüchern.
+  - **Version 2 — GCS Native Edition (`docs/handbook-html/Argon/gcs-native/`):** Echtes, im GCS-Editor importierbares Projekt (`handbook-project.json` & `project.js`) mit 26 Stages (`stage_blueprint`, `stage_start`, `stage_search` + 23 Kapitel-Stages), `TProgressBar`, `TToast`, `BtnSprecher`-Umschalter je Kapitel, `store_token`-Persistenz und 100 % Action-Referenzen (`checkIntegrity` = 0 Befunde).
+  - **Dokumentation (`docs/handbook-html/Argon/README.md`):** Startanleitung für Windows 11 (`file://` und lokaler Server), GCS-Konformitätsnachweis, dokumentierte Runtime-Einschränkungen samt Lösungen und 8-Punkte-Architekturvergleich.
+- **Parallel-Edition (`docs/handbook-html/modern/` & `docs/handbook-html/gcs-native/`):** Weiterhin unverändert vorhanden und gemeinsam mit `docs/handbook-html/Argon/` über `tests/handbook_html.test.ts` abgesichert.
+
 ## 2026-10-17 (Lernspiel-Gerüst mit eingebetteter Spielwelt)
 
 - Ein editierbares Hausbau-Gerüst verwendet dieselbe Welt-Stage frei oder neben dem vorhandenen Aufgabenbereich. Die Spielhülle skaliert die Darstellung und erhält Zellkoordinaten, Aufgabenfilter und Event-Rückkanal.

@@ -1,0 +1,580 @@
+{
+  "$module": "media",
+  "description": "Media-Komponenten (Audio, Video, ImageList)",
+  "components": {
+    "TImageSplitter": {
+      "description": "Bildaufteiler mit Live-Vorschau. Zerlegt ein Bild logisch in gleich grosse Rechtecke, ohne die Quelldatei zu veraendern. Ausgabe als Ausschnitt-Datensaetze, nicht als Stage-Objekte.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "imageSource": {
+          "type": "string",
+          "default": "",
+          "description": "Bilddatei aus dem Image-Picker"
+        },
+        "rows": {
+          "type": "number",
+          "default": 2,
+          "min": 1,
+          "max": 6,
+          "step": 1
+        },
+        "columns": {
+          "type": "number",
+          "default": 3,
+          "min": 1,
+          "max": 6,
+          "step": 1
+        },
+        "pieceCount": {
+          "type": "number",
+          "readonly": true,
+          "description": "Zeilen mal Spalten"
+        },
+        "pieceShape": {
+          "type": "select",
+          "default": "rectangle",
+          "options": [
+            "rectangle",
+            "puzzle"
+          ],
+          "description": "Rechtecke oder klassische Puzzleteile. Gemeinsame Innenkanten passen exakt, Aussenkanten bleiben gerade. Formen duerfen sich wiederholen; Rastergroessen bis 6x6 werden automatisch beruecksichtigt."
+        },
+        "tabSize": {
+          "type": "number",
+          "default": 0.18,
+          "min": 0.05,
+          "max": 0.4,
+          "step": 0.01,
+          "description": "Zapfentiefe relativ zur Teilegroesse; wirkt nur bei pieceShape 'puzzle'. Wird als puzzleTabDepth in die Datensaetze geschrieben."
+        },
+        "trayLayout": {
+          "type": "object",
+          "readonly": true,
+          "description": "Laufzeit-Layout fuer die Ablage gemischter Teile: x/y relativ zum Splitter, width/height der Ablagezelle, stepX/stepY fuer Ablageplaetze, scale = Verkleinerungsfaktor. Das komplette Raster inkl. Zapfen-Ueberhang wird in die Splitterbox eingepasst (scale <= 1); Teile koennen beim Aufnehmen auf fittedPieceWidth/Height vergroessert und bei falscher Ablage auf spawnWidth/Height zurueckgesetzt werden. Als Binding im Erzeugungsflow nutzbar."
+        },
+        "showLines": {
+          "type": "boolean",
+          "default": true
+        },
+        "lineColor": {
+          "type": "string",
+          "default": "#ffffff"
+        },
+        "previewGap": {
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 100,
+          "description": "Vorschau-Abstand in Bildpixeln vor Skalierung; ohne Einfluss auf Ausschnitte"
+        },
+        "outputList": {
+          "type": "string",
+          "default": "",
+          "description": "Name oder ID einer TObjectList. Explizite Erzeugung ersetzt records, recordKey=id und sourceMode=records."
+        }
+      },
+      "methods": [
+        {
+          "name": "generatePieces",
+          "description": "Asynchrones Laden und Erzeugen. Liefert Ausschnitt-Datensaetze und schreibt sie in outputList. Felder: id, index, row, column, matchValue (r0_c0), source, sourceWidth, sourceHeight, x, y, width, height, puzzleEdges (leer fuer Rechtecke, sonst vier Kantenwerte 0/1/-1), puzzleTabDepth (Zapfentiefe aus tabSize). Koordinaten in Original-Bildpixeln, Zeile/Spalte nullbasiert. Fehler lassen bestehende Datensaetze unveraendert."
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TImageSplitter",
+        "name": "Bildaufteiler",
+        "x": 2,
+        "y": 2,
+        "width": 24,
+        "height": 16,
+        "imageSource": "./images/puzzle-neu.svg",
+        "rows": 2,
+        "columns": 3,
+        "showLines": true,
+        "previewGap": 0,
+        "outputList": "PuzzleTeile"
+      }
+    },
+    "TImageGallery": {
+      "description": "Bildergalerie mit Live-Vorschau. Zeigt alle Bilder eines Unterordners aus public/images (Medienmanifest) als kindgerechtes Kachelraster. Anklicken markiert ein Bild und loest onSelectionChanged mit { path, file } aus.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "folder": {
+          "type": "string",
+          "default": "",
+          "description": "Unterordner unter public/images (Manifest-Schluessel). Leer = oberste Ebene."
+        },
+        "columns": {
+          "type": "number",
+          "default": 4,
+          "min": 1,
+          "max": 10,
+          "step": 1
+        },
+        "tileHeight": {
+          "type": "number",
+          "default": 5,
+          "min": 2,
+          "max": 20,
+          "step": 0.5,
+          "description": "Kachelhoehe in Rasterzellen"
+        },
+        "gap": {
+          "type": "number",
+          "default": 12,
+          "min": 0,
+          "max": 60,
+          "description": "Abstand in Pixeln"
+        },
+        "selectionColor": {
+          "type": "string",
+          "default": "#ffb300"
+        },
+        "showFileNames": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectedImage": {
+          "type": "string",
+          "default": "",
+          "readonly": true,
+          "description": "Relativer Pfad des gewaehlten Bildes, z. B. ./images/ordner/datei.png"
+        }
+      },
+      "methods": [
+        {
+          "name": "selectImage",
+          "description": "Setzt selectedImage programmgesteuert und rendert neu."
+        },
+        {
+          "name": "getSelectedImage",
+          "description": "Liefert den relativen Pfad des gewaehlten Bildes."
+        }
+      ],
+      "events": [
+        "onSelectionChanged"
+      ],
+      "example": {
+        "className": "TImageGallery",
+        "name": "Galerie",
+        "x": 2,
+        "y": 4,
+        "width": 44,
+        "height": 18,
+        "folder": "memory Tierbilder für kleine Kinder",
+        "columns": 4,
+        "tileHeight": 5,
+        "gap": 12,
+        "selectionColor": "#ffb300",
+        "events": {
+          "onSelectionChanged": "BildGewaehlt"
+        }
+      }
+    },
+    "TAudio": {
+      "description": "Audio-Player. Spielt Soundeffekte oder Musik ab.",
+      "stage": "main",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "default": "",
+          "description": "Audio-Datei URL"
+        },
+        "autoplay": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatisch abspielen"
+        },
+        "loop": {
+          "type": "boolean",
+          "default": false,
+          "description": "Endlosschleife"
+        },
+        "volume": {
+          "type": "number",
+          "default": 1.0,
+          "min": 0,
+          "max": 1,
+          "step": 0.1,
+          "description": "Lautstärke"
+        }
+      },
+      "methods": [
+        {
+          "name": "play",
+          "description": "Abspielen starten"
+        },
+        {
+          "name": "pause",
+          "description": "Abspielen pausieren"
+        },
+        {
+          "name": "stop",
+          "description": "Abspielen stoppen und zurücksetzen"
+        }
+      ],
+      "events": [
+        "onEnded"
+      ],
+      "example": {
+        "className": "TAudio",
+        "name": "BgMusic",
+        "x": 2,
+        "y": 2,
+        "width": 4,
+        "height": 2,
+        "isService": true,
+        "isHiddenInRun": true,
+        "src": "./audio/background.mp3",
+        "autoplay": false,
+        "loop": true,
+        "volume": 0.5
+      }
+    },
+    "TSpeechRecognition": {
+      "description": "Spracheingabe ueber den vertrauenswuerdigen CMS-Spielhost und einen eigenen lokalen Whisper-Dienst. Keine Cloud-Ausweichloesung. Mikrofonfreigabe im Host erforderlich; maximal 15 Sekunden pro Aufnahme. Erkennt Text, bewertet keine Aufgaben.",
+      "stage": "main",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "language": {
+          "type": "string",
+          "default": "de-DE"
+        },
+        "maxDurationMs": {
+          "type": "number",
+          "default": 12000,
+          "min": 2000,
+          "max": 15000
+        },
+        "silenceMs": {
+          "type": "number",
+          "default": 1000,
+          "min": 600,
+          "max": 3000
+        },
+        "transcript": {
+          "type": "string",
+          "readonly": true
+        },
+        "status": {
+          "type": "string",
+          "readonly": true
+        },
+        "available": {
+          "type": "boolean",
+          "readonly": true
+        },
+        "errorMessage": {
+          "type": "string",
+          "readonly": true
+        }
+      },
+      "methods": [
+        {
+          "name": "prepare",
+          "params": [
+            "launchKey"
+          ],
+          "description": "Hostfreigabe anfordern; onReady oder onError. Startet keine Daueraufnahme."
+        },
+        {
+          "name": "start",
+          "description": "Eine Antwort aufnehmen; beendet nach Sprechpause oder Zeitlimit."
+        },
+        {
+          "name": "stop",
+          "description": "Aufnahme abschliessen und vorhandenes Audio auswerten."
+        },
+        {
+          "name": "cancel",
+          "description": "Laufende Operation abbrechen und spaete Ergebnisse ignorieren."
+        }
+      ],
+      "events": [
+        "onReady",
+        "onListening",
+        "onResult",
+        "onNoSpeech",
+        "onError"
+      ],
+      "example": {
+        "className": "TSpeechRecognition",
+        "name": "Spracheingabe",
+        "x": 1,
+        "y": 1,
+        "width": 4,
+        "height": 2,
+        "language": "de-DE",
+        "events": {
+          "onResult": "Sprachantwort_Pruefen"
+        }
+      }
+    },
+    "TSpeech": {
+      "description": "Sprachausgabe (Text-to-Speech) über die Web Speech API. Service-Komponente; erste Ausgabe benötigt eine Nutzeraktion (Autoplay-Policy).",
+      "stage": "main",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Zu sprechender Text"
+        },
+        "lang": {
+          "type": "string",
+          "default": "de-DE",
+          "description": "Sprache (BCP-47)"
+        },
+        "voice": {
+          "type": "string",
+          "default": "",
+          "description": "Stimmname aus getVoices(), leer = Systemstimme"
+        },
+        "rate": {
+          "type": "number",
+          "default": 1.0,
+          "min": 0.1,
+          "max": 10,
+          "step": 0.1,
+          "description": "Sprechtempo"
+        },
+        "pitch": {
+          "type": "number",
+          "default": 1.0,
+          "min": 0,
+          "max": 2,
+          "step": 0.1,
+          "description": "Tonhöhe"
+        },
+        "volume": {
+          "type": "number",
+          "default": 1.0,
+          "min": 0,
+          "max": 1,
+          "step": 0.1,
+          "description": "Lautstärke"
+        }
+      },
+      "methods": [
+        {
+          "name": "speak",
+          "description": "Text aussprechen; optionales Argument überschreibt die text-Property",
+          "params": [
+            "text?"
+          ]
+        },
+        {
+          "name": "stop",
+          "description": "Ausgabe abbrechen"
+        },
+        {
+          "name": "pause",
+          "description": "Ausgabe pausieren"
+        },
+        {
+          "name": "resume",
+          "description": "Ausgabe fortsetzen"
+        },
+        {
+          "name": "getVoices",
+          "description": "Verfügbare Stimmen als Liste liefern (resultVariable)"
+        }
+      ],
+      "events": [
+        "onStart",
+        "onEnd",
+        "onError",
+        "onPause",
+        "onResume"
+      ],
+      "example": {
+        "className": "TSpeech",
+        "name": "Ansage",
+        "x": 2,
+        "y": 2,
+        "width": 4,
+        "height": 2,
+        "isService": true,
+        "isHiddenInRun": true,
+        "text": "Punkt für links",
+        "lang": "de-DE",
+        "rate": 1.0
+      }
+    },
+    "TVideo": {
+      "description": "Video-Player. Zeigt eingebettete Videos an.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "src": {
+          "type": "string",
+          "default": "",
+          "description": "Video-URL"
+        },
+        "autoplay": {
+          "type": "boolean",
+          "default": false
+        },
+        "loop": {
+          "type": "boolean",
+          "default": false
+        },
+        "muted": {
+          "type": "boolean",
+          "default": false
+        },
+        "controls": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "methods": [
+        {
+          "name": "play",
+          "description": "Video abspielen"
+        },
+        {
+          "name": "pause",
+          "description": "Video pausieren"
+        }
+      ],
+      "events": [
+        "onEnded",
+        "onPlay",
+        "onPause"
+      ],
+      "example": {
+        "className": "TVideo",
+        "name": "IntroVideo",
+        "x": 5,
+        "y": 5,
+        "width": 20,
+        "height": 12,
+        "src": "./videos/intro.mp4",
+        "autoplay": false,
+        "controls": true
+      }
+    },
+    "TImageList": {
+      "description": "Sammlung von Bildern (Sprite-Sheet Ersatz). Verwaltet mehrere Bilder unter einem Namen.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "images": {
+          "type": "array",
+          "default": [],
+          "description": "Array von Bild-URLs"
+        },
+        "currentIndex": {
+          "type": "number",
+          "default": 0,
+          "description": "Aktuell angezeigter Index"
+        }
+      },
+      "methods": [
+        {
+          "name": "next",
+          "description": "Nächstes Bild zeigen"
+        },
+        {
+          "name": "previous",
+          "description": "Vorheriges Bild zeigen"
+        }
+      ],
+      "events": [
+        "onChange"
+      ],
+      "example": {
+        "className": "TImageList",
+        "name": "WalkCycle",
+        "x": 1,
+        "y": 1,
+        "width": 4,
+        "height": 4,
+        "images": [
+          "./images/walk1.png",
+          "./images/walk2.png",
+          "./images/walk3.png"
+        ]
+      }
+    },
+    "TTextToSpeech": {
+      "description": "Serverseitige deutsche Sprachausgabe mit dauerhaftem MP3-Cache. Keine Browser-TTS.",
+      "stage": "stage_blueprint",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "default": "/api/tts",
+          "description": "Sprachserver-Basisadresse; bei Desktop/Export ggf. absolute HTTPS-URL"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Vollständiger Sprechtext, maximal 500 Zeichen"
+        },
+        "voice": {
+          "type": "string",
+          "default": "default",
+          "description": "Vom Server freigegebene Stimmen-ID"
+        },
+        "volume": {
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 1
+        },
+        "active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "methods": [
+        {
+          "name": "speak",
+          "description": "Text anfordern und abspielen; optionaler Textparameter, sonst text-Eigenschaft"
+        },
+        {
+          "name": "prefetch",
+          "description": "Text im Hintergrund anfordern und vorladen; unterbricht laufende Sprache nicht"
+        },
+        {
+          "name": "stop",
+          "description": "Laufende Wiedergabe und ausstehenden Sprechauftrag abbrechen"
+        }
+      ],
+      "events": [
+        "onReady",
+        "onPlay",
+        "onEnded",
+        "onStop",
+        "onError"
+      ],
+      "example": {
+        "className": "TTextToSpeech",
+        "name": "SprachAusgabe",
+        "x": 0,
+        "y": 0,
+        "width": 4,
+        "height": 2,
+        "endpoint": "/api/tts",
+        "voice": "default",
+        "text": "Wie viel ist sieben mal acht?",
+        "volume": 1,
+        "isService": true,
+        "isHiddenInRun": true
+      }
+    }
+  }
+}

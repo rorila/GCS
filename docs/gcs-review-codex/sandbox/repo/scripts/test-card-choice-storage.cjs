@@ -1,0 +1,41 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {methods}=require('./cms/cms-server-components.cjs');
+const {buildDb}=require('./cms/cms-seed-testdata.cjs');
+const {createCore}=require('./cms/cms-core.cjs');
+const {loadRuntime}=require('./cms/cms-runtime.cjs');
+const path=require('node:path');
+test('card editor save/info/DTO preserve optional distractors and reject accepted answers',()=>{
+ const db=buildDb(),session={personId:'parent-multi',assurance:'account'},core=createCore(db);
+ const ctx={core,session,body:{},commit(_s,_a,_id,fn){return fn(db);}};
+ const spec={childId:'child-finn',subject:'Mathe',question:'8 × 7',answers:['56'],answerFormat:'text',wrongAnswers:'54; 60; 54'};
+ const saved=methods.TServerCards.save(ctx,null,[spec]);assert.equal(saved.ok,true);
+ const card=db.flashcards.find(c=>c.id===saved.cardId);assert.deepEqual(card.wrongAnswers,['54','60']);
+ assert.deepEqual(methods.TServerCards.dto(ctx,null,[card]).wrongAnswers,['54','60']);
+ const info=methods.TServerCards.info(ctx,null,[{cardId:card.id}]);assert.equal(info.card.wrongAnswersText,'54; 60');
+ const {wrongAnswers,...legacy}=spec;
+ assert.equal(methods.TServerCards.save(ctx,null,[{...legacy,cardId:card.id}]).ok,true);
+ assert.deepEqual(card.wrongAnswers,['54','60'],'older clients preserve optional values');
+ assert.equal(methods.TServerCards.save(ctx,null,[{...spec,cardId:card.id,wrongAnswers:'56,0; 60'}]).status,400);
+ assert.equal(methods.TServerCards.save(ctx,null,[{...spec,cardId:card.id,wrongAnswers:''}]).ok,true);
+ assert.deepEqual(card.wrongAnswers,[]);
+});
+test('CMS endpoint forwards distractors and roundtrip through its declarative runtime',()=>{
+ const db=buildDb(),core=createCore(db),session={personId:'parent-multi',assurance:'account'};
+ const runtime=loadRuntime(path.join(__dirname,'../game-server/public/projects/GCS-CMS.json'));
+ const body={childId:'child-finn',subject:'Mathe',question:'8 × 7',answers:'56',wrongAnswers:'54; 60',answerFormat:'text'};
+ const commit=(_s,_a,_id,fn)=>fn(db);
+ const result=runtime.run(runtime.find('/api/cms/cards/save','POST'),{core,session,body,commit},{strict:true});
+ assert.equal(result.data.ok,true);
+ assert.deepEqual(db.flashcards.find(c=>c.id===result.data.cardId).wrongAnswers,['54','60']);
+ delete body.wrongAnswers;body.cardId=result.data.cardId;
+ assert.equal(runtime.run(runtime.find('/api/cms/cards/save','POST'),{core,session,body,commit},{strict:true}).data.ok,true);
+ assert.deepEqual(db.flashcards.find(c=>c.id===body.cardId).wrongAnswers,['54','60']);
+});
+test('optional editor fields configure idempotently and stay inside stage bounds',()=>{
+ const fs=require('node:fs'),configure=require('./cms/cms-card-choice-editor.cjs').configureCardChoiceEditor;
+ const p=JSON.parse(fs.readFileSync(path.join(__dirname,'../game-server/public/projects/GCS-CMS.json'),'utf8'));
+ configure(p);const once=JSON.stringify(p);configure(p);assert.equal(JSON.stringify(p),once);
+ const s=p.stages.find(s=>s.id==='stage_card_edit'),field=s.objects.find(o=>o.name==='FalscheAntwortenNeu');
+ assert.ok(field.y+field.height<=s.grid.rows);
+ assert.ok(s.objects.find(o=>o.name==='KarteSpeichern').y>=field.y+field.height);
+});

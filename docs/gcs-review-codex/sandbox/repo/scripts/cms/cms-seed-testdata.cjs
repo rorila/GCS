@@ -1,0 +1,314 @@
+// Erzeugt synthetische CMS-Testdaten (aktuelles Schema) + Test-Zugangsdaten.
+// Niemals produktive Daten: eigene Ausgabedateien, explizites Zielverzeichnis.
+// Aufruf: node scripts/cms/cms-seed-testdata.cjs [zielverzeichnis]
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
+const { validate } = require('./cms-core.cjs');
+
+const TEST_PASSWORD = 'Nur-Fuer-Tests!2025'; // dokumentiertes Test-Passwort, kein Geheimnis
+const H = 3600000, D = 24 * H, MIN = 60000;
+const iso = t => new Date(t).toISOString();
+const hash = s => crypto.createHash('sha256').update(s).digest('hex');
+
+// Zeitabhängige Daten sind relativ zu `now` — Tests rufen buildDb(Date.now())
+// für immer frische Werte auf; die JSON-Datei ist das inspizierbare Artefakt.
+function buildDb(now = Date.now()) {
+  const NOW = now;
+
+const person = (id, name, kind, extra = {}) => ({ id, name, avatar: extra.avatar || '👤', kind, active: extra.active !== false, ...extra });
+const role = (personId, areaId, r, active = true) => ({ personId, areaId, role: r, active });
+const member = (personId, areaId, active = true) => ({ personId, areaId, active });
+const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
+  childId, guardianId, status, createdAt: iso(NOW - 30 * D), confirmedBy: extra.confirmedBy ?? 'admin-sun', revokedAt: status === 'revoked' ? iso(NOW - 5 * D) : null, ...extra,
+});
+const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
+
+const db = {
+  version: 9,
+  areas: [
+    { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
+    { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
+    { id: 'house-moon', name: 'Haus Mond', type: 'house', parentId: 'root', active: true, avatar: '🏠' },
+    { id: 'house-closed', name: 'Haus Nacht (geschlossen)', type: 'house', parentId: 'root', active: false, avatar: '🌙' },
+    { id: 'room-sun-play', name: 'Spielraum', type: 'room', parentId: 'house-sun', active: true, avatar: '🎲' },
+    { id: 'room-sun-learn', name: 'Lernraum', type: 'room', parentId: 'house-sun', active: true, avatar: '📚' },
+    { id: 'room-sun-closed', name: 'Alter Raum (deaktiviert)', type: 'room', parentId: 'house-sun', active: false, avatar: '🚪' },
+    { id: 'room-moon-play', name: 'Mondspielraum', type: 'room', parentId: 'house-moon', active: true, avatar: '🌙' },
+  ],
+  people: [
+    person('super-admin', 'Sara SuperAdmin', 'adult'),
+    person('admin-sun', 'Anna HausAdmin Sonne', 'adult'),
+    person('admin-parent', 'Paul HausAdmin + Vater', 'adult'),
+    person('admin-moon', 'Mia HausAdmin Mond', 'adult'),
+    person('teacher-sun', 'Tobias Erzieher', 'adult'),
+    person('observer-sun', 'Olga Beobachterin', 'adult'),
+    person('observer-neu', 'Neue Beobachterin (Einladung offen)', 'adult'),
+    person('parent-lina', 'Petra Mutter von Lina', 'adult'),
+    person('parent-multi', 'Martin Vater von zwei Kindern', 'adult'),
+    person('parent-tom-a', 'Tina Mutter von Tom', 'adult'),
+    person('parent-tom-b', 'Tim Vater von Tom', 'adult'),
+    person('adult-revoked', 'Rita früherer Kontakt', 'adult'),
+    person('sponsor-fritz', 'Fritz Förderer', 'adult', { avatar: '🎁' }),
+    person('sponsor-greta', 'Greta Großtante', 'adult', { avatar: '🧸' }),
+    person('child-lina', 'Lina', 'child', { avatar: '🦉' }),
+    person('child-tom', 'Tom', 'child', { avatar: '🐘' }),
+    person('child-finn', 'Finn', 'child', { avatar: '🐷' }),
+    person('child-emil', 'Emil', 'child', { avatar: '🐱' }),
+    person('child-mia', 'Mia (Mond)', 'child', { avatar: '🌷' }),
+    person('child-suspended', 'Sven gesperrt', 'child', { active: false }),
+    person('child-left', 'Lea ausgetreten', 'child'),
+  ],
+  memberships: [
+    // Hausmitgliedschaft = Bewohner; Raumzuordnung = Teilnahme in einem Raum.
+    member('admin-sun', 'house-sun'), member('admin-parent', 'house-sun'),
+    member('admin-moon', 'house-moon'), member('teacher-sun', 'house-sun'),
+    member('observer-sun', 'house-sun'),
+    member('child-lina', 'house-sun'), member('child-tom', 'house-sun'),
+    member('child-finn', 'house-sun'), member('child-emil', 'house-sun'),
+    member('child-mia', 'house-moon'), member('child-suspended', 'house-sun'),
+    member('child-left', 'house-sun', false),
+    member('child-lina', 'room-sun-play'), member('child-lina', 'room-sun-learn'),
+    member('child-tom', 'room-sun-play'),
+    member('child-finn', 'room-sun-play'),
+    member('child-emil', 'room-sun-learn'),
+    member('child-mia', 'room-moon-play'),
+    member('child-suspended', 'room-sun-play'),
+    member('child-left', 'room-sun-play', false),
+  ],
+  roles: [
+    role('super-admin', 'root', 'superAdmin'),
+    role('admin-sun', 'house-sun', 'areaAdmin'),
+    role('admin-parent', 'house-sun', 'areaAdmin'),
+    role('admin-moon', 'house-moon', 'areaAdmin'),
+    role('teacher-sun', 'room-sun-play', 'areaAdmin'),
+    role('admin-sun', 'room-sun-learn', 'areaAdmin'),
+    role('admin-moon', 'room-moon-play', 'areaAdmin'),
+    role('observer-sun', 'room-sun-play', 'observer'),
+    role('sponsor-fritz', 'root', 'sponsor'),
+    role('sponsor-greta', 'root', 'sponsor'),
+    role('child-lina', 'room-sun-play', 'player'), role('child-lina', 'room-sun-learn', 'player'),
+    role('child-tom', 'room-sun-play', 'player'), role('child-finn', 'room-sun-play', 'player'),
+    role('child-emil', 'room-sun-learn', 'player'), role('child-mia', 'room-moon-play', 'player'),
+  ],
+  guardians: [
+    guardian('child-lina', 'parent-lina'),
+    guardian('child-lina', 'admin-parent'),               // HouseAdmin ist zugleich Elternteil
+    guardian('child-finn', 'parent-multi'),
+    guardian('child-emil', 'parent-multi'),               // Eltern mit mehreren Kindern
+    guardian('child-tom', 'parent-tom-a'),
+    guardian('child-tom', 'parent-tom-b'),                // Kind mit zwei Elternteilen
+    guardian('child-tom', 'adult-revoked', 'revoked'),    // widerrufene Zuordnung
+    guardian('child-mia', 'parent-lina', 'pending'),      // wartet auf zweite Bestätigung
+    guardian('child-emil', 'parent-tom-b', 'pending'),    // passend zu inv-valid
+  ],
+  codes: [
+    code('child-lina', 'house-sun', ['dog', 'cat', 'tree', 'house']),
+    code('child-tom', 'house-sun', ['owl', 'flower', 'pig', 'elephant']),
+    code('child-finn', 'house-sun', ['cat', 'dog', 'flower', 'tree']),
+    code('child-emil', 'house-sun', ['house', 'tree', 'owl', 'pig']),
+    code('child-mia', 'house-moon', ['owl', 'dog', 'cat', 'tree']), // Emoji-Folgen sind global eindeutig
+    code('child-suspended', 'house-sun', ['pig', 'pig', 'pig', 'pig']),
+    code('child-left', 'house-sun', ['flower', 'flower', 'flower', 'flower']),
+  ],
+  games: [
+    { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false, modes: ['solo'] },
+    { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'], modes: ['solo'] },
+    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'Zahlen-Duell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' }, modes: ['party'] },
+    { id: 'game-memory-remote', title: 'Elins Memory (Multiplayer)', avatar: '🃏', ownerId: 'super-admin', status: 'published', file: 'ElinsMemoryRemote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' }, modes: ['solo', 'party'] },
+    { id: 'game-pingpong-remote', title: 'PingPong (Multiplayer)', avatar: '🏓', ownerId: 'super-admin', status: 'published', file: 'PingPong-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' }, modes: ['party'] },
+    { id: 'game-madn-remote', title: 'MADN (Multiplayer)', avatar: '🎲', ownerId: 'super-admin', status: 'published', file: 'Madn-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' }, modes: ['solo', 'party'] },
+    { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json', modes: ['solo'] },
+    { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json', modes: ['solo'] },
+  ],
+  grants: [
+    // Hauskatalog (HouseAdmin): welche Spiele dem Haus gehören. Erst die
+    // Raumzuordnung (darunter) macht ein Katalogspiel im Raum spielbar.
+    { gameId: 'game-snake', areaId: 'house-sun', active: true },
+    { gameId: 'game-math', areaId: 'house-sun', active: true },
+    { gameId: 'game-mp', areaId: 'house-sun', active: true },
+    { gameId: 'game-memory-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-pingpong-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-madn-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-snake', areaId: 'house-moon', active: true },
+    // Raumzuordnungen (HouseAdmin → Raum): spielbar nur bei aktivem Katalog UND Zuordnung.
+    { gameId: 'game-snake', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-math', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-math', areaId: 'room-sun-learn', active: true },
+    { gameId: 'game-mp', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-memory-remote', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-pingpong-remote', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-madn-remote', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-snake', areaId: 'room-sun-closed', active: true }, // Raum deaktiviert
+    { gameId: 'game-snake', areaId: 'room-moon-play', active: true },
+    { gameId: 'game-draft', areaId: 'room-sun-play', active: true },   // draft: darf nicht starten
+    { gameId: 'game-snake', areaId: 'room-sun-learn', active: false }, // widerrufene Freigabe
+  ],
+  invites: [
+    { id: 'inv-valid', personId: 'parent-tom-b', childId: 'child-emil', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-valid'), expires: NOW + 24 * H },
+    { id: 'inv-expired', personId: 'parent-tom-b', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-expired'), expires: NOW - H },
+    { id: 'inv-used', personId: 'parent-tom-a', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-used'), expires: NOW + 24 * H, usedAt: iso(NOW - 2 * D) },
+    { id: 'inv-observer', personId: 'observer-neu', houseId: 'house-sun', areaId: 'room-sun-learn', purpose: 'observer', issuer: 'admin-sun', hash: hash('test-token-observer'), expires: NOW + 24 * H },
+  ],
+  deviceGrants: [
+    { id: 'dev-valid', houseId: 'house-sun', label: 'Tablet Spielzimmer', issuedBy: 'admin-sun', expires: NOW + 8 * H, revoked: false },
+    { id: 'dev-expired', houseId: 'house-sun', label: 'Leih-Tablet', issuedBy: 'admin-sun', expires: NOW - H, revoked: false },
+    { id: 'dev-revoked', houseId: 'house-sun', label: 'Altes Tablet', issuedBy: 'admin-sun', expires: NOW + 8 * H, revoked: true },
+  ],
+  timeBudgets: [
+    { childId: 'child-lina', dailyMinutes: 45, windows: [{ from: '14:00', to: '19:00' }], tz: 'Europe/Berlin', warnAt: [5, 1], graceMinutes: 2, setBy: 'parent-lina', updatedAt: iso(NOW - D) },
+    { childId: 'child-tom', dailyMinutes: 30, windows: [], tz: 'Europe/Berlin', warnAt: [5, 1], graceMinutes: 2, setBy: 'parent-tom-a', updatedAt: iso(NOW - D) },
+    { childId: 'child-finn', dailyMinutes: 20, windows: [], tz: 'Europe/Berlin', warnAt: [5, 1], graceMinutes: 2, setBy: 'parent-multi', updatedAt: iso(NOW - D) },
+    // child-emil: absichtlich kein Budget (unbegrenzt bis Eltern setzen)
+  ],
+  playSessions: [
+    { id: 'ps-active', childId: 'child-lina', gameId: 'game-math', areaId: 'room-sun-play', status: 'active', startedAt: iso(NOW - 12 * MIN), lastHeartbeatAt: iso(NOW - 30000), endedAt: null, minutes: 12 },
+    { id: 'ps-paused', childId: 'child-tom', gameId: 'game-snake', areaId: 'room-sun-play', status: 'paused', startedAt: iso(NOW - 40 * MIN), lastHeartbeatAt: iso(NOW - 5 * MIN), endedAt: null, minutes: 28 }, // Budget fast erschöpft
+    { id: 'ps-disconnected', childId: 'child-emil', gameId: 'game-math', areaId: 'room-sun-learn', status: 'disconnected', startedAt: iso(NOW - 30 * MIN), lastHeartbeatAt: iso(NOW - 10 * MIN), endedAt: null, minutes: 18 },
+    { id: 'ps-ended', childId: 'child-finn', gameId: 'game-snake', areaId: 'room-sun-play', status: 'ended', startedAt: iso(NOW - 2 * H), lastHeartbeatAt: iso(NOW - 80 * MIN), endedAt: iso(NOW - 80 * MIN), minutes: 20 }, // Budget erschöpft
+    { id: 'ps-yesterday', childId: 'child-lina', gameId: 'game-math', areaId: 'room-sun-play', status: 'ended', startedAt: iso(NOW - D - H), lastHeartbeatAt: iso(NOW - D), endedAt: iso(NOW - D), minutes: 30 }, // Tageswechsel
+  ],
+  progress: [
+    { eventId: 'ev-1', childId: 'child-lina', gameId: 'game-math', sessionId: 'ps-active', metric: 'tasks_done', value: 8, unit: 'count', reportedAt: iso(NOW - 5 * MIN), source: 'game', schemaVersion: 1 },
+    { eventId: 'ev-2', childId: 'child-lina', gameId: 'game-math', sessionId: 'ps-active', metric: 'tasks_correct', value: 7, unit: 'count', reportedAt: iso(NOW - 5 * MIN), source: 'game', schemaVersion: 1 },
+    { eventId: 'ev-3', childId: 'child-lina', gameId: 'game-math', sessionId: 'ps-active', metric: 'hints_used', value: 2, unit: 'count', reportedAt: iso(NOW - 5 * MIN), source: 'game', schemaVersion: 1 },
+    { eventId: 'ev-4', childId: 'child-lina', gameId: 'game-math', sessionId: 'ps-active', metric: 'round_complete', value: 1, unit: 'bool', reportedAt: iso(NOW - 5 * MIN), source: 'game', schemaVersion: 1 },
+    { eventId: 'ev-5', childId: 'child-finn', gameId: 'game-snake', sessionId: 'ps-ended', metric: 'round_complete', value: 1, unit: 'bool', reportedAt: iso(NOW - 80 * MIN), source: 'server', schemaVersion: 1 },
+    { eventId: 'ev-dup', childId: 'child-tom', gameId: 'game-snake', sessionId: 'ps-paused', metric: 'tasks_done', value: 5, unit: 'count', reportedAt: iso(NOW - 10 * MIN), source: 'game', schemaVersion: 1 },
+  ],
+  parties: [],
+  gameInvitations: [],
+  notifications: [],
+  temporaryRoomAccess: [],
+  profileRequests: [
+    { id: 'req-1', personId: 'child-finn', type: 'access-help', status: 'open', at: iso(NOW - 2 * H) },
+    { id: 'req-2', personId: 'child-emil', type: 'access-help', status: 'resolved', at: iso(NOW - 3 * D) },
+  ],
+  flashcards: [],
+  cardDecks: [],
+  // Sponsoring (v8): Fritz hat einen aktiven Kontaktcode für Finn; Greta hat
+  // noch nichts. Begleitungen entstehen in den Tests über die echten Wege.
+  sponsorshipRequestCapabilities: [
+    { id: 'cap-finn-1', childId: 'child-finn', tokenHash: hash('sponsor-code-finn'), label: 'Kontaktcode für Finns Patentante', issuedBy: 'parent-multi', createdAt: iso(NOW - D), expiresAt: iso(NOW + 90 * D), revokedAt: null, status: 'active', consumedBy: null },
+  ],
+  sponsorships: [],
+  sponsorAccessVersions: [],
+  sponsorAgreements: [],
+  sponsorAgreementVersions: [],
+  sponsorApprovals: [],
+  // Regelwerk: nur serverseitig geprüfte, endliche Werte zählen Leistungspunkte.
+  performanceRuleVersions: [
+    { id: 'rule-math-1', version: 1, subjectKey: 'math', activityKey: 'round', gameId: 'game-math', metric: 'round_complete', unit: 'bool', minValue: 1, maxValue: 1, pointsPerUnit: 10, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-math-2', version: 1, subjectKey: 'math', activityKey: 'tasks', gameId: 'game-math', metric: 'tasks_correct', unit: 'count', minValue: 1, maxValue: 100, pointsPerUnit: 1, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-math-3', version: 1, subjectKey: 'math', activityKey: 'tasks', gameId: 'game-math', metric: 'tasks_done', unit: 'count', minValue: 1, maxValue: 100, pointsPerUnit: 0, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-reading-1', version: 1, subjectKey: 'reading', activityKey: 'session', gameId: null, metric: 'minutes_read', unit: 'minutes', minValue: 1, maxValue: 240, pointsPerUnit: 2, trustClass: 'guardian-confirmed', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+  ],
+  performanceLedger: [],
+  rewardClaims: [],
+  rewardPointEntries: [],
+  sponsorEvents: [],
+  sponsorCommandReceipts: [],
+  sponsorMessages: [],
+  audit: [
+    { id: 'audit-1', at: iso(NOW - 10 * D), actor: 'super-admin', action: 'house-create', areaId: 'root' },
+    { id: 'audit-2', at: iso(NOW - 9 * D), actor: 'admin-sun', action: 'room-create', areaId: 'house-sun' },
+  ],
+  meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: iso(NOW), purpose: 'synthetische Testdaten, keine echten Personen' },
+  // Erwartete Sichtbarkeit pro Testkonto — Referenz für Tests und manuelle Prüfung.
+  testMeta: {
+    password: TEST_PASSWORD,
+    inviteTokens: { valid: 'test-token-valid', expired: 'test-token-expired', used: 'test-token-used', observer: 'test-token-observer' },
+    sponsorCodes: { finn: 'sponsor-code-finn' },
+    visibility: [
+      { account: 'parent-lina', seesChildren: ['child-lina'], notChildren: ['child-finn', 'child-tom', 'child-emil', 'child-mia'], pendingOnly: ['child-mia'] },
+      { account: 'parent-multi', seesChildren: ['child-finn', 'child-emil'], notChildren: ['child-lina', 'child-tom', 'child-mia'] },
+      { account: 'parent-tom-a', seesChildren: ['child-tom'], notChildren: ['child-lina'] },
+      { account: 'parent-tom-b', seesChildren: ['child-tom'], notChildren: ['child-lina'], pendingOnly: ['child-emil'] },
+      { account: 'adult-revoked', seesChildren: [], notChildren: ['child-tom'] },
+      { account: 'admin-sun', seesChildren: [], note: 'Verwaltungsrolle allein gibt keine Elternsicht' },
+      { account: 'admin-parent', seesChildren: ['child-lina'], note: 'nur über Guardian-Beziehung, nicht über areaAdmin' },
+      { account: 'observer-sun', seesChildren: [], note: 'nur aggregierte Sicht ohne Einzelberechtigung' },
+    ],
+    negativeCases: [
+      'parent-lina fragt Fortschritt von child-finn -> 403',
+      'Token test-token-expired -> Einladung abgelaufen',
+      'Token test-token-used -> Einladung bereits verwendet',
+      'eventId ev-dup erneut gemeldet -> kein zweiter Eintrag',
+      'child-suspended meldet sich an -> abgelehnt',
+      'child-left in Raum -> keine Mitgliedschaft aktiv',
+      'game-draft Start -> nicht veröffentlicht',
+      'game-blocked -> gesperrt',
+      'deviceGrants dev-expired/dev-revoked -> keine Gerätefreigabe',
+      'room-sun-closed -> inaktiv, kein Spielstart',
+      'house-closed -> gesamtes Haus inaktiv',
+      'ps-yesterday zählt nicht zum heutigen Budget',
+    ],
+  },
+};
+
+  require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
+  validate(db);
+  return db;
+}
+
+// Minimalbestand für den Katalog-Ablauf „Aufbau ab null" (CMS-Testkatalog.md):
+// genau eine Plattformwurzel, ein SuperAdmin, keine weiteren fachlichen Daten.
+// Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
+function buildMinimalDb(now = Date.now()) {
+  const db = {
+    version: 9,
+    areas: [
+      { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
+    ],
+    people: [
+      { id: 'super-admin', name: 'Sara SuperAdmin', kind: 'adult', avatar: '👤', active: true },
+    ],
+    roles: [
+      { personId: 'super-admin', areaId: 'root', role: 'superAdmin', active: true },
+    ],
+    memberships: [], guardians: [], games: [], grants: [], codes: [], invites: [],
+    timeBudgets: [], playSessions: [], progress: [], deviceGrants: [], parties: [],
+    gameInvitations: [], notifications: [], temporaryRoomAccess: [],
+    audit: [], profileRequests: [], flashcards: [], cardDecks: [],
+    sponsorshipRequestCapabilities: [], sponsorships: [], sponsorAccessVersions: [],
+    sponsorAgreements: [], sponsorAgreementVersions: [], sponsorApprovals: [],
+    performanceRuleVersions: [], performanceLedger: [], rewardClaims: [],
+    rewardPointEntries: [], sponsorEvents: [], sponsorCommandReceipts: [], sponsorMessages: [],
+    meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
+    testMeta: { password: TEST_PASSWORD, mode: 'minimal' },
+  };
+  require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
+  validate(db);
+  return db;
+}
+
+module.exports = { buildDb, buildMinimalDb, TEST_PASSWORD };
+
+if (require.main === module) {
+const outDir = path.resolve(process.argv[2] || path.join(__dirname, '../../game-server/data/test'));
+const db = buildDb();
+
+fs.mkdirSync(outDir, { recursive: true });
+const dataFile = path.join(outDir, 'cms-testdata.json');
+const tmp = dataFile + '.tmp';
+fs.writeFileSync(tmp, JSON.stringify(db, null, 2), { mode: 0o600 });
+fs.renameSync(tmp, dataFile);
+
+// Zugehörige Zugangsdaten (separate Datei wie cms-admin-auth.json)
+const authUsers = [
+  ['super-admin', 'super'], ['admin-sun', 'admin.sonne'], ['admin-parent', 'admin.paul'],
+  ['admin-moon', 'admin.mond'], ['teacher-sun', 'erzieher.tobias'], ['observer-sun', 'beobachter.olga'],
+  ['parent-lina', 'eltern.petra'], ['parent-multi', 'eltern.martin'],
+  ['parent-tom-a', 'eltern.tina'], ['parent-tom-b', 'eltern.tim'], ['adult-revoked', 'kontakt.rita'],
+  ['sponsor-fritz', 'sponsor.fritz'], ['sponsor-greta', 'sponsor.greta'],
+];
+const authFile = path.join(outDir, 'cms-testdata-auth.json');
+const entries = authUsers.map(([personId, username]) => {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return { personId, username, salt, hash: crypto.scryptSync(TEST_PASSWORD, salt, 64).toString('hex') };
+});
+fs.writeFileSync(authFile + '.tmp', JSON.stringify(entries, null, 2), { mode: 0o600 });
+fs.renameSync(authFile + '.tmp', authFile);
+
+console.log('Testdaten geschrieben: ' + dataFile);
+console.log('Zugangsdaten:        ' + authFile + ' (Passwort: ' + TEST_PASSWORD + ')');
+console.log('Personen: ' + db.people.length + ' | Bereiche: ' + db.areas.length + ' | Spiele: ' + db.games.length);
+}

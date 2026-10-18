@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),{test}=require('node:test'),path=require('node:path');
+const {buildDb}=require('./cms/cms-seed-testdata.cjs'),{createCore}=require('./cms/cms-core.cjs'),{loadRuntime}=require('./cms/cms-runtime.cjs');
+test('new deck cards use session author, preserve distractors when copied and reload by ID',()=>{
+ const db=buildDb(),core=createCore(db),session={personId:'parent-multi',assurance:'account'};
+ const rt=loadRuntime(path.join(__dirname,'../game-server/public/projects/GCS-CMS.json'));
+ const commit=(_s,_a,_id,fn)=>fn(db);
+ const api=(url,body,who=session)=>{const result=rt.run(rt.find('/api/cms/decks/'+url,'POST'),{core,session:who,body,commit},{strict:true});return{...result.data,status:result.status};};
+ const deck=api('save',{name:'Rechnen bis 20',subject:'Mathe'});assert.equal(deck.ok,true);
+ const info=api('info',{deckId:deck.deckId});assert.equal(info.currentUserName,db.people.find(p=>p.id===session.personId).name);
+ const result=api('card-save',{deckId:deck.deckId,question:'8 + 7',answers:'15; fünfzehn',wrongAnswers:'14; 16',subject:'Mathe',topic:'Rechnen bis 20',answerFormat:'text',createdBy:'forged'});
+ assert.equal(result.ok,true);assert.equal(db.flashcards.find(c=>c.id===result.cardId).createdBy,session.personId);
+ const card=api('cards',{deckId:deck.deckId,cardId:result.cardId}).card;
+ assert.equal(card.answersText,'15; fünfzehn');assert.equal(card.wrongAnswersText,'14; 16');assert.equal(card.createdByName,info.currentUserName);
+ assert.equal(api('cards',{deckId:deck.deckId,cardId:'missing'}).status,404);
+ assert.equal(api('card-save',{deckId:deck.deckId,question:'Q',answers:'15',wrongAnswers:'15',subject:'Mathe'}).status,400);
+ const assigned=api('assign',{deckId:deck.deckId,childId:'child-finn',assign:true});assert.equal(assigned.ok,true);
+ const copied=db.flashcards.find(c=>c.childId==='child-finn'&&c.sourceCardId===result.cardId);
+ assert.deepEqual(copied.wrongAnswers,['14','16']);
+ const dto=require('./cms/cms-server-components.cjs').methods.TServerCards.dto({core,session},null,[copied]);
+ assert.equal(dto.deckName,'Rechnen bis 20');assert.equal(dto.deckSubject,'Mathe');assert.equal(dto.deckOwnerName,info.currentUserName);
+ const drawn=rt.run(rt.find('/api/cms/play/cardNext','POST'),{core,session:{personId:'child-finn',assurance:'profile'},body:{subject:'Mathe',topic:'Rechnen bis 20'},commit},{strict:true});
+ assert.equal(drawn.status,200);
+ assert.equal(drawn.data.card.deckName,'Rechnen bis 20');assert.equal(drawn.data.card.deckSubject,'Mathe');assert.equal(drawn.data.card.deckOwnerName,info.currentUserName);
+ assert.equal(api('card-save',{deckId:deck.deckId,question:'Q',answers:'15',subject:'Mathe'},{personId:'child-finn',assurance:'profile'}).status,403);
+});

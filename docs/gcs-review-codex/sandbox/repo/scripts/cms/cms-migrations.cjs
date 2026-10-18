@@ -1,0 +1,191 @@
+// CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
+// Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
+// up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
+const SCHEMA_VERSION = 9;
+
+// v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
+// - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
+// - guardians: Bestätigungsverfahren (status/createdBy/confirmedAt/revokedAt)
+// - adminInvites -> invites (generalisiert: purpose 'admin-setup'|'parent'|...)
+// - neue leere Collections: timeBudgets, playSessions, progress, deviceGrants
+function v1_to_v2(db) {
+  db.version = 2;
+  // 'player' ist eine Kinderrolle; nur Verwaltungsrollen implizieren 'adult'.
+  const ADULT_ROLES = new Set(['areaAdmin', 'superAdmin', 'oversight']);
+  const codeHolders = new Set((db.codes || []).map(c => c.personId));
+  const adultHolders = new Set((db.roles || []).filter(r => ADULT_ROLES.has(r.role)).map(r => r.personId));
+  for (const p of db.people) {
+    if (!p.kind) p.kind = codeHolders.has(p.id) && !adultHolders.has(p.id) ? 'child' : 'adult';
+  }
+  for (const g of db.guardians) {
+    if (!g.status) g.status = 'confirmed';
+    if (g.createdAt === undefined) g.createdAt = null;
+    if (g.confirmedBy === undefined) g.confirmedBy = null;
+    if (g.revokedAt === undefined) g.revokedAt = null;
+  }
+  if (Array.isArray(db.adminInvites)) {
+    for (const i of db.adminInvites) {
+      db.invites.push({
+        id: 'invite-' + i.personId, personId: i.personId, houseId: i.houseId,
+        purpose: 'admin-setup', issuer: i.issuer, hash: i.hash, expires: i.expires,
+      });
+    }
+    delete db.adminInvites;
+  }
+  for (const key of ['invites', 'timeBudgets', 'playSessions', 'progress', 'deviceGrants']) {
+    if (!Array.isArray(db[key])) db[key] = [];
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 1, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v2 -> v3: hausinterner Multiplayer (P4) — neue Collection parties.
+function v2_to_v3(db) {
+  db.version = 3;
+  if (!Array.isArray(db.parties)) db.parties = [];
+  db.meta = { ...(db.meta || {}), migratedFrom: 2, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v3 -> v4: Mitgliedschaft am Haus = Bewohner; Mitgliedschaft am Raum =
+// Raumzuordnung. Bestehende Daten werden aus Raumzuordnungen, Rollen und
+// Emoji-Codes abgeleitet, damit kein vorhandener Zugang verloren geht.
+function v3_to_v4(db) {
+  db.version = 4;
+  const houseOf = areaId => {
+    const seen = new Set();
+    let area = db.areas.find(a => a.id === areaId);
+    while (area && area.type !== 'house' && !seen.has(area.id)) {
+      seen.add(area.id);
+      area = db.areas.find(a => a.id === area.parentId);
+    }
+    return area?.type === 'house' ? area : null;
+  };
+  const wanted = new Map();
+  const remember = (personId, areaId, active) => {
+    const house = houseOf(areaId);
+    if (!house) return;
+    const key = personId + ':' + house.id;
+    wanted.set(key, {
+      personId, areaId: house.id,
+      active: !!active || !!wanted.get(key)?.active,
+    });
+  };
+  for (const m of db.memberships || []) remember(m.personId, m.areaId, m.active);
+  for (const r of db.roles || []) remember(r.personId, r.areaId, r.active);
+  for (const c of db.codes || []) remember(c.personId, c.areaId, true);
+  for (const row of wanted.values()) {
+    const current = db.memberships.find(m => m.personId === row.personId && m.areaId === row.areaId);
+    if (current) current.active = current.active || row.active;
+    else db.memberships.push(row);
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 3, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v4 -> v5: getrennte Multiplayer-Einladungen/Benachrichtigungen sowie die
+// Invariante, dass jeder aktive Raum mindestens einen aktiven RaumAdmin hat.
+function v4_to_v5(db) {
+  db.version = 5;
+  for (const key of ['gameInvitations', 'notifications', 'temporaryRoomAccess']) {
+    if (!Array.isArray(db[key])) db[key] = [];
+  }
+  for (const room of db.areas.filter(a => a.type === 'room' && a.active)) {
+    const hasAdmin = db.roles.some(r => r.areaId === room.id && r.role === 'areaAdmin' && r.active);
+    if (hasAdmin) continue;
+    const fallback = db.roles.find(r => r.areaId === room.parentId && r.role === 'areaAdmin' && r.active);
+    if (fallback) db.roles.push({ personId: fallback.personId, areaId: room.id, role: 'areaAdmin', active: true, primary: true });
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 4, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v5 -> v6: persönliche Karteikästen (Leitner). Karten gehören zum Kind
+// (childId); das "Karteikasten"-Objekt selbst ist implizit — ein Kind hat
+// genau die Menge seiner Karten. box 1..5 = Lernfächer, box 6 = Ablage
+// "gelernt" (aus Quiz-Ziehung ausgeschlossen, dort manuell löschbar).
+function v5_to_v6(db) {
+  db.version = 6;
+  if (!Array.isArray(db.flashcards)) db.flashcards = [];
+  for (const c of db.flashcards) {
+    if (!Number.isInteger(c.box) || c.box < 1) c.box = 1;
+    if (c.box > 6) c.box = 6;
+    if (!Array.isArray(c.answers)) c.answers = [];
+    if (typeof c.status !== 'string') c.status = 'active';
+    if (typeof c.active !== 'boolean') c.active = true;
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 5, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v6 -> v7: Kartenstapel (cardDecks). Stapel werden Kindern zugeordnet
+// (assignedChildIds), nicht Räumen. Zwei Arten: verwaltete Stapel
+// (ownerType 'account', Erwachsene ordnen zu) und Kind-Stapel
+// (ownerType 'child', Veröffentlichung braucht Erwachsenen-Freigabe).
+// Stapelkarten liegen in flashcards mit deckId statt childId; übernommene
+// Kopien tragen sourceDeckId/sourceCardId (Nachladen dedupliziert darüber).
+function v6_to_v7(db) {
+  db.version = 7;
+  if (!Array.isArray(db.cardDecks)) db.cardDecks = [];
+  for (const d of db.cardDecks) {
+    if (!Array.isArray(d.assignedChildIds)) d.assignedChildIds = [];
+    if (typeof d.published !== 'boolean') d.published = false;
+    if (typeof d.pendingApproval !== 'boolean') d.pendingApproval = false;
+    if (typeof d.active !== 'boolean') d.active = true;
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 6, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v7 -> v8: Sponsor-Begleitungen. Neue Collections fuer Kontakt-Faehigkeiten,
+// Begleitungen, Sichtfreigaben, Vereinbarungen (Versionen + Zustimmungen),
+// gepruefte Leistungspunkte, Belohnungsansprueche, optionales Punktekonto,
+// Familienhistorie, Kommandobelege und strukturierte Kommentare.
+// Bestandsdaten bleiben unveraendert — alle Collections starten leer.
+function v7_to_v8(db) {
+  db.version = 8;
+  for (const key of [
+    'sponsorshipRequestCapabilities', 'sponsorships', 'sponsorAccessVersions',
+    'sponsorAgreements', 'sponsorAgreementVersions', 'sponsorApprovals',
+    'performanceRuleVersions', 'performanceLedger', 'rewardClaims',
+    'rewardPointEntries', 'sponsorEvents', 'sponsorCommandReceipts', 'sponsorMessages',
+  ]) {
+    if (!Array.isArray(db[key])) db[key] = [];
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 7, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+function v8_to_v9(db) {
+ db.version=9;
+ require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
+ return db;
+}
+const MIGRATIONS = [
+  { from: 1, to: 2, up: v1_to_v2 },
+  { from: 2, to: 3, up: v2_to_v3 },
+  { from: 3, to: 4, up: v3_to_v4 },
+  { from: 4, to: 5, up: v4_to_v5 },
+  { from: 5, to: 6, up: v5_to_v6 },
+  { from: 6, to: 7, up: v6_to_v7 },
+  { from: 7, to: 8, up: v7_to_v8 },
+  { from: 8, to: 9, up: v8_to_v9 },
+];
+
+// Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt
+// unverändert, damit Vorher-/Nachher-Vergleich und Backup korrekt greifen).
+// Wirft bei Versionslücke oder unbekannter Ausgangsversion.
+function migrate(db) {
+  db = structuredClone(db);
+  const seen = new Set();
+  while (db.version !== SCHEMA_VERSION) {
+    if (seen.has(db.version)) throw Error('Migrationsschleife bei Version ' + db.version);
+    seen.add(db.version);
+    const step = MIGRATIONS.find(m => m.from === db.version);
+    if (!step) throw Error('Keine Migration von Version ' + db.version + ' bekannt');
+    db = step.up(db);
+  }
+  return db;
+}
+
+module.exports = { SCHEMA_VERSION, MIGRATIONS, migrate };

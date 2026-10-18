@@ -17,15 +17,26 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
-    "elements": [],
+    "elements": [
+      {
+        "id": "node-1792260481451",
+        "type": "task",
+        "x": 229.375,
+        "y": 180,
+        "width": 140,
+        "height": 60,
+        "properties": {
+          "name": "Giessen",
+          "details": "",
+          "description": "",
+          "text": "Giessen"
+        },
+        "data": {
+          "name": "Giessen",
+          "showDetails": false
+        }
+      }
+    ],
     "connections": []
   },
   "input": {
@@ -114,8 +125,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -218,15 +229,15 @@
           "children": [
             {
               "className": "TSprite",
-              "id": "obj_1792260193619_coydmzxvt",
+              "id": "obj_1792260469562_qsxm620cu",
               "name": "Baum",
               "scope": "stage",
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
               "visible": true,
-              "x": 29,
-              "y": 21,
+              "x": 28,
+              "y": 20,
               "width": 8,
               "height": 8,
               "zIndex": 0,
@@ -246,7 +257,7 @@
               "collisionGroup": "default",
               "pushOutOnCollision": false,
               "shape": "rect",
-              "spriteColor": "#ff6b6b",
+              "spriteColor": "#2d8a3e",
               "appearanceMode": "simple",
               "backgroundImage": "",
               "objectFit": "contain",
@@ -277,10 +288,51 @@
               "hitboxHeight": 0
             }
           ]
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1792260474959_6af5zsw4w",
+          "name": "Wasser",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "protectFromOverlay": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
         }
       ],
       "actions": [],
-      "tasks": [],
+      "tasks": [
+        {
+          "id": "88d09444-c7d1-49fa-b586-4037045d71de",
+          "name": "Giessen",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": []
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 64,
@@ -289,7 +341,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      }
+      },
+      "flowCharts": {}
     }
   ],
   "activeStageId": "wiese",

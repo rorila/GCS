@@ -109,6 +109,12 @@ Nach dem Assistenten siehst du:
 - Rechts: den **Inspector**
 - Oben in der Menüzeile: der aktuelle Stage-Name
 
+> **Hinweis für ältere Projekte:** In Projekten, die **vor** dem Fix
+> TD-015 angelegt wurden, kann das Hintergrund-Panel noch über dem Button
+> liegen. Dann wähle das Objekt über die **Objektauswahl-Dropdown** oben
+> im Inspector aus (dort stehen alle Objekte der Stage). Neu angelegte
+> Projekte sind nicht betroffen — der Button ist direkt anklickbar.
+
 ## Erwartetes Ergebnis
 
 Die Stage **„Die Wiese"** ist sichtbar und enthält drei vom Assistenten
@@ -125,6 +131,7 @@ dem `StageController` — die brauchst du vorerst nicht anzufassen.
 - [ ] Auf der Stage liegen ein dunkles Hintergrund-Panel und ein „Start"-Button
 - [ ] In der Toolbox findest du die Kategorien **Standard**, **Game**, **Variablen**
 - [ ] Klick auf den Button → Inspector rechts zeigt seine Eigenschaften
+  *(in Altprojekten ggf. über die Objektauswahl-Dropdown — siehe Hinweis)*
 - [ ] **Datei → Projekt Speichern** meldet Erfolg *(Nachweis: `save` → `saveProjectToFile()`)*
 
 ## Typische Stolpersteine

@@ -97,7 +97,7 @@ export class InspectorHost implements IInspectorContext {
             return;
         }
 
-        this.render(currentObject);
+        await this.render(currentObject);
     }
 
     public contextBuilder: any;

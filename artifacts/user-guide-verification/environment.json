@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-17",
+  "node": "v22.14.0",
+  "playwright": "1.58.2",
+  "vite": "8.0.16",
+  "platform": "win32",
+  "arch": "x64",
+  "gitBase": "53e3dfbbfb89084e195665de0d3254c938c06096",
+  "browser": "Microsoft Edge, headless",
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  }
+}

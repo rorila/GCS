@@ -1,0 +1,81 @@
+{
+  "$schema": "GCS Component Schema Registry v1.0",
+  "$module": "base",
+  "description": "Basis-Definitionen (actionTypes, variableTypes, baseProperties) für alle GCS-Komponenten. Komponenten sind in separaten Modulen ausgelagert.",
+  "components": {},
+
+  "actionTypes": {
+    "property":       { "description": "Objekt-Property ändern", "params": ["target", "changes"], "example": { "type": "property", "target": "GameState", "changes": { "state": "playing" } } },
+    "variable":       { "description": "Variable setzen/lesen", "params": ["source", "sourceProperty", "variableName"] },
+    "set_variable":   { "description": "Variable direkt setzen (Alias für variable)", "params": ["source", "sourceProperty", "variableName"] },
+    "calculate":      { "description": "Mathematische Berechnung", "params": ["formula", "resultVariable"], "example": { "type": "calculate", "formula": "Countdown - 1", "resultVariable": "Countdown" } },
+    "increment":      { "description": "Variable um Wert erhöhen", "params": ["target", "property", "amount"] },
+    "negate":         { "description": "Vorzeichen umkehren (×-1)", "params": ["target", "changes"], "example": { "type": "negate", "target": "Ball", "changes": { "velocityX": 1 } } },
+    "call_method":    { "description": "Methode auf Objekt aufrufen", "params": ["target", "method"], "example": { "type": "call_method", "target": "CountdownTimer", "method": "timerStart" } },
+    "animate":        { "description": "CSS-Animation auslösen", "params": ["target", "animation"] },
+    "navigate":       { "description": "Browser-Navigation", "params": ["url"] },
+    "navigate_stage": { "description": "Stage wechseln", "params": ["stageId"] },
+    "broadcast":      { "description": "Event broadcast (Multiplayer)", "params": ["event", "data"] },
+    "http":           { "description": "HTTP-Request ausführen", "params": ["url", "method", "body"] },
+    "data_action":    { "description": "Datenbank-Operation", "params": ["resource", "operation", "data"] },
+    "service":        { "description": "Service aufrufen", "params": ["service", "method", "args"] }
+  },
+
+  "baseProperties": {
+    "description": "Diese Properties erben ALLE Komponenten von TWindow",
+    "properties": {
+      "x":      { "type": "number", "description": "X-Position (Grid-Einheiten)" },
+      "y":      { "type": "number", "description": "Y-Position (Grid-Einheiten)" },
+      "width":  { "type": "number", "description": "Breite (Grid-Einheiten)" },
+      "height": { "type": "number", "description": "Höhe (Grid-Einheiten)" },
+      "zIndex": { "type": "number", "default": 0 },
+      "visible":{ "type": "boolean", "default": true },
+      "text":   { "type": "string", "default": "" },
+      "align":  { "type": "select", "default": "NONE", "options": ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
+      "style":  {
+        "type": "object",
+        "properties": {
+          "backgroundColor": { "type": "color", "default": "transparent" },
+          "borderColor":     { "type": "color", "default": "transparent" },
+          "borderWidth":     { "type": "number", "default": 0 },
+          "borderRadius":    { "type": "number", "default": 0 },
+          "color":           { "type": "color", "description": "Textfarbe" },
+          "fontSize":        { "type": "number" },
+          "fontFamily":      { "type": "string" },
+          "fontWeight":      { "type": "string" },
+          "fontStyle":       { "type": "string" },
+          "textAlign":       { "type": "select", "options": ["left", "center", "right"] },
+          "opacity":         { "type": "number", "min": 0, "max": 1 }
+        }
+      }
+    },
+    "baseEvents": ["onClick", "onFocus", "onBlur", "onDragStart", "onDragEnd", "onDrop"]
+  },
+
+  "variableTypes": {
+    "description": "Alle verfügbaren Variablen-Typen im GCS",
+    "types": ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore", "any", "json"]
+  },
+
+  "semantik": {
+    "description": "Die 7 Schritte zum Aufbau eines GCS-Projekts",
+    "steps": [
+      "1. ZIEL: Was soll das Spiel/die App können? (1 Satz)",
+      "2. OBJEKTE: Was brauche ich auf dem Bildschirm? (TSprite, TButton, TLabel, ...)",
+      "3. VARIABLEN: Welcher Zustand muss verfolgt werden? (TIntegerVariable, TRandomVariable, ...)",
+      "4. ACTIONS: Was kann passieren? (property, call_method, calculate, negate, ...)",
+      "5. TASKS: In welcher Reihenfolge passiert es? (Action-Sequenzen)",
+      "6. EVENTS: Was löst die Abläufe aus? (onClick, onTimer, onCollision, ...)",
+      "7. TEST: Funktioniert es? (validate())"
+    ],
+    "rules": [
+      "Blueprint-Stage: NUR Infrastruktur (TGameLoop, TGameState, TInputController)",
+      "Main-Stage: Spielobjekte, Variablen, Tasks, Actions",
+      "KEINE Inline-Actions: Immer addAction() verwenden, nie JSON direkt schreiben",
+      "Property heißt 'text', NICHT 'caption' (Legacy-Alias existiert)",
+      "Timer-Methoden: timerStart, timerStop, reset (NICHT: start, stop)",
+      "Variable-Bindings: ${VariablenName} mit Dollar+Klammern",
+      "TRandomVariable.generate() erzeugt neuen Wert, danach in .value verfügbar"
+    ]
+  }
+}

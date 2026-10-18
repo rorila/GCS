@@ -326,7 +326,8 @@ export class EditorProjectFactory {
             } as any);
         }
         if (stageData.objects.includes('background')) {
-            stage.objects.push({
+            // Gleiche Z-Ebene: Hintergrund vor den interaktiven Objekten rendern.
+            stage.objects.unshift({
                 id: 'background_panel',
                 name: 'Background',
                 className: 'TPanel',

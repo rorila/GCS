@@ -1,0 +1,6766 @@
+[
+ {
+  "id": "EVT-0001",
+  "kind": "event",
+  "name": "onRequest",
+  "title": "onRequest",
+  "category": "event",
+  "description": "Event, deklariert von: TAPIServer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAPIServer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0001"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAPIServer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:42829375a0f20898"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0002",
+  "kind": "event",
+  "name": "onStart",
+  "title": "onStart",
+  "category": "event",
+  "description": "Event, deklariert von: TAPIServer, TSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAPIServer",
+   "TSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0001"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0092"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAPIServer.ts",
+    "src/components/TSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ed67e0c484c2e5ff"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0003",
+  "kind": "event",
+  "name": "onStop",
+  "title": "onStop",
+  "category": "event",
+  "description": "Event, deklariert von: TAPIServer, TAudio, TTextToSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAPIServer",
+   "TAudio",
+   "TTextToSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0001"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0003"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAPIServer.ts",
+    "src/components/TAudio.ts",
+    "src/components/TTextToSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:eb21484544205031"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0004",
+  "kind": "event",
+  "name": "onError",
+  "title": "onError",
+  "category": "event",
+  "description": "Event, deklariert von: TAPIServer, TCmsLiveSync, TDataStore, TGameServer, TSpeech, TSpeechRecognition, TTextToSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAPIServer",
+   "TCmsLiveSync",
+   "TDataStore",
+   "TGameServer",
+   "TSpeech",
+   "TSpeechRecognition",
+   "TTextToSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0001"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0012"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0016"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0092"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0093"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAPIServer.ts",
+    "src/components/TCmsLiveSync.ts",
+    "src/components/TDataStore.ts",
+    "src/components/TGameServer.ts",
+    "src/components/TSpeech.ts",
+    "src/components/TSpeechRecognition.ts",
+    "src/components/TTextToSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9caf7f0edeffbc25"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0005",
+  "kind": "event",
+  "name": "onPlay",
+  "title": "onPlay",
+  "category": "event",
+  "description": "Event, deklariert von: TAudio, TTextToSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAudio",
+   "TTextToSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0003"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAudio.ts",
+    "src/components/TTextToSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ea21084c6d35515a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0006",
+  "kind": "event",
+  "name": "onLoginSuccess",
+  "title": "onLoginSuccess",
+  "category": "event",
+  "description": "Event, deklariert von: TAuthService.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAuthService"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0004"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAuthService.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6a89501ae72fd4e0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0007",
+  "kind": "event",
+  "name": "onLoginFailure",
+  "title": "onLoginFailure",
+  "category": "event",
+  "description": "Event, deklariert von: TAuthService.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAuthService"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0004"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAuthService.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ed94d99ad6ae02ae"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0008",
+  "kind": "event",
+  "name": "onTokenVerified",
+  "title": "onTokenVerified",
+  "category": "event",
+  "description": "Event, deklariert von: TAuthService.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAuthService"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0004"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAuthService.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:7daad38286b241d8"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0009",
+  "kind": "event",
+  "name": "onTokenInvalid",
+  "title": "onTokenInvalid",
+  "category": "event",
+  "description": "Event, deklariert von: TAuthService.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TAuthService"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0004"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TAuthService.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:01def22c6354d4d0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0010",
+  "kind": "event",
+  "name": "onFlipMidpoint",
+  "title": "onFlipMidpoint",
+  "category": "event",
+  "description": "Event, deklariert von: TCard, TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TCard",
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0009"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TCard.ts",
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:73f69172f6d3192e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0011",
+  "kind": "event",
+  "name": "onConnected",
+  "title": "onConnected",
+  "category": "event",
+  "description": "Event, deklariert von: TCmsLiveSync, TGameServer, THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TCmsLiveSync",
+   "TGameServer",
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0012"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TCmsLiveSync.ts",
+    "src/components/TGameServer.ts",
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6fee2b47b7d4b682"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0012",
+  "kind": "event",
+  "name": "onDisconnected",
+  "title": "onDisconnected",
+  "category": "event",
+  "description": "Event, deklariert von: TCmsLiveSync, TGameServer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TCmsLiveSync",
+   "TGameServer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0012"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TCmsLiveSync.ts",
+    "src/components/TGameServer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e4573a4749a8b003"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0013",
+  "kind": "event",
+  "name": "onLive",
+  "title": "onLive",
+  "category": "event",
+  "description": "Event, deklariert von: TCmsLiveSync.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TCmsLiveSync"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0012"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TCmsLiveSync.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:3b7af1fe477a4572"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0014",
+  "kind": "event",
+  "name": "onChange",
+  "title": "onChange",
+  "category": "event",
+  "description": "Event, deklariert von: TColorPicker, TDropdown, TEdit, TSlider, TTabBar.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TColorPicker",
+   "TDropdown",
+   "TEdit",
+   "TSlider",
+   "TTabBar"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0013"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0019"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0020"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0090"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0106"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TColorPicker.ts",
+    "src/components/TDropdown.ts",
+    "src/components/TEdit.ts",
+    "src/components/TSlider.ts",
+    "src/components/TTabBar.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:8752432c77a01e6b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0015",
+  "kind": "event",
+  "name": "onClick",
+  "title": "onClick",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TEmojiPicker, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TEmojiPicker",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0021"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TEmojiPicker.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:76de855b07c5c215"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0016",
+  "kind": "event",
+  "name": "onDoubleClick",
+  "title": "onDoubleClick",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TList, TSpriteTemplate, TTable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TList",
+   "TSpriteTemplate",
+   "TTable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0049"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0108"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TList.ts",
+    "src/components/TSpriteTemplate.ts",
+    "src/components/TTable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:69732316a6ac8597"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0017",
+  "kind": "event",
+  "name": "onMouseEnter",
+  "title": "onMouseEnter",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:23dbc3f92a330801"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0018",
+  "kind": "event",
+  "name": "onMouseLeave",
+  "title": "onMouseLeave",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:90ebf18158be33a5"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0019",
+  "kind": "event",
+  "name": "onDragStart",
+  "title": "onDragStart",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:71b07f01950dc60e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0020",
+  "kind": "event",
+  "name": "onDragEnd",
+  "title": "onDragEnd",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:eaf183a92aba20fa"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0021",
+  "kind": "event",
+  "name": "onDrop",
+  "title": "onDrop",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:409d6ca12d4604e1"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0022",
+  "kind": "event",
+  "name": "onTouchStart",
+  "title": "onTouchStart",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:5d12b3c29b6b5152"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0023",
+  "kind": "event",
+  "name": "onTouchMove",
+  "title": "onTouchMove",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:04b405fead62f0b7"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0024",
+  "kind": "event",
+  "name": "onTouchEnd",
+  "title": "onTouchEnd",
+  "category": "event",
+  "description": "Event, deklariert von: TComponent, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TComponent",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0014"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TComponent.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:3112104236c0b3d0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0025",
+  "kind": "event",
+  "name": "onRowClick",
+  "title": "onRowClick",
+  "category": "event",
+  "description": "Event, deklariert von: TDataList, TTable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TDataList",
+   "TTable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0015"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0108"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TDataList.ts",
+    "src/components/TTable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f5639387a936217c"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0026",
+  "kind": "event",
+  "name": "onRowDoubleClick",
+  "title": "onRowDoubleClick",
+  "category": "event",
+  "description": "Event, deklariert von: TDataList.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TDataList"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0015"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TDataList.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:21ca9376b15c5e68"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0027",
+  "kind": "event",
+  "name": "onDataChanged",
+  "title": "onDataChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TDataStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TDataStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0016"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TDataStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9adef5b213682c79"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0028",
+  "kind": "event",
+  "name": "onSave",
+  "title": "onSave",
+  "category": "event",
+  "description": "Event, deklariert von: TDataStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TDataStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0016"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TDataStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:234aa0898a7dbf51"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0029",
+  "kind": "event",
+  "name": "onDelete",
+  "title": "onDelete",
+  "category": "event",
+  "description": "Event, deklariert von: TDataStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TDataStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0016"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TDataStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:85bf34de819c7090"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0030",
+  "kind": "event",
+  "name": "onEnter",
+  "title": "onEnter",
+  "category": "event",
+  "description": "Event, deklariert von: TEdit, TSprite.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TEdit",
+   "TSprite"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0020"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TEdit.ts",
+    "src/components/TSprite.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ad34612357d57c09"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0031",
+  "kind": "event",
+  "name": "onSelect",
+  "title": "onSelect",
+  "category": "event",
+  "description": "Event, deklariert von: TEmojiPicker, TList, TNavBar, TTable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TEmojiPicker",
+   "TList",
+   "TNavBar",
+   "TTable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0021"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0049"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0052"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0108"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TEmojiPicker.ts",
+    "src/components/TList.ts",
+    "src/components/TNavBar.ts",
+    "src/components/TTable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f1c2151a280d5ad0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0032",
+  "kind": "event",
+  "name": "onFocus",
+  "title": "onFocus",
+  "category": "event",
+  "description": "Event, deklariert von: TEmojiPicker, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TEmojiPicker",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0021"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TEmojiPicker.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:07b30f0814265aa8"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0033",
+  "kind": "event",
+  "name": "onBlur",
+  "title": "onBlur",
+  "category": "event",
+  "description": "Event, deklariert von: TEmojiPicker, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TEmojiPicker",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0021"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TEmojiPicker.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f9c13f15a5da3268"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0034",
+  "kind": "event",
+  "name": "onFrame",
+  "title": "onFrame",
+  "category": "event",
+  "description": "Event, deklariert von: TGameLoop.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameLoop"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0028"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameLoop.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:8f752e8a9f9d40a3"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0035",
+  "kind": "event",
+  "name": "onRoomCreated",
+  "title": "onRoomCreated",
+  "category": "event",
+  "description": "Event, deklariert von: TGameServer, THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameServer",
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameServer.ts",
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ebf95e673c6bccf1"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0036",
+  "kind": "event",
+  "name": "onRoomJoined",
+  "title": "onRoomJoined",
+  "category": "event",
+  "description": "Event, deklariert von: TGameServer, THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameServer",
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameServer.ts",
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:3780dec9f9927aaa"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0037",
+  "kind": "event",
+  "name": "onPlayerJoined",
+  "title": "onPlayerJoined",
+  "category": "event",
+  "description": "Event, deklariert von: TGameServer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameServer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameServer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f62128392aced9f2"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0038",
+  "kind": "event",
+  "name": "onPlayerLeft",
+  "title": "onPlayerLeft",
+  "category": "event",
+  "description": "Event, deklariert von: TGameServer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameServer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameServer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:bab9f375ebd2ce43"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0039",
+  "kind": "event",
+  "name": "onGameStart",
+  "title": "onGameStart",
+  "category": "event",
+  "description": "Event, deklariert von: TGameServer, THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameServer",
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0029"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameServer.ts",
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e02af1e1cedf2dcc"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0040",
+  "kind": "event",
+  "name": "onStateChanged",
+  "title": "onStateChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TGameState, TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameState",
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0030"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameState.ts",
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c7dc117bd1cebac7"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0041",
+  "kind": "event",
+  "name": "onGameOver",
+  "title": "onGameOver",
+  "category": "event",
+  "description": "Event, deklariert von: TGameState, TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameState",
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0030"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameState.ts",
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:cb2d274948ab2c60"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0042",
+  "kind": "event",
+  "name": "onLifeLost",
+  "title": "onLifeLost",
+  "category": "event",
+  "description": "Event, deklariert von: TGameState.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameState"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0030"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameState.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e8409eb81d29c9a9"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0043",
+  "kind": "event",
+  "name": "onScoreChanged",
+  "title": "onScoreChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TGameState.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGameState"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0030"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGameState.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ceaa7eb69a5401d9"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0044",
+  "kind": "event",
+  "name": "onCellClick",
+  "title": "onCellClick",
+  "category": "event",
+  "description": "Event, deklariert von: TGridBoard.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGridBoard"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0031"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGridBoard.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:ef441f68bebadccb"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0045",
+  "kind": "event",
+  "name": "onChanged",
+  "title": "onChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TGridBoard.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TGridBoard"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0031"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TGridBoard.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6b299f3775cdbc01"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0046",
+  "kind": "event",
+  "name": "onPeerJoined",
+  "title": "onPeerJoined",
+  "category": "event",
+  "description": "Event, deklariert von: THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:93a45bf1d01554df"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0047",
+  "kind": "event",
+  "name": "onPeerReady",
+  "title": "onPeerReady",
+  "category": "event",
+  "description": "Event, deklariert von: THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0a9f1ab6fa4b8a2f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0048",
+  "kind": "event",
+  "name": "onPeerLeft",
+  "title": "onPeerLeft",
+  "category": "event",
+  "description": "Event, deklariert von: THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e341a5ca0a955a5a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0049",
+  "kind": "event",
+  "name": "onVersionMismatch",
+  "title": "onVersionMismatch",
+  "category": "event",
+  "description": "Event, deklariert von: THandshake.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THandshake"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0033"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THandshake.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:496dc282526f9c2d"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0050",
+  "kind": "event",
+  "name": "onPing",
+  "title": "onPing",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1d74e33f94283b4d"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0051",
+  "kind": "event",
+  "name": "onPong",
+  "title": "onPong",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0e570d7b53b3addd"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0052",
+  "kind": "event",
+  "name": "onLatencyWarning",
+  "title": "onLatencyWarning",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:7f1ff639eb057406"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0053",
+  "kind": "event",
+  "name": "onMissedPong",
+  "title": "onMissedPong",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:55ad9c3f7a4bf07f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0054",
+  "kind": "event",
+  "name": "onPeerTimeout",
+  "title": "onPeerTimeout",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:7c1d9a93e4fa9e29"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0055",
+  "kind": "event",
+  "name": "onReconnecting",
+  "title": "onReconnecting",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9bd96efe4fc33d53"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0056",
+  "kind": "event",
+  "name": "onReconnected",
+  "title": "onReconnected",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:cc5e2e713c322202"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0057",
+  "kind": "event",
+  "name": "onConnectionLost",
+  "title": "onConnectionLost",
+  "category": "event",
+  "description": "Event, deklariert von: THeartbeat.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "THeartbeat"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0034"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/THeartbeat.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:508e1f1ca87833a9"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0058",
+  "kind": "event",
+  "name": "onSelectionChanged",
+  "title": "onSelectionChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TImageGallery, TTable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TImageGallery",
+   "TTable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0036"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0108"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TImageGallery.ts",
+    "src/components/TTable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:104739694f426f90"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0059",
+  "kind": "event",
+  "name": "onFrameChange",
+  "title": "onFrameChange",
+  "category": "event",
+  "description": "Event, deklariert von: TImageList.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TImageList"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0037"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TImageList.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9a6c2c95d8456fac"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0060",
+  "kind": "event",
+  "name": "onCancel",
+  "title": "onCancel",
+  "category": "event",
+  "description": "Event, deklariert von: TInfoWindow.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInfoWindow"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0039"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInfoWindow.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:bcff3e1d218d5eb7"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0061",
+  "kind": "event",
+  "name": "onConfirm",
+  "title": "onConfirm",
+  "category": "event",
+  "description": "Event, deklariert von: TInfoWindow.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInfoWindow"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0039"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInfoWindow.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:918aaa0322a5578b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0062",
+  "kind": "event",
+  "name": "onAutoClose",
+  "title": "onAutoClose",
+  "category": "event",
+  "description": "Event, deklariert von: TInfoWindow.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInfoWindow"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0039"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInfoWindow.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f3a08b7a7e1fbd98"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0063",
+  "kind": "event",
+  "name": "onExpanded",
+  "title": "onExpanded",
+  "category": "event",
+  "description": "Event, deklariert von: TInlineOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInlineOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0040"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInlineOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:fb5753c7fb369036"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0064",
+  "kind": "event",
+  "name": "onCollapsed",
+  "title": "onCollapsed",
+  "category": "event",
+  "description": "Event, deklariert von: TInlineOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInlineOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0040"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInlineOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:643eeae84ad71a3b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0065",
+  "kind": "event",
+  "name": "onShown",
+  "title": "onShown",
+  "category": "event",
+  "description": "Event, deklariert von: TInlineOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInlineOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0040"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInlineOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:9a6950ab0cd28f7a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0066",
+  "kind": "event",
+  "name": "onHidden",
+  "title": "onHidden",
+  "category": "event",
+  "description": "Event, deklariert von: TInlineOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInlineOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0040"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInlineOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0cc5335b5fa2b945"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0067",
+  "kind": "event",
+  "name": "onKeyDown_KeyW",
+  "title": "onKeyDown_KeyW",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:92da6e3555d074cc"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0068",
+  "kind": "event",
+  "name": "onKeyDown_KeyS",
+  "title": "onKeyDown_KeyS",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4b794fb164540fe6"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0069",
+  "kind": "event",
+  "name": "onKeyDown_KeyA",
+  "title": "onKeyDown_KeyA",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c0832e8f6bd06ae0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0070",
+  "kind": "event",
+  "name": "onKeyDown_KeyD",
+  "title": "onKeyDown_KeyD",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:828855613badec81"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0071",
+  "kind": "event",
+  "name": "onKeyDown_ArrowUp",
+  "title": "onKeyDown_ArrowUp",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2d8d1dd83b248b7d"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0072",
+  "kind": "event",
+  "name": "onKeyDown_ArrowDown",
+  "title": "onKeyDown_ArrowDown",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:eccb10a15b06ab51"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0073",
+  "kind": "event",
+  "name": "onKeyDown_ArrowLeft",
+  "title": "onKeyDown_ArrowLeft",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:281b9ba684417ca4"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0074",
+  "kind": "event",
+  "name": "onKeyDown_ArrowRight",
+  "title": "onKeyDown_ArrowRight",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:83b1f1e40e8dda33"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0075",
+  "kind": "event",
+  "name": "onKeyDown_Space",
+  "title": "onKeyDown_Space",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0134a4e4cb18cb68"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0076",
+  "kind": "event",
+  "name": "onKeyDown_Enter",
+  "title": "onKeyDown_Enter",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:29e429d69f56e64b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0077",
+  "kind": "event",
+  "name": "onKeyUp_KeyW",
+  "title": "onKeyUp_KeyW",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:8ea4486faeed58f8"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0078",
+  "kind": "event",
+  "name": "onKeyUp_KeyS",
+  "title": "onKeyUp_KeyS",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:feb19ed7d8db8ae6"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0079",
+  "kind": "event",
+  "name": "onKeyUp_KeyA",
+  "title": "onKeyUp_KeyA",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:178e95c269ceaa28"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0080",
+  "kind": "event",
+  "name": "onKeyUp_KeyD",
+  "title": "onKeyUp_KeyD",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:bdd2fc6ddef9fe5e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0081",
+  "kind": "event",
+  "name": "onKeyUp_ArrowUp",
+  "title": "onKeyUp_ArrowUp",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4bf862132e82d1ce"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0082",
+  "kind": "event",
+  "name": "onKeyUp_ArrowDown",
+  "title": "onKeyUp_ArrowDown",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e4e98faeda48804e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0083",
+  "kind": "event",
+  "name": "onKeyUp_ArrowLeft",
+  "title": "onKeyUp_ArrowLeft",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:89c7320aa7a3571a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0084",
+  "kind": "event",
+  "name": "onKeyUp_ArrowRight",
+  "title": "onKeyUp_ArrowRight",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f3aa844516e6be0f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0085",
+  "kind": "event",
+  "name": "onKeyUp_Space",
+  "title": "onKeyUp_Space",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a396e5d65926e8b1"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0086",
+  "kind": "event",
+  "name": "onKeyUp_Enter",
+  "title": "onKeyUp_Enter",
+  "category": "event",
+  "description": "Event, deklariert von: TInputController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TInputController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0041"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TInputController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c983a99a21726eaf"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0087",
+  "kind": "event",
+  "name": "onIntervall",
+  "title": "onIntervall",
+  "category": "event",
+  "description": "Event, deklariert von: TIntervalTimer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TIntervalTimer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0044"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TIntervalTimer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0ed4829c5cc1132d"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0088",
+  "kind": "event",
+  "name": "onTimeout",
+  "title": "onTimeout",
+  "category": "event",
+  "description": "Event, deklariert von: TIntervalTimer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TIntervalTimer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0044"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TIntervalTimer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:421e6d45e9d419df"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0089",
+  "kind": "event",
+  "name": "onItemCreated",
+  "title": "onItemCreated",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:440eb4f9ca861e4f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0090",
+  "kind": "event",
+  "name": "onItemUpdated",
+  "title": "onItemUpdated",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:fb03606df7de7cea"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0091",
+  "kind": "event",
+  "name": "onItemDeleted",
+  "title": "onItemDeleted",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:697c29aa4a5df0f2"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0092",
+  "kind": "event",
+  "name": "onItemRead",
+  "title": "onItemRead",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b3034dc530e34c96"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0093",
+  "kind": "event",
+  "name": "onNotFound",
+  "title": "onNotFound",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:fd961246f10686ff"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0094",
+  "kind": "event",
+  "name": "onCleared",
+  "title": "onCleared",
+  "category": "event",
+  "description": "Event, deklariert von: TKeyStore, TListVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TKeyStore",
+   "TListVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0045"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0050"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TKeyStore.ts",
+    "src/components/TListVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c6d599769f179530"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0095",
+  "kind": "event",
+  "name": "onPointsChanged",
+  "title": "onPointsChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TLearningPointsOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TLearningPointsOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0047"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TLearningPointsOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1f2f3f16f6501961"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0096",
+  "kind": "event",
+  "name": "onDataUpdated",
+  "title": "onDataUpdated",
+  "category": "event",
+  "description": "Event, deklariert von: TLearningPointsOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TLearningPointsOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0047"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TLearningPointsOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b062ef163b385376"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0097",
+  "kind": "event",
+  "name": "onDataError",
+  "title": "onDataError",
+  "category": "event",
+  "description": "Event, deklariert von: TLearningPointsOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TLearningPointsOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0047"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TLearningPointsOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:38207222f0a541a4"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0098",
+  "kind": "event",
+  "name": "onItemAdded",
+  "title": "onItemAdded",
+  "category": "event",
+  "description": "Event, deklariert von: TListVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TListVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0050"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TListVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4dd7cf7467faf32b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0099",
+  "kind": "event",
+  "name": "onItemRemoved",
+  "title": "onItemRemoved",
+  "category": "event",
+  "description": "Event, deklariert von: TListVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TListVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0050"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TListVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a5c166d63f85f396"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0100",
+  "kind": "event",
+  "name": "onCollapse",
+  "title": "onCollapse",
+  "category": "event",
+  "description": "Event, deklariert von: TNavBar.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TNavBar"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0052"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TNavBar.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:778cd107323d027f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0101",
+  "kind": "event",
+  "name": "onExpand",
+  "title": "onExpand",
+  "category": "event",
+  "description": "Event, deklariert von: TNavBar.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TNavBar"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0052"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TNavBar.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f5e89bf6c3e9ed00"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0102",
+  "kind": "event",
+  "name": "onMaxValueReached",
+  "title": "onMaxValueReached",
+  "category": "event",
+  "description": "Event, deklariert von: TNumberLabel.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TNumberLabel"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0054"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TNumberLabel.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f2e093b78a868459"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0103",
+  "kind": "event",
+  "name": "onMinValueReached",
+  "title": "onMinValueReached",
+  "category": "event",
+  "description": "Event, deklariert von: TNumberLabel.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TNumberLabel"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0054"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TNumberLabel.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:342af1e60472762c"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0104",
+  "kind": "event",
+  "name": "onOverlayResult",
+  "title": "onOverlayResult",
+  "category": "event",
+  "description": "Event, deklariert von: TOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0057"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:7529a83cc71e3c42"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0105",
+  "kind": "event",
+  "name": "onOverlayClosed",
+  "title": "onOverlayClosed",
+  "category": "event",
+  "description": "Event, deklariert von: TOverlay.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TOverlay"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0057"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TOverlay.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f36c0b6ce853118a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0106",
+  "kind": "event",
+  "name": "onComplete",
+  "title": "onComplete",
+  "category": "event",
+  "description": "Event, deklariert von: TProgressBar, TPuzzleBoard.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TProgressBar",
+   "TPuzzleBoard"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0060"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0061"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TProgressBar.ts",
+    "src/components/TPuzzleBoard.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f74b985e3bbddd09"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0107",
+  "kind": "event",
+  "name": "onEmpty",
+  "title": "onEmpty",
+  "category": "event",
+  "description": "Event, deklariert von: TProgressBar.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TProgressBar"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0060"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TProgressBar.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d079fe7cfcb2500a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0108",
+  "kind": "event",
+  "name": "onPiecePlaced",
+  "title": "onPiecePlaced",
+  "category": "event",
+  "description": "Event, deklariert von: TPuzzleBoard.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TPuzzleBoard"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0061"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TPuzzleBoard.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:72e65fe18e70066c"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0109",
+  "kind": "event",
+  "name": "onGenerated",
+  "title": "onGenerated",
+  "category": "event",
+  "description": "Event, deklariert von: TRandomVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TRandomVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0062"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TRandomVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e2cb1256772b5447"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0110",
+  "kind": "event",
+  "name": "onMinReached",
+  "title": "onMinReached",
+  "category": "event",
+  "description": "Event, deklariert von: TRangeVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TRangeVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0063"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TRangeVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e7fb247bf6098c08"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0111",
+  "kind": "event",
+  "name": "onMaxReached",
+  "title": "onMaxReached",
+  "category": "event",
+  "description": "Event, deklariert von: TRangeVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TRangeVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0063"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TRangeVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:44582b7f9ddcfaf6"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0112",
+  "kind": "event",
+  "name": "onInside",
+  "title": "onInside",
+  "category": "event",
+  "description": "Event, deklariert von: TRangeVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TRangeVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0063"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TRangeVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4e72f00a0f8d6e87"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0113",
+  "kind": "event",
+  "name": "onOutside",
+  "title": "onOutside",
+  "category": "event",
+  "description": "Event, deklariert von: TRangeVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TRangeVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0063"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TRangeVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:808014bb62277f88"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0114",
+  "kind": "event",
+  "name": "onEnd",
+  "title": "onEnd",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0092"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c0db7a2476410dc8"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0115",
+  "kind": "event",
+  "name": "onPause",
+  "title": "onPause",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0092"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:62ca9d0948969420"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0116",
+  "kind": "event",
+  "name": "onResume",
+  "title": "onResume",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0092"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:dfde1ecb716d9a65"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0117",
+  "kind": "event",
+  "name": "onReady",
+  "title": "onReady",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeechRecognition, TTextToSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeechRecognition",
+   "TTextToSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0093"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeechRecognition.ts",
+    "src/components/TTextToSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:99a033742fcba75e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0118",
+  "kind": "event",
+  "name": "onListening",
+  "title": "onListening",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeechRecognition.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeechRecognition"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0093"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeechRecognition.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:42603e5e0655d924"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0119",
+  "kind": "event",
+  "name": "onResult",
+  "title": "onResult",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeechRecognition.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeechRecognition"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0093"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeechRecognition.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:bf64b5b463e84391"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0120",
+  "kind": "event",
+  "name": "onNoSpeech",
+  "title": "onNoSpeech",
+  "category": "event",
+  "description": "Event, deklariert von: TSpeechRecognition.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpeechRecognition"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0093"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpeechRecognition.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d712646757887530"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0121",
+  "kind": "event",
+  "name": "onFinish",
+  "title": "onFinish",
+  "category": "event",
+  "description": "Event, deklariert von: TSplashScreen, TSplashStage.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSplashScreen",
+   "TSplashStage"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0095"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0096"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSplashScreen.ts",
+    "src/components/TSplashStage.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e2058d85a59068f1"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0122",
+  "kind": "event",
+  "name": "onImageReady",
+  "title": "onImageReady",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:e392e8ec94cabe1d"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0123",
+  "kind": "event",
+  "name": "onImageError",
+  "title": "onImageError",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:135e9fc9815c8764"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0124",
+  "kind": "event",
+  "name": "onCollision",
+  "title": "onCollision",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:bfcc63fae7934ac6"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0125",
+  "kind": "event",
+  "name": "onCollisionLeft",
+  "title": "onCollisionLeft",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:896a228afef853c5"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0126",
+  "kind": "event",
+  "name": "onCollisionRight",
+  "title": "onCollisionRight",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:8ac67ddd9636da2e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0127",
+  "kind": "event",
+  "name": "onCollisionTop",
+  "title": "onCollisionTop",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b1a41716a3606af4"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0128",
+  "kind": "event",
+  "name": "onCollisionBottom",
+  "title": "onCollisionBottom",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1564f47d57c3d3ee"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0129",
+  "kind": "event",
+  "name": "onBoundaryHit",
+  "title": "onBoundaryHit",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:001116886aaf1dcd"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0130",
+  "kind": "event",
+  "name": "onStageExit",
+  "title": "onStageExit",
+  "category": "event",
+  "description": "Event, deklariert von: TSprite, TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSprite",
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0097"
+   },
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSprite.ts",
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:89f86c56ddb9e0a3"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0131",
+  "kind": "event",
+  "name": "onPoolExhausted",
+  "title": "onPoolExhausted",
+  "category": "event",
+  "description": "Event, deklariert von: TSpriteTemplate.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TSpriteTemplate"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0098"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TSpriteTemplate.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:17a3821f0de7d22b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0132",
+  "kind": "event",
+  "name": "onStageChange",
+  "title": "onStageChange",
+  "category": "event",
+  "description": "Event, deklariert von: TStageController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TStageController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0100"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TStageController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f78f408a1d293a66"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0133",
+  "kind": "event",
+  "name": "onAllStagesCompleted",
+  "title": "onAllStagesCompleted",
+  "category": "event",
+  "description": "Event, deklariert von: TStageController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TStageController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0100"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TStageController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2c0e4b03b3d6e17a"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0134",
+  "kind": "event",
+  "name": "onSplashFinished",
+  "title": "onSplashFinished",
+  "category": "event",
+  "description": "Event, deklariert von: TStageController.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TStageController"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0100"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TStageController.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:b75b84538aeea14b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0135",
+  "kind": "event",
+  "name": "onEntryChanged",
+  "title": "onEntryChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TStringMap.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TStringMap"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0103"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TStringMap.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:df41b0dce41fee95"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0136",
+  "kind": "event",
+  "name": "onAction",
+  "title": "onAction",
+  "category": "event",
+  "description": "Event, deklariert von: TTable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0108"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:74867b922b8125f3"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0137",
+  "kind": "event",
+  "name": "onLineClear",
+  "title": "onLineClear",
+  "category": "event",
+  "description": "Event, deklariert von: TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f147be73b31e81b1"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0138",
+  "kind": "event",
+  "name": "onLevelUp",
+  "title": "onLevelUp",
+  "category": "event",
+  "description": "Event, deklariert von: TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2d72de91f52fa0c6"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0139",
+  "kind": "event",
+  "name": "onSpawn",
+  "title": "onSpawn",
+  "category": "event",
+  "description": "Event, deklariert von: TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c5cf642aa024ba0b"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0140",
+  "kind": "event",
+  "name": "onLock",
+  "title": "onLock",
+  "category": "event",
+  "description": "Event, deklariert von: TTetris.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTetris"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0109"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTetris.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:71da847ec55d075c"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0141",
+  "kind": "event",
+  "name": "onEnded",
+  "title": "onEnded",
+  "category": "event",
+  "description": "Event, deklariert von: TTextToSpeech.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTextToSpeech"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0111"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTextToSpeech.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:cb4d7d582d66d90f"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0142",
+  "kind": "event",
+  "name": "onThresholdReached",
+  "title": "onThresholdReached",
+  "category": "event",
+  "description": "Event, deklariert von: TThresholdVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TThresholdVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0113"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TThresholdVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6e7f960e4532baaa"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0143",
+  "kind": "event",
+  "name": "onThresholdLeft",
+  "title": "onThresholdLeft",
+  "category": "event",
+  "description": "Event, deklariert von: TThresholdVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TThresholdVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0113"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TThresholdVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0c1a9155dc4ea6ae"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0144",
+  "kind": "event",
+  "name": "onThresholdExceeded",
+  "title": "onThresholdExceeded",
+  "category": "event",
+  "description": "Event, deklariert von: TThresholdVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TThresholdVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0113"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TThresholdVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:3697b527040d280e"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0145",
+  "kind": "event",
+  "name": "onTimer",
+  "title": "onTimer",
+  "category": "event",
+  "description": "Event, deklariert von: TTimer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTimer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0114"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTimer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0306989406db1456"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0146",
+  "kind": "event",
+  "name": "onMaxIntervalReached",
+  "title": "onMaxIntervalReached",
+  "category": "event",
+  "description": "Event, deklariert von: TTimer.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTimer"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0114"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTimer.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2459c368243bd641"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0147",
+  "kind": "event",
+  "name": "onTriggerEnter",
+  "title": "onTriggerEnter",
+  "category": "event",
+  "description": "Event, deklariert von: TTriggerVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTriggerVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0116"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTriggerVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:271038dce4b34367"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0148",
+  "kind": "event",
+  "name": "onTriggerExit",
+  "title": "onTriggerExit",
+  "category": "event",
+  "description": "Event, deklariert von: TTriggerVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TTriggerVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0116"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TTriggerVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:065bc7233f7cc486"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0149",
+  "kind": "event",
+  "name": "onUserCreated",
+  "title": "onUserCreated",
+  "category": "event",
+  "description": "Event, deklariert von: TUserManager.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TUserManager"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0117"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TUserManager.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:46fd7167336c11e0"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0150",
+  "kind": "event",
+  "name": "onUserUpdated",
+  "title": "onUserUpdated",
+  "category": "event",
+  "description": "Event, deklariert von: TUserManager.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TUserManager"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0117"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TUserManager.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1e6e234892fe5dde"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0151",
+  "kind": "event",
+  "name": "onUserDeleted",
+  "title": "onUserDeleted",
+  "category": "event",
+  "description": "Event, deklariert von: TUserManager.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TUserManager"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0117"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TUserManager.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a3a363b3f3b938f8"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0152",
+  "kind": "event",
+  "name": "onAuthFailed",
+  "title": "onAuthFailed",
+  "category": "event",
+  "description": "Event, deklariert von: TUserManager.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TUserManager"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0117"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TUserManager.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:2a696e78d160defb"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0153",
+  "kind": "event",
+  "name": "onValueChanged",
+  "title": "onValueChanged",
+  "category": "event",
+  "description": "Event, deklariert von: TVariable.",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "declaredBy": [
+   "TVariable"
+  ],
+  "relations": [
+   {
+    "type": "declaresEvent",
+    "target": "COMP-0118"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/components/TVariable.ts"
+   ],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f5a3543d5fc6e845"
+  },
+  "provenance": {
+   "method": [
+    "source-scan",
+    "markdown-parse"
+   ],
+   "confidence": "verified"
+  }
+ },
+ {
+  "id": "EVT-0154",
+  "kind": "event",
+  "name": "onLoad",
+  "title": "onLoad",
+  "category": "event",
+  "description": "Event (aus Referenz-Dokumentation, nicht komponentengebunden).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "runtimeOnly": true,
+  "relations": [],
+  "sources": {
+   "code": [],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:6e8ca58b06d229de"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "EVT-0155",
+  "kind": "event",
+  "name": "onUnload",
+  "title": "onUnload",
+  "category": "event",
+  "description": "Event (aus Referenz-Dokumentation, nicht komponentengebunden).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "runtimeOnly": true,
+  "relations": [],
+  "sources": {
+   "code": [],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0490b775dcedad98"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "EVT-0156",
+  "kind": "event",
+  "name": "player_timeout",
+  "title": "player_timeout",
+  "category": "event",
+  "description": "Event (aus Referenz-Dokumentation, nicht komponentengebunden).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "runtimeOnly": true,
+  "relations": [],
+  "sources": {
+   "code": [],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:08cb626a9fc2a212"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "EVT-0157",
+  "kind": "event",
+  "name": "onValueEmpty",
+  "title": "onValueEmpty",
+  "category": "event",
+  "description": "Event (aus Referenz-Dokumentation, nicht komponentengebunden).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "runtimeOnly": true,
+  "relations": [],
+  "sources": {
+   "code": [],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:999742128f9dde85"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "EVT-0158",
+  "kind": "event",
+  "name": "onEvent",
+  "title": "onEvent",
+  "category": "event",
+  "description": "Event (aus Referenz-Dokumentation, nicht komponentengebunden).",
+  "status": {
+   "dev": "implementiert",
+   "test": "nicht getestet",
+   "doc": "entwurf"
+  },
+  "runtimeOnly": true,
+  "relations": [],
+  "sources": {
+   "code": [],
+   "docs": [
+    "docs/reference/events.md"
+   ]
+  },
+  "version": {
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:188447398ebde5d5"
+  },
+  "provenance": {
+   "method": [
+    "markdown-parse"
+   ],
+   "confidence": "documented"
+  }
+ }
+]

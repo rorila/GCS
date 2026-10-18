@@ -1,0 +1,890 @@
+[
+ {
+  "id": "FEAT-0001",
+  "kind": "feature",
+  "name": "Deklaratives GCS-Projektformat (Stages, Objekte, Variablen, Tasks, Actions)",
+  "title": "Deklaratives GCS-Projektformat (Stages, Objekte, Variablen, Tasks, Actions)",
+  "category": "runtime",
+  "description": "Spiele und CMS-Oberflächen liegen als JSON-Projekt vor: meta, stages[] (objects, variables, tasks, actions, events, grid, flowCharts), projectweite tasks/actions/variables/objects, activeStageId, userStories, schemaVersion. Tasks enthalten actionSequence mit Schritten vom Typ action/task/condition/while. Aktionstypen u. a. property, variable, service, calculate, method, audio, navigate, http, call_method.",
+  "status": {
+   "dev": "implementiert",
+   "test": "test fehlgeschlagen",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0163"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0036"
+   }
+  ],
+  "limitations": [
+   "82 Stages in GCS-CMS.json zeigen, dass Großprojekte vollständig deklarativ abgebildet werden."
+  ],
+  "openQuestions": [
+   "test-cms-stages.cjs enthält hartkodierte Stage-Anzahlen — Test-Erwartung aktualisieren (Anwendungs-/Teständerung, nicht Teil der Doku-Phase)."
+  ],
+  "testRuns": [
+   {
+    "command": "node scripts/test-cms-stages.cjs",
+    "date": "2026-10-17",
+    "result": "fehlgeschlagen",
+    "detail": "Assertion „39 Oberflächen + 14 Server-Stages“ ist veraltet — GCS-CMS.json hat inzwischen 65 Oberflächen + 17 Server-Stages (82). Erwartung im Test hartkodiert."
+   },
+   {
+    "command": "node scripts/validate_project.cjs",
+    "date": "2026-10-17",
+    "result": "ausgeführt",
+    "detail": "Lint-artige Prüfung: 11 Fehler / 4 Warnungen im geprüften Projekt (fehlende Flow-Diagramme u. a.) — kein Pass/Fail-Test."
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/model/types.ts",
+    "game-server/public/projects/GCS-CMS.json"
+   ],
+   "docs": [
+    "docs/runtime-guide.md",
+    "docs/GCS-CMS-STAGES.md"
+   ],
+   "tests": [
+    "scripts/test-cms-stages.cjs",
+    "scripts/validate_project.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:3b90a762d172ef7f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0002",
+  "kind": "feature",
+  "name": "Editor-Shell mit Ansichten (Stage, Run, Run-IFrame, JSON, Flow, Pascal, Manager, User Stories, Wissensbasis)",
+  "title": "Editor-Shell mit Ansichten (Stage, Run, Run-IFrame, JSON, Flow, Pascal, Manager, User Stories, Wissensbasis)",
+  "category": "editor",
+  "description": "Der Browser-Editor (Vite-App) stellt eine Menüleiste, Toolbox, Stage-Bereich mit 9 Ansichts-Tabs und einen Inspector bereit. Editor.ts ist als dünner Orchestrator refactored und delegiert an spezialisierte Manager (Editor*Manager, InspectorHost, FlowEditor, JSONToolbox, DialogManager).",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0118"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0196"
+   }
+  ],
+  "openQuestions": [
+   "Wissensbasis-Tab: Umfang/Nutzung noch nicht im Detail geprüft."
+  ],
+  "sources": {
+   "code": [
+    "src/main.ts",
+    "src/editor/Editor.ts"
+   ],
+   "docs": [
+    "docs/architecture.md",
+    "docs/use_cases/FlowEditorDetailAnzeige.md"
+   ],
+   "tests": [
+    "scripts/test-stage-interface-ui.cjs",
+    "scripts/test-editor-shelf.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:18c9ae3ac8e36df1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0003",
+  "kind": "feature",
+  "name": "GameRuntime-Kern mit Service-Delegatoren",
+  "title": "GameRuntime-Kern mit Service-Delegatoren",
+  "category": "runtime",
+  "description": "GameRuntime orchestriert den Spielbetrieb und delegiert an ReactiveRuntime, ActionExecutor, TaskExecutor, AnimationManager, GameLoopManager, RuntimeVariableManager, RuntimeStageManager sowie die RuntimeServices (Lifecycle, Stage, Animation, Event, Reactive, Timer, Object). StageInterfaceService kapselt externe Stage-Schnittstellen (Eingänge/Ausgänge).",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0163"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0110"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/runtime/GameRuntime.ts",
+    "src/runtime/services/",
+    "src/runtime/StageInterfaceService.ts",
+    "src/model/StageInterface.ts"
+   ],
+   "docs": [
+    "docs/runtime-guide.md",
+    "docs/Stage-Schnittstellen.md"
+   ],
+   "tests": [
+    "scripts/test-stage-interface-ui.cjs",
+    "tests/stage_interface.test.ts",
+    "src/runtime/TaskExecutor.*",
+    "src/runtime/ReactiveRuntime.test.ts"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:acb76b933900b557"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0004",
+  "kind": "feature",
+  "name": "Task-/Action-Ausführung mit Bedingungen und Schleifen",
+  "title": "Task-/Action-Ausführung mit Bedingungen und Schleifen",
+  "category": "runtime",
+  "description": "TaskExecutor löst Tasknamen in actionSequence auf (Suchreihenfolge: aktive Stage → Blueprint-Stage → Projekt-Wurzel). ActionExecutor führt Einzelschritte aus; TaskConditionEvaluator wertet condition/while-Schritte aus; ExpressionParser stellt ${…}-Platzhalter und Ausdrücke bereit.",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0003"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0163"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0195"
+   }
+  ],
+  "openQuestions": [
+   "Vollständige Action-/Handler-Liste wird in AP 3 katalogisiert."
+  ],
+  "sources": {
+   "code": [
+    "src/runtime/TaskExecutor.ts",
+    "src/runtime/ActionExecutor.ts",
+    "src/runtime/executor/TaskConditionEvaluator.ts",
+    "src/runtime/ExpressionParser.ts",
+    "src/runtime/actions/"
+   ],
+   "docs": [
+    "docs/runtime-guide.md",
+    "docs/use_cases/ExecuteCalculateVariable.md"
+   ],
+   "tests": [
+    "src/runtime/executor/TaskConditionEvaluator.test.ts",
+    "src/runtime/ExpressionParser.test.ts",
+    "scripts/test_calculate_robustness.ts",
+    "scripts/test_classic_flow.ts"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:1733a3b32b76839c"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0005",
+  "kind": "feature",
+  "name": "Komponenten-Registry und ~121 GCS-Komponenten",
+  "title": "Komponenten-Registry und ~121 GCS-Komponenten",
+  "category": "component",
+  "description": "121 T*-Komponentendateien in src/components/. Zwei parallele Registries: Editor-Broker (services/ComponentRegistry, 112 Einträge, steuert Toolbox/Inspector) und Runtime-Factory (utils/ComponentRegistry, 116 Selbstregistrierungen am Dateiende). Schemas je Kategorie unter docs/schemas definieren Inspector-Eigenschaften. Server-Komponenten haben zusätzlich eine Methoden-Registry in scripts/cms/cms-server-components.cjs (21 Module).",
+  "status": {
+   "dev": "implementiert",
+   "test": "test fehlgeschlagen",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0139"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0140"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0160"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0156"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0157"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0158"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0161"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0159"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0115"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0144"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0148"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0145"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0146"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0149"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0147"
+   }
+  ],
+  "limitations": [
+   "9 Dateien ohne Editor-Registrierung (TComponent, TDebugLog, TFlowStage, TForEach, TOverlay, TSlider, TSpeedlines, TSplashStage, TStage) — davon 4 interne Basis-/Stage-Klassen, TSlider experimentell, TForEach/TOverlay/TSpeedlines nur per Runtime-Factory instanziierbar.",
+   "TWindow nur im Editor-Broker, keine Runtime-Selbstregistrierung (Basisklasse — Instanziierung über Unterklassen)."
+  ],
+  "openQuestions": [
+   "TServerPrivacy hat Server-Methoden, aber keine Client-Stub-Klasse — Editor-Speicher-Verhalten prüfen (vgl. TServerSql-Vorfall).",
+   "7 Schema-Einträge ohne Klasse/Methoden (TServerAuthorize, -Guardian, -RateLimit, -Progress, -Invite, -DeviceGrant): geplant oder überholt?",
+   "components-generated.md deckt nur 72 Komponenten ab (überspringt bewusst 11 als intern); neue Karten unter docs/reference/components/ sind vollständig (121)."
+  ],
+  "testRuns": [
+   {
+    "command": "node --import tsx --test src/runtime/ExpressionParser.test.ts",
+    "date": "2026-10-17",
+    "result": "passed",
+    "detail": "6/6 PASS"
+   },
+   {
+    "command": "node --import tsx --test src/runtime/executor/TaskConditionEvaluator.test.ts",
+    "date": "2026-10-17",
+    "result": "failed",
+    "detail": "27 PASS / 7 FAIL — stale: testet entfernte Condition (TD-003)"
+   }
+  ],
+  "sources": {
+   "code": [
+    "src/services/ComponentRegistry.ts",
+    "src/utils/ComponentRegistry.ts",
+    "src/components/",
+    "docs/schemas/",
+    "scripts/cms/cms-server-components.cjs",
+    "docs/reference/components/"
+   ],
+   "docs": [
+    "docs/components-generated.md",
+    "docs/components.md",
+    "docs/reference/components/README.md",
+    "docs/reference/tasks-conditions.md",
+    "docs/reference/actions.md",
+    "docs/reference/events.md",
+    "docs/reference/expressions.md",
+    "docs/reference/variables.md",
+    "docs/reference/multiplayer-runtime.md",
+    "docs/architecture/execution-flow.md",
+    "docs/inventory/TECHNICAL-DEBT.md",
+    "docs/inventory/action-metadata.json",
+    "docs/features/editor/README.md",
+    "docs/features/editor/stage-editor.md",
+    "docs/features/editor/flow-editor.md",
+    "docs/features/editor/inspector.md",
+    "docs/features/editor/views-run-simulator.md",
+    "docs/features/editor/project-management.md"
+   ],
+   "tests": [
+    "scripts/generate-component-cards.cjs",
+    "scripts/generate-components-doc.mjs",
+    "scripts/test-server-components.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:55e9eb1bb7a4f58d"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0006",
+  "kind": "feature",
+  "name": "Game-Server (Express + WebSocket, Lobby/Räume, Editor-APIs)",
+  "title": "Game-Server (Express + WebSocket, Lobby/Räume, Editor-APIs)",
+  "category": "server",
+  "description": "Node/Express-Server auf Port 8080 (Loopback-Default) mit WebSocket-Raumbetrieb, REST-Routen (agent, auth, data, media, project, room), JWT-Absicherung (produktiv Pflicht), TTS- und Training-Routern. GCS_EDITOR_APIS=off blendet nicht authentifizierte Dev-/Agenten-/Upload-Endpunkte im gehosteten Betrieb aus.",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "documentedIn",
+    "target": "DOC-0006"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0066"
+   }
+  ],
+  "limitations": [
+   "Produktivbetrieb erwartet CMS-Server (Port 8081) als öffentlichen Einstieg."
+  ],
+  "sources": {
+   "code": [
+    "game-server/src/server.ts",
+    "game-server/src/routes/",
+    "game-server/src/websocket/roomManager.ts",
+    "game-server/src/tts/"
+   ],
+   "docs": [
+    "docs/AgentAPI.md",
+    "docs/Multiplayer_Testen.md"
+   ],
+   "tests": [
+    "scripts/test-cms-connection.cjs",
+    "scripts/test-server-pilot.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:d6dc3a6d1fda5870"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0007",
+  "kind": "feature",
+  "name": "Multiplayer-Subsystem (Lobby, Protocol, Synchronisation)",
+  "title": "Multiplayer-Subsystem (Lobby, Protocol, Synchronisation)",
+  "category": "multiplayer",
+  "description": "Clientseitiges Multiplayer-Modul mit NetworkManager, Protocol, MultiplayerLobby/JSONMultiplayerLobby, InputSyncer und CollisionSyncer; runtime-seitig GameRuntimeMultiplayer. Serverseitig liefert der Raum-Manager (WebSocket) sowie cms-mp.cjs den CMS-Partybetrieb.",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0003"
+   },
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0006"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0066"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0070"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0016"
+   }
+  ],
+  "openQuestions": [
+   "Trennung Editor-Multiplayer-Test vs. CMS-Partybetrieb in AP 5 aufzuarbeiten."
+  ],
+  "sources": {
+   "code": [
+    "src/multiplayer/",
+    "src/runtime/core/GameRuntimeMultiplayer.ts",
+    "game-server/src/websocket/roomManager.ts",
+    "scripts/cms/cms-mp.cjs"
+   ],
+   "docs": [
+    "docs/Multiplayer_Testen.md",
+    "docs/PingPong-Remote-Synchronisationsplan.md",
+    "docs/CMS-HouseAdmin-RaumAdmin-Multiplayer-Konzept.md"
+   ],
+   "tests": [
+    "scripts/test-cms-multiplayer-invitations.cjs",
+    "scripts/test-cms-madn-remote.cjs",
+    "scripts/test-cms-pingpong-remote.cjs",
+    "scripts/test-editor-multiplayer.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:0bd680f9aab2a3d8"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0008",
+  "kind": "feature",
+  "name": "CMS-Server mit deklarativen Server-Stages (TServerEndpoint-Workflows)",
+  "title": "CMS-Server mit deklarativen Server-Stages (TServerEndpoint-Workflows)",
+  "category": "cms",
+  "description": "CMS-Server (Port 8081) führt TServerEndpoint-Tasks aus den Projektdateien deklarativ über cms-runtime.cjs aus; native Services für Uploads, Eltern/Sponsor, Live-Sync, Speech/TTS, Play-Sessions und Editor-Test. Speicher wählbar: JSON oder SQLite (WAL). Verwaltungsanmeldung über HttpOnly-Cookies, Http-Guards, Trace-Store.",
+  "status": {
+   "dev": "implementiert",
+   "test": "automatisiert erfolgreich",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0003"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0034"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0014"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0107"
+   }
+  ],
+  "limitations": [
+   "Admin-Sitzungen sind prozesslokal (gehen bei Restart verloren)."
+  ],
+  "testRuns": [
+   {
+    "command": "node scripts/test-cms-resident-create-avatar-emoji.cjs",
+    "date": "2026-10-17",
+    "result": "bestanden",
+    "detail": "6/6 Subtests (Avatar-Katalog, Standard/Custom-Avatar, Idempotenz, Stage-Struktur, Browser-Workflow)."
+   },
+   {
+    "command": "node scripts/test-cms-role-model.cjs",
+    "date": "2026-10-17",
+    "result": "bestanden",
+    "detail": "93/93 Checks inkl. visuellem Emoji-Code-Editor auf der Detail-Stage."
+   }
+  ],
+  "sources": {
+   "code": [
+    "scripts/cms/cms-server.cjs",
+    "scripts/cms/cms-runtime.cjs",
+    "scripts/cms/cms-server-components.cjs",
+    "scripts/cms/cms-core.cjs",
+    "scripts/cms/cms-store.cjs",
+    "scripts/cms/cms-sqlite-store.cjs",
+    "scripts/cms/cms-http-guard.cjs"
+   ],
+   "docs": [
+    "docs/GCS-CMS-SPEZIFIKATION.md",
+    "docs/CMS-Datenseparierung-und-DB-Migrationsplan.md",
+    "docs/SQLite-Flyio-Pruefbericht.md"
+   ],
+   "tests": [
+    "scripts/test-cms.cjs",
+    "scripts/test-cms-role-model.cjs",
+    "scripts/test-cms-role-workspaces.cjs",
+    "scripts/test-cms-sql-tool.cjs",
+    "scripts/test-cms-sqlite.cjs",
+    "scripts/test-cms-security.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a0a47ce17118b3c1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0009",
+  "kind": "feature",
+  "name": "SQLite-Speicher mit WAL, Migration und externen Backups",
+  "title": "SQLite-Speicher mit WAL, Migration und externen Backups",
+  "category": "cms",
+  "description": "SQLite-Store (better-sqlite3) als Alternative zum JSON-Store: Sammlungstabellen mit strukturellen Spalten + JSON-Payload, Metatabellen (cms_metadata, cms_credentials, cms_audit, cms_deletions, cms_settings), WAL-Modus, Migrationsskripte und Backup-Werkzeug.",
+  "status": {
+   "dev": "implementiert",
+   "test": "automatisiert erfolgreich",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0008"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0107"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0029"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0014"
+   }
+  ],
+  "limitations": [
+   "Single-Instance-Betrieb vorgesehen (Fly.io: 1 Machine + Volume)."
+  ],
+  "testRuns": [
+   {
+    "command": "node scripts/test-cms-sqlite.cjs",
+    "date": "2026-10-17",
+    "result": "bestanden",
+    "detail": "12/12 Tests (Store, WAL, Migration, Backup)."
+   }
+  ],
+  "sources": {
+   "code": [
+    "scripts/cms/cms-sqlite-store.cjs",
+    "scripts/cms/cms-sqlite-schema.cjs",
+    "scripts/cms/cms-sqlite-import.cjs",
+    "scripts/cms/cms-sqlite-backup.cjs",
+    "scripts/cms/cms-migrations.cjs"
+   ],
+   "docs": [
+    "docs/SQLite-Flyio-Pruefbericht.md",
+    "docs/Flyio-Migrationsplan.md",
+    "docs/CMS-Datenseparierung-und-DB-Migrationsplan.md"
+   ],
+   "tests": [
+    "scripts/test-cms-sqlite.cjs",
+    "scripts/test-cms-sqlite-backup.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:f547b0907b4bd434"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0010",
+  "kind": "feature",
+  "name": "GCS-SQL-Tool (nur-lesende SQL-Konsole für SuperAdmin)",
+  "title": "GCS-SQL-Tool (nur-lesende SQL-Konsole für SuperAdmin)",
+  "category": "cms",
+  "description": "Eigenes deklaratives GCS-Projekt mit integriertem Login/Rollenwahl und SQL-Konsole: TServerSql-Komponente erlaubt ausschließlich SELECT/lesendes WITH/EXPLAIN, begrenzt Ergebnisse und liefert 51 Lern-Queryvorlagen. Endpoint POST /api/cms/admin/sql mit requireRole('superAdmin').",
+  "status": {
+   "dev": "implementiert",
+   "test": "automatisiert erfolgreich",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0008"
+   },
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0009"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0107"
+   }
+  ],
+  "limitations": [
+   "Nur SQLite-Modus; im JSON-Modus klare Fehlermeldung."
+  ],
+  "testRuns": [
+   {
+    "command": "node --test scripts/test-cms-sql-tool.cjs",
+    "date": "2026-10-17",
+    "result": "bestanden",
+    "detail": "11/11 Tests (Templates, Zeilenlimit, Berechtigungen)."
+   }
+  ],
+  "sources": {
+   "code": [
+    "game-server/public/projects/GCS-SQL-Tool.json",
+    "src/components/TServerSql.ts",
+    "scripts/cms/cms-server-components.cjs"
+   ],
+   "docs": [
+    "docs/SQLite-Flyio-Pruefbericht.md"
+   ],
+   "tests": [
+    "scripts/test-cms-sql-tool.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:a22ddba6b0a19afb"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0011",
+  "kind": "feature",
+  "name": "Standalone-Runtime und eingebettete CMS-Seiten (renderCms, runtime-standalone.js)",
+  "title": "Standalone-Runtime und eingebettete CMS-Seiten (renderCms, runtime-standalone.js)",
+  "category": "runtime",
+  "description": "Die Runtime wird als public/runtime-standalone.js gebündelt (scripts/bundle-runtime.mjs) und von renderCms() in vollständige HTML-Seiten eingebettet — so laufen CMS-Oberflächen (/house, /parent, /sql …) und Player ohne Editor. HeadlessRuntime/HeadlessServer ermöglichen serverseitige Ausführung.",
+  "status": {
+   "dev": "implementiert",
+   "test": "test fehlgeschlagen",
+   "doc": "technisch geprüft"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0003"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0037"
+   }
+  ],
+  "limitations": [
+   "Nach Renderer-/Komponenten-Änderungen ist ein Rebuild des Bundles nötig."
+  ],
+  "openQuestions": [
+   "test-cms-connection.cjs Timeout untersuchen: veraltete Erwartung oder reales Laufzeitproblem?"
+  ],
+  "testRuns": [
+   {
+    "command": "node scripts/test-cms-connection.cjs",
+    "date": "2026-10-17",
+    "result": "fehlgeschlagen",
+    "detail": "Playwright-Timeout (30s) bei page.waitForFunction — Server-Rollenwahl antwortete, Browser-Navigation hängt. Ursache unklar (stale Test vs. Laufzeitproblem)."
+   }
+  ],
+  "sources": {
+   "code": [
+    "scripts/bundle-runtime.mjs",
+    "scripts/cms/cms-project.cjs",
+    "src/player-standalone.ts",
+    "src/runtime/HeadlessRuntime.ts",
+    "src/runtime/HeadlessServer.ts",
+    "public/runtime-standalone.js"
+   ],
+   "docs": [
+    "docs/GCS-CMS-START.md"
+   ],
+   "tests": [
+    "scripts/test-cms-role-model.cjs",
+    "scripts/test-cms-resident-create-avatar-emoji.cjs"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:4ee8a4efa31d700f"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ },
+ {
+  "id": "FEAT-0012",
+  "kind": "feature",
+  "name": "Lernwelt-Subsystem: Aufgabenbereich, Karteikasten, Lernzielkatalog",
+  "title": "Lernwelt-Subsystem: Aufgabenbereich, Karteikasten, Lernzielkatalog",
+  "category": "learning",
+  "description": "Lernbezogene GCS-Projekte und Generatoren: Aufgabenbereich-Karteikasten (externe Stage-Schnittstellen mit Lern-Events), Karteikasten-Quiz, Lernzielkatalog, Mathe-Lernspiele (Kopfrechnen, Mathe-Insel, Zählen-Turmbau, Rechenpuzzle). Dazugehörige Builder unter scripts/cms und scripts/build-*. ",
+  "status": {
+   "dev": "implementiert",
+   "test": "test vorhanden",
+   "doc": "entwurf"
+  },
+  "relations": [
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0001"
+   },
+   {
+    "type": "dependsOn",
+    "target": "FEAT-0003"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0008"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0009"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0018"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0059"
+   },
+   {
+    "type": "documentedIn",
+    "target": "DOC-0058"
+   }
+  ],
+  "openQuestions": [
+   "Gesamtüberblick der Lernspiel-Projekte und ihrer Reife in AP 6."
+  ],
+  "sources": {
+   "code": [
+    "game-server/public/projects/Aufgabenbereich-Karteikasten.json",
+    "game-server/public/projects/Karteikasten-Quiz.json",
+    "scripts/cms/cms-build-task-area.cjs",
+    "scripts/cms/cms-learning-catalog.cjs",
+    "scripts/cms/catalogs/"
+   ],
+   "docs": [
+    "docs/Aufgabenbereich-Bedienung-und-Umsetzungsstand.md",
+    "docs/Aufgabenbereich-Plan-und-Eventvertrag.md",
+    "docs/CMS-Karteikasten.md",
+    "docs/Lernzielkatalog.md",
+    "docs/Lernspiel-Geruest.md"
+   ],
+   "tests": [
+    "scripts/test-task-area.cjs",
+    "scripts/test-task-area-ui.cjs",
+    "scripts/test-learning-catalog.cjs",
+    "tests/learning_shell.test.ts"
+   ]
+  },
+  "version": {
+   "lastChecked": "2026-10-17",
+   "commit": "53e3dfb",
+   "extractedAt": "2026-10-18T09:46:28.048Z",
+   "contentHash": "sha256:c7f2660f9ffbf1a1"
+  },
+  "provenance": {
+   "method": [
+    "inventory"
+   ],
+   "confidence": "documented"
+  }
+ }
+]

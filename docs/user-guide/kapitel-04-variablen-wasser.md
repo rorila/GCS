@@ -65,20 +65,22 @@ Bausteine: Variablen, Timer, Dienste.
 
 1. Klicke im Regal die neue Variable an → der Inspector zeigt den
    **Smart Variable Inspector** mit zwei Karten: *Identität* und
-   *Wert & Limits*.
+   *Wert & Limits* *(im UI-Re-Test nach Fix TD-016 verifiziert)*.
 2. In der Karte **Identität**:
    - **Name:** `Wasser`
    - **Geltungsbereich:** 🎭 **Stage (Lokal)** — der Wasservorrat gehört
-     nur zur Wiese
+     nur zur Wiese *(die Scope-Auswahl ist jetzt sichtbar; neue Variablen
+     sind bereits auf Stage eingestellt)*
    - **Datentyp:** **Integer** (ganze Zahl — wir zählen Gießkannen)
 3. In der Karte **Wert & Limits**:
    - **Default-Wert:** `0`
    - **Aktueller Wert:** `0`
 
-> **Nachweis:** `public/inspector_variable.json` — Karte „IDENTITÄT" mit den
-> Feldern `name`, `scope` (Optionen Global/Stage/Task-Lokal), `type`
-> (integer, real, string, boolean, timer …); Karte „WERT & LIMITS" mit
-> `defaultValue` und `value`.
+> **Nachweis:** `public/inspector_variable.json` — Karte „IDENTITÄT" mit
+> `name`, `scope` (Optionen Global/Stage/Task-Lokal), `type` (integer,
+> real, string, boolean, timer …); Karte „WERT & LIMITS" mit
+> `defaultValue` und `value`. Die Vorlage wird seit Fix TD-016 für
+> `TVariable` wieder verwendet (`InspectorPropertiesRenderer.ts` Z. 25–31).
 
 `[SCREENSHOT FEHLT: Variablen-Inspector mit Name=Wasser, Typ=Integer, Wert=0]`
 
@@ -95,8 +97,10 @@ denn die Variable ist unsichtbar.
 
 ## Selbst prüfen (Funktionsprüfung)
 
-- [ ] Im Regal unter „Variablen" steht `Wasser` (nicht mehr `Variable_5`)
-- [ ] Inspector zeigt Datentyp `Integer` und Wert `0`
+- [ ] Im Regal unter „Variablen" steht `Wasser` (nicht mehr `Variable_5`) —
+  die Anzeige aktualisiert sich seit Fix TD-018 sofort
+- [ ] Inspector zeigt Datentyp `Integer`, Geltungsbereich `Stage` und
+  Wert `0`
 - [ ] Der vorhandene `InputController` aus Kapitel 1 steht übrigens im Regal
   unter **Dienste** — schau nach, ob du ihn dort findest
 - [ ] **Datei → Projekt Speichern** meldet Erfolg
@@ -111,6 +115,7 @@ denn die Variable ist unsichtbar.
   behalten.
 - **„Global" statt „Stage" gewählt** → für unser Projekt beides okay; wir
   bleiben bei **Stage**, weil `Wasser` nur auf der Wiese gebraucht wird.
+  *(Die Scope-Auswahl ist seit Fix TD-016 sichtbar.)*
 
 ## Was du gelernt hast
 

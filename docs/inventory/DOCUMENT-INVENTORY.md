@@ -15,10 +15,10 @@ Vormerkung für die Fachprüfung, keine Löschempfehlung.
 
 ## Kennzahlen
 
-- aktuell: 42
-- möglicherweise veraltet: 85
+- aktuell: 61
+- möglicherweise veraltet: 87
 - redundant: 2
-- noch nicht bewertet: 84
+- noch nicht bewertet: 92
 
 ## Tabelle
 
@@ -114,6 +114,18 @@ Vormerkung für die Fachprüfung, keine Löschempfehlung.
 | `DOC-0043` | docs/GCS-SERVER-KOMPONENTEN.md | referenz | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Sept.; Server-Komponenten seitdem erweitert (u. a. TServerSql, TServerEnroll). |
 | `DOC-0044` | docs/GCS-TRAINING-SCHRITTPLAN.md | konzept/plan | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Sept. |
 | `DOC-0045` | docs/GCS-TRAINING.md | konzept/plan | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Sept. |
+| `DOC-0233` | docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0235` | docs/handbook-html/gcs-native/index.html | report | möglicherweise veraltet | metadaten |  | generierter QA-Snapshot (Stichtagsdatei) |  |
+| `DOC-0236` | docs/handbook-html/gcs-native/project.js | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0234` | docs/handbook-html/gcs-native/README.md | dokumentation (Phase 1) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt |  |
+| `DOC-0237` | docs/handbook-html/gcs-native/runtime-standalone.js | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0239` | docs/handbook-html/modern/app.js | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0240` | docs/handbook-html/modern/index.html | report | möglicherweise veraltet | metadaten |  | generierter QA-Snapshot (Stichtagsdatei) |  |
+| `DOC-0238` | docs/handbook-html/modern/README.md | dokumentation (Phase 1) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt |  |
+| `DOC-0241` | docs/handbook-html/modern/style.css | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0242` | docs/handbook-html/shared/handbook-content.js | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0231` | docs/handbook-html/TESTBERICHT.md | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
+| `DOC-0232` | docs/handbook-html/VERGLEICH.md | dokument | noch nicht bewertet | metadaten |  | nicht geöffnet |  |
 | `DOC-0048` | docs/HouseAdmin-Bewohneranlage-Avatar-Emoji-Plan.md | konzept/plan | aktuell | voll |  | inhalt in dieser Analyse geprüft | Plan wurde umgesetzt (Bewohneranlage mit Avatar/Emoji). |
 | `DOC-0049` | docs/JumpAndRun_BestPractice_Guide.md | anleitung | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Aug. |
 | `DOC-0050` | docs/JumpAndRun_EndlessRunner_Guide.md | anleitung | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Aug. |
@@ -231,15 +243,32 @@ Vormerkung für die Fachprüfung, keine Löschempfehlung.
 | `DOC-0204` | docs/use_cases/VariableMorphing.md | use-case | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | März. |
 | `DOC-0205` | docs/use_cases/VariablentypPersistenz.md | use-case | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | März. |
 | `DOC-0208` | docs/user-guide/_vorlage.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) | Interne Kapitelvorlage |
+| `DOC-0223` | docs/user-guide/b-kapitel-01-aufgaben-stufe.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0224` | docs/user-guide/b-kapitel-02-richtige-antworten.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0225` | docs/user-guide/b-kapitel-03-weltreaktion.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0226` | docs/user-guide/b-kapitel-04-baumhaus.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0227` | docs/user-guide/b-kapitel-05-dragdrop.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0228` | docs/user-guide/b-kapitel-06-neustart.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0229` | docs/user-guide/b-kapitel-07-zufallsaufgaben.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0230` | docs/user-guide/b-kapitel-08-feinschliff.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0207` | docs/user-guide/kapitel-01-projekt-anlegen.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0209` | docs/user-guide/kapitel-02-arbeitsplatz.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0210` | docs/user-guide/kapitel-03-baum-platzieren.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0211` | docs/user-guide/kapitel-04-variablen-wasser.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0212` | docs/user-guide/kapitel-05-tasks-verstehen.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0213` | docs/user-guide/kapitel-06-giess-knopf.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0214` | docs/user-guide/kapitel-07-bedingungen.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0215` | docs/user-guide/kapitel-08-flow-editor.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0216` | docs/user-guide/kapitel-09-wachstumsstufen.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0217` | docs/user-guide/kapitel-10-durst-timer.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0218` | docs/user-guide/kapitel-11-bilder-media.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0219` | docs/user-guide/kapitel-12-game-state.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0220` | docs/user-guide/kapitel-13-run-test.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0221` | docs/user-guide/kapitel-14-export.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
+| `DOC-0222` | docs/user-guide/kapitel-15-feintuning.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0206` | docs/user-guide/README.md | dokumentation (Phase 2) | aktuell | metadaten | **kanonisch** | in dieser Analyse neu erstellt (Autoren-Handbuch) |  |
 | `DOC-0112` | docs/VideoToSpriteSheet_GCS_Prompt.md | anleitung | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | Aug. |
 | `DOC-0113` | docs/VirtualGamepad_Anleitung_Kids.md | anleitung | möglicherweise veraltet | metadaten |  | Änderungsdatum/Alter des Dokuments | April. |
 
 ---
-_Letzter Build: 2026-10-17_
+_Letzter Build: 2026-10-18_

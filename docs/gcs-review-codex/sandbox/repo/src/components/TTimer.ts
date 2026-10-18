@@ -1,0 +1,226 @@
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
+import { TWindow } from './TWindow';
+import { Logger } from '../utils/Logger';
+import { ExpressionParser } from '../runtime/ExpressionParser';
+import { GameLoopManager } from '../runtime/GameLoopManager';
+import { PerfOverlay } from '../utils/PerfOverlay';
+
+const logger = Logger.get('TTimer');
+
+export class TTimer extends TWindow implements IRuntimeComponent {
+    public className: string = 'TTimer';
+    public interval: number = 1000; // in milliseconds
+    private _enabled: boolean = false;
+    public maxInterval: number | string = 0; // 0 = infinite, >0 = max number of intervals
+    public currentInterval: number = 0; // current interval count
+
+    private timerId: number | null = null;
+    private onTimerCallback: (() => void) | null = null;
+    public onEvent: ((eventName: string) => void) | null = null;
+    public watcherQuery: ((prop: string) => boolean) | null = null;
+    private runtimeContextVars: Record<string, any> | null = null;
+    private isRunning: boolean = false;
+
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+
+    public set enabled(value: boolean) {
+        const old = this._enabled;
+        this._enabled = value;
+        if (value) {
+            if (this.isRunning && (old !== value || this.timerId === null)) {
+                const self = (this as any).__proxy__ || this;
+                self.start(() => {});
+            }
+        } else {
+            this.stop();
+        }
+    }
+
+    constructor(name: string, x: number, y: number) {
+        super(name, x, y, 4, 2);
+        this.style.backgroundColor = '#4caf50';
+        this.style.borderColor = '#2e7d32';
+        this.style.borderWidth = 2;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+    }
+
+    public getInspectorProperties(): TPropertyDef[] {
+        return [
+            ...super.getInspectorProperties(),
+            { name: 'interval', label: 'Interval (ms)', type: 'number', group: 'Timer' },
+            { name: 'enabled', label: 'Aktiviert', type: 'boolean', group: 'Timer' },
+            { name: 'maxInterval', label: 'Max Intervalle (0=∞)', type: 'string', group: 'Timer' },
+            { name: 'currentInterval', label: 'Aktuelle Anzahl', type: 'number', group: 'Timer' }
+        ];
+    }
+
+    public getEvents(): string[] {
+        return [
+            ...super.getEvents(),
+            'onTimer',
+            'onMaxIntervalReached'
+        ];
+    }
+
+    public toDTO(): any {
+        return super.toDTO();
+    }
+
+    public initRuntime(callbacks: { handleEvent: any, contextVars?: Record<string, any> }): void {
+        this.onEvent = (ev: string) => callbacks.handleEvent(this.id, ev);
+        this.runtimeContextVars = callbacks.contextVars || null;
+    }
+
+    public onRuntimeStart(): void {
+        this.isRunning = true;
+        // Resolve maxInterval if it's a string expression
+        if (typeof this.maxInterval === 'string' && this.runtimeContextVars) {
+            try {
+                const resolved = ExpressionParser.evaluateRaw(this.maxInterval, this.runtimeContextVars);
+                this.maxInterval = Number(resolved) || 0;
+            } catch (e) {
+                logger.error(`Error resolving maxInterval for timer ${this.name}:`, e);
+                this.maxInterval = 0;
+            }
+        }
+
+        if (this.enabled) {
+            const self = (this as any).__proxy__ || this;
+            self.start(() => {
+                // Der Callback wird nun über onEvent (gesetzt in initRuntime) gesteuert
+            });
+        }
+    }
+
+    public onRuntimeStop(): void {
+        this.isRunning = false;
+        this.stop();
+    }
+
+    /**
+     * Start the timer with a callback. Used internally by Editor/GameRuntime.
+     */
+    public start(callback: () => void): void {
+        this.stop();
+        this.onTimerCallback = callback;
+
+        // Special Rule: 'SynchronTimer' only runs in multiplayer mode
+        if (this.name === 'SynchronTimer') {
+            const mp = (window as any).multiplayerManager;
+            if (!mp || !mp.isConnected) {
+                return;
+            }
+        }
+
+        if (this.enabled) {
+            logger.info(`[TTimer] "${this.name}" starting (interval: ${this.interval}ms, current: ${this.currentInterval})`);
+            const currentId = window.setInterval(() => {
+                // GHOST-EVENT PROTECTION:
+                // Only fire if this interval is still the active one and timer is enabled
+                if (this.timerId !== currentId || !this.enabled) {
+                    if (this.timerId !== currentId) {
+                        logger.warn(`[TTimer] "${this.name}" ghost interval detected, stopping. (currentId: ${currentId}, activeId: ${this.timerId})`);
+                        window.clearInterval(currentId);
+                    }
+                    return;
+                }
+
+                const glm = GameLoopManager.getInstance();
+                if (glm.isRunning()) {
+                    glm.enqueueTimerTick(() => this.fireTick(currentId));
+                } else {
+                    this.fireTick(currentId);
+                }
+            }, this.interval);
+            this.timerId = currentId;
+        }
+    }
+
+    private fireTick(tickId: number): void {
+        // Re-check in case the timer was stopped/restarted before the queued tick fires
+        if (this.timerId !== tickId || !this.enabled) return;
+
+        PerfOverlay.phaseBegin('timer');
+        try {
+        // PERF: Der Proxy-Schreibpfad löst den kompletten Notify-Apparat aus
+        // (Watcher + globale Render-Listener). Das ist nur nötig, wenn tatsächlich
+        // jemand currentInterval beobachtet (z.B. ein UI-Binding). Sonst direkt schreiben.
+        const proxy = (this as any).__proxy__;
+        const needsNotify = !this.watcherQuery || this.watcherQuery('currentInterval');
+        if (needsNotify && proxy && (proxy as any).__target__ === this) {
+            // Proxy referenziert this korrekt — normaler Pfad mit Notify
+            proxy.currentInterval++;
+        } else {
+            // Direkt schreiben (kein Notify) + Proxy des clone aktuell halten
+            this.currentInterval++;
+            if (proxy && (proxy as any).__target__ !== this) proxy.currentInterval = this.currentInterval;
+        }
+
+        // Fire onTimer event. Prefer onEvent if present (runtime/editor),
+        // otherwise fall back to the legacy callback (call_method initiated timers).
+        if (this.onEvent) {
+            this.onEvent('onTimer');
+        } else if (this.onTimerCallback) {
+            this.onTimerCallback();
+        }
+
+        // Check if max interval reached
+        const maxInt = Number(this.maxInterval);
+        if (maxInt > 0 && this.currentInterval >= maxInt) {
+            logger.info(`[TTimer] "${this.name}": MaxInterval reached (${maxInt})`);
+            this.stop();
+            if (this.onEvent) {
+                this.onEvent('onMaxIntervalReached');
+            }
+        }
+        } finally {
+            PerfOverlay.markTimerTick();
+            const ms = PerfOverlay.phaseEnd('timer');
+            if (ms && ms > 16) PerfOverlay.markSlowEvent('onTimer', ms);
+        }
+    }
+
+    /**
+     * Stop the timer
+     */
+    public stop(): void {
+        if (this.timerId !== null) {
+            logger.info(`[TTimer] "${this.name}" stopped. (timerId: ${this.timerId})`);
+            window.clearInterval(this.timerId);
+            this.timerId = null;
+        }
+    }
+
+    /**
+     * Start the timer (callable via call_method action)
+     */
+    public timerStart(): void {
+        logger.info(`[TTimer] ${this.name}: timerStart() called`);
+        this.enabled = true;
+    }
+
+    /**
+     * Stop the timer (callable via call_method action)
+     */
+    public timerStop(): void {
+        logger.info(`[TTimer] ${this.name}: timerStop() called`);
+        this.enabled = false;
+    }
+
+    /**
+     * Reset the interval counter to 0
+     */
+    public reset(): void {
+        logger.info(`[TTimer] ${this.name}: reset() called`);
+        this.currentInterval = 0;
+    }
+}
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTimer', (objData: any) => new TTimer(objData.name, objData.x, objData.y));
