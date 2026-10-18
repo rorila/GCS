@@ -1,0 +1,14 @@
+OK — Wissensbasis generiert
+  Entities: 688
+    component: 128
+    feature: 12
+    action-type: 59
+    method: 38
+    event: 158
+    schema: 13
+    guide-chapter: 23
+    document: 242
+    concept: 15
+  Chunks:   1774
+  ID-Map:   306 Schlüssel (SCM=13, ACT=59, MTH=38, EVT=158, GUIDE=23, CON=15)
+  confidence=inferred: 0 ()

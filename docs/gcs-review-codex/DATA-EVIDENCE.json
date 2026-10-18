@@ -1,0 +1,2753 @@
+{
+  "index": {
+    "schemaVersion": "1.0.0",
+    "generated": "2026-10-18T09:29:52.026Z",
+    "generatedBy": "build-knowledge-swe2.cjs",
+    "sourceCommit": "53e3dfb",
+    "counts": {
+      "entities": 688,
+      "byKind": {
+        "component": 128,
+        "feature": 12,
+        "action-type": 59,
+        "method": 38,
+        "event": 158,
+        "schema": 13,
+        "guide-chapter": 23,
+        "document": 242,
+        "concept": 15
+      },
+      "chunks": 1774
+    },
+    "idCounters": {
+      "SCM": 13,
+      "ACT": 59,
+      "MTH": 38,
+      "EVT": 158,
+      "GUIDE": 23,
+      "CON": 15
+    },
+    "files": {
+      "schema": "knowledge-schema-swe2.json",
+      "entities": "entities/",
+      "chunks": "chunks/chunks-swe2.jsonl",
+      "idMap": "id-map-swe2.json"
+    },
+    "provenanceLegend": {
+      "verified": "Quellcode-/Registry-belegt (getEvents, MethodRegistry, ActionRegistry, Schemas)",
+      "documented": "Dokumentations-Selbstauskunft (Inventar, Referenzkarten, Markdown)",
+      "inferred": "Abgeleitet, nicht vollständig verifiziert"
+    }
+  },
+  "portalMeta": {
+    "portalId": "gcs-doc-portal-argon",
+    "title": "GCS Documentation Portal",
+    "subtitle": "Autoren-Handbuch · Komponentenreferenz · Feature-Katalog · Systemarchitektur · Entwicklerreferenz",
+    "edition": "Argon Modern Portal Edition",
+    "version": "1.0.0",
+    "generatedAt": "2026-10-18T09:17:00.067Z",
+    "analysisCommit": "53e3dfb",
+    "counts": {
+      "handbookChapters": 23,
+      "handbookPartA": 15,
+      "handbookPartB": 8,
+      "components": 128,
+      "componentCardsMd": 121,
+      "componentCategories": 13,
+      "features": 12,
+      "featureArticles": 12,
+      "architectureDocs": 4,
+      "devRefDocs": 8,
+      "techDebtItems": 19,
+      "actions": 59,
+      "inventoryDocuments": 242,
+      "searchEntries": 246
+    },
+    "swe2Integration": {
+      "enabled": true,
+      "schemaVersion": "1.0.0",
+      "description": "Dokumentierte Datenschnittstelle für die spätere Einbindung strukturierter KI-Agenten-Referenzdaten von SWE-2.",
+      "joinKeys": {
+        "component": "id (COMP-xxxx) oder name (T*)",
+        "feature": "id (FEAT-xxxx)",
+        "document": "id (DOC-xxxx) oder file (relativer Pfad)",
+        "action": "type (Action-Name)"
+      },
+      "optionalOverlayFiles": [
+        "docs/inventory/ai-agent-reference.json",
+        "docs/inventory/swe2-component-contracts.json",
+        "docs/inventory/swe2-action-contracts.json"
+      ],
+      "status": {
+        "enabled": true,
+        "loadedOverlays": []
+      }
+    }
+  },
+  "counts": {
+    "action-type": 59,
+    "component": 128,
+    "concept": 15,
+    "document": 242,
+    "event": 158,
+    "feature": 12,
+    "guide-chapter": 23,
+    "method": 38,
+    "schema": 13
+  },
+  "chunks": 1774,
+  "schema": {
+    "engine": "Ajv 6.14.0",
+    "mode": "Provided draft-07-compatible rules; only draft URI removed in memory; no official 2020-12 meta-schema validation",
+    "invalid": []
+  },
+  "duplicateIds": [],
+  "badRelations": [],
+  "chunkProblems": {
+    "duplicateIds": [
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:9-tests",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:9-tests",
+      "FEAT-0005:_intro",
+      "FEAT-0005:uebersicht",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:editor-grundlayout-aus-editor-ts-index-html-containern",
+      "FEAT-0005:feature-dokumente",
+      "FEAT-0005:globale-bedienkonzepte-code-belegt",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-stage-arbeitsflaeche",
+      "FEAT-0005:2-toolbox-links",
+      "FEAT-0005:3-komponenten-palette",
+      "FEAT-0005:4-sidepanel-regal-editorsidepanel-editorshelfmodel",
+      "FEAT-0005:5-stage-verwaltung-menue-stages",
+      "FEAT-0005:6-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:7-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-zweck-amp-benutzerperspektive",
+      "FEAT-0005:2-ort-amp-bedienung",
+      "FEAT-0005:3-flowtoolbox-elemente-code-belegt-flowtoolbox-ts-z-21-31",
+      "FEAT-0005:4-knotentypen-src-editor-flow",
+      "FEAT-0005:5-kanten-semantik-aus-taskexecutor-executeflowchart-z-308",
+      "FEAT-0005:6-pascal-synchronisation",
+      "FEAT-0005:7-refactoring-amp-sicherheit",
+      "FEAT-0005:8-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:9-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-zweck-amp-ort",
+      "FEAT-0005:2-property-editoren",
+      "FEAT-0005:3-event-verbindungen-event-tab",
+      "FEAT-0005:4-property-runtime",
+      "FEAT-0005:5-variablenverwaltung",
+      "FEAT-0005:6-umbenennen-amp-refactoring",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:8-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-view-system",
+      "FEAT-0005:2-run-modus-editorrunmanager-330-z",
+      "FEAT-0005:3-api-simulator-editorsimulatormanager",
+      "FEAT-0005:4-debug-log-tdebuglog-debuglogservice",
+      "FEAT-0005:5-json-amp-code-view",
+      "FEAT-0005:6-management-view",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-datei-menue-menu_bar-json-editormenumanager-editordatamanager",
+      "FEAT-0005:2-bearbeiten-menue-undo-redo",
+      "FEAT-0005:3-plattform-menue-export-amp-test",
+      "FEAT-0005:4-stage-import",
+      "FEAT-0005:5-themes",
+      "FEAT-0005:6-werkzeuge-menue-media-tools",
+      "FEAT-0005:7-dialoge-src-editor-dialogs",
+      "FEAT-0005:8-abhaengigkeiten-zwischen-features",
+      "FEAT-0005:9-einschraenkungen-amp-offene-punkte",
+      "FEAT-0006:_intro",
+      "FEAT-0007:_intro",
+      "FEAT-0007:_intro",
+      "FEAT-0008:_intro",
+      "FEAT-0008:_intro",
+      "FEAT-0009:_intro",
+      "FEAT-0009:_intro",
+      "FEAT-0012:_intro",
+      "FEAT-0012:_intro",
+      "FEAT-0012:_intro"
+    ],
+    "unknownEntities": [],
+    "badLengths": [],
+    "oversized": []
+  },
+  "missingSources": [
+    {
+      "id": "DOC-0231",
+      "kind": "docs",
+      "file": "docs/handbook-html/TESTBERICHT.md",
+      "missing": true
+    },
+    {
+      "id": "DOC-0232",
+      "kind": "docs",
+      "file": "docs/handbook-html/VERGLEICH.md",
+      "missing": true
+    },
+    {
+      "id": "DOC-0233",
+      "kind": "docs",
+      "file": "docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md",
+      "missing": true
+    },
+    {
+      "id": "DOC-0234",
+      "kind": "docs",
+      "file": "docs/handbook-html/gcs-native/README.md",
+      "missing": true
+    },
+    {
+      "id": "DOC-0235",
+      "kind": "docs",
+      "file": "docs/handbook-html/gcs-native/index.html",
+      "missing": true
+    },
+    {
+      "id": "DOC-0236",
+      "kind": "docs",
+      "file": "docs/handbook-html/gcs-native/project.js",
+      "missing": true
+    },
+    {
+      "id": "DOC-0237",
+      "kind": "docs",
+      "file": "docs/handbook-html/gcs-native/runtime-standalone.js",
+      "missing": true
+    },
+    {
+      "id": "DOC-0238",
+      "kind": "docs",
+      "file": "docs/handbook-html/modern/README.md",
+      "missing": true
+    },
+    {
+      "id": "DOC-0239",
+      "kind": "docs",
+      "file": "docs/handbook-html/modern/app.js",
+      "missing": true
+    },
+    {
+      "id": "DOC-0240",
+      "kind": "docs",
+      "file": "docs/handbook-html/modern/index.html",
+      "missing": true
+    },
+    {
+      "id": "DOC-0241",
+      "kind": "docs",
+      "file": "docs/handbook-html/modern/style.css",
+      "missing": true
+    },
+    {
+      "id": "DOC-0242",
+      "kind": "docs",
+      "file": "docs/handbook-html/shared/handbook-content.js",
+      "missing": true
+    },
+    {
+      "id": "FEAT-0003",
+      "kind": "tests",
+      "file": "src/runtime/TaskExecutor.*"
+    }
+  ],
+  "rawDocMissing": [
+    {
+      "id": "DOC-0231",
+      "name": "TESTBERICHT.md",
+      "source": {
+        "docs": [
+          "docs/handbook-html/TESTBERICHT.md"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0232",
+      "name": "VERGLEICH.md",
+      "source": {
+        "docs": [
+          "docs/handbook-html/VERGLEICH.md"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0233",
+      "name": "GCS-PRINZIPIEN.md",
+      "source": {
+        "docs": [
+          "docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0234",
+      "name": "README.md",
+      "source": {
+        "docs": [
+          "docs/handbook-html/gcs-native/README.md"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0235",
+      "name": "index.html",
+      "source": {
+        "docs": [
+          "docs/handbook-html/gcs-native/index.html"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0236",
+      "name": "project.js",
+      "source": {
+        "docs": [
+          "docs/handbook-html/gcs-native/project.js"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0237",
+      "name": "runtime-standalone.js",
+      "source": {
+        "docs": [
+          "docs/handbook-html/gcs-native/runtime-standalone.js"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0238",
+      "name": "README.md",
+      "source": {
+        "docs": [
+          "docs/handbook-html/modern/README.md"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0239",
+      "name": "app.js",
+      "source": {
+        "docs": [
+          "docs/handbook-html/modern/app.js"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0240",
+      "name": "index.html",
+      "source": {
+        "docs": [
+          "docs/handbook-html/modern/index.html"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0241",
+      "name": "style.css",
+      "source": {
+        "docs": [
+          "docs/handbook-html/modern/style.css"
+        ]
+      }
+    },
+    {
+      "id": "DOC-0242",
+      "name": "handbook-content.js",
+      "source": {
+        "docs": [
+          "docs/handbook-html/shared/handbook-content.js"
+        ]
+      }
+    }
+  ],
+  "componentMismatches": [],
+  "portalPropertyCoverage": {
+    "empty": [
+      "TBooleanVariable",
+      "TColorPicker",
+      "TDebugLog",
+      "TFlowStage",
+      "TGameState",
+      "TIntegerVariable",
+      "TLabel",
+      "TObjectVariable",
+      "TRealVariable",
+      "TRichText",
+      "TSprite",
+      "TStringVariable",
+      "TWindow",
+      "TServerAuthorize",
+      "TServerGuardian",
+      "TServerRateLimit",
+      "TServerProgress",
+      "TServerPrivacy",
+      "TServerInvite",
+      "TServerDeviceGrant"
+    ],
+    "swePropertyCounts": {
+      "TButton": 3,
+      "TGameLoop": 3,
+      "TSprite": 18,
+      "TVariable": 0
+    }
+  },
+  "actionCompatibility": [],
+  "actionParameterLoss": [
+    {
+      "action": "set_child_property",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "set_child_property",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "variable",
+      "parameter": "variableName",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "variable",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "variable",
+      "parameter": "source",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "variable",
+      "parameter": "sourceProperty",
+      "lost": "placeholder",
+      "value": "z.B. text oder value"
+    },
+    {
+      "action": "set_variable",
+      "parameter": "variableName",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "set_variable",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "set_variable",
+      "parameter": "source",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "set_variable",
+      "parameter": "sourceProperty",
+      "lost": "placeholder",
+      "value": "z.B. text oder value"
+    },
+    {
+      "action": "calculate",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "calculate",
+      "parameter": "formula",
+      "lost": "multiline",
+      "value": true
+    },
+    {
+      "action": "calculate",
+      "parameter": "formula",
+      "lost": "placeholder",
+      "value": "z.B. myVar := score + 10"
+    },
+    {
+      "action": "animate",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "animate",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "animate",
+      "parameter": "target",
+      "lost": "allowFreeText",
+      "value": true
+    },
+    {
+      "action": "animate",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "animate",
+      "parameter": "target",
+      "lost": "placeholder",
+      "value": "--- Komponente auswählen ---"
+    },
+    {
+      "action": "animate",
+      "parameter": "effect",
+      "lost": "defaultValue",
+      "value": "shake"
+    },
+    {
+      "action": "animate",
+      "parameter": "duration",
+      "lost": "defaultValue",
+      "value": 500
+    },
+    {
+      "action": "animate",
+      "parameter": "source",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "animate",
+      "parameter": "source",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "animate",
+      "parameter": "source",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "animate",
+      "parameter": "source",
+      "lost": "placeholder",
+      "value": "--- Objekt auswählen ---"
+    },
+    {
+      "action": "animate",
+      "parameter": "source",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "implode"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "targetScale",
+      "lost": "defaultValue",
+      "value": 2
+    },
+    {
+      "action": "animate",
+      "parameter": "targetScale",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "grow",
+          "shrink",
+          "pulse"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "fragments",
+      "lost": "defaultValue",
+      "value": 9
+    },
+    {
+      "action": "animate",
+      "parameter": "fragments",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "explode",
+          "pop"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "spread",
+      "lost": "defaultValue",
+      "value": 120
+    },
+    {
+      "action": "animate",
+      "parameter": "spread",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "explode"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "degrees",
+      "lost": "defaultValue",
+      "value": 360
+    },
+    {
+      "action": "animate",
+      "parameter": "degrees",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "spin"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "intensity",
+      "lost": "defaultValue",
+      "value": 15
+    },
+    {
+      "action": "animate",
+      "parameter": "intensity",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "wobble",
+          "shake"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "height",
+      "lost": "defaultValue",
+      "value": 20
+    },
+    {
+      "action": "animate",
+      "parameter": "height",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "bounce"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "targetOpacity",
+      "lost": "defaultValue",
+      "value": 0
+    },
+    {
+      "action": "animate",
+      "parameter": "targetOpacity",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "fade"
+        ]
+      }
+    },
+    {
+      "action": "animate",
+      "parameter": "midpointTask",
+      "lost": "source",
+      "value": "tasks"
+    },
+    {
+      "action": "animate",
+      "parameter": "midpointTask",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "animate",
+      "parameter": "midpointTask",
+      "lost": "placeholder",
+      "value": "--- Task auswählen ---"
+    },
+    {
+      "action": "animate",
+      "parameter": "midpointTask",
+      "lost": "visibleWhen",
+      "value": {
+        "field": "effect",
+        "values": [
+          "flip",
+          "flip3d"
+        ]
+      }
+    },
+    {
+      "action": "move_to",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "move_to",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "move_to",
+      "parameter": "lockDuringMove",
+      "lost": "defaultValue",
+      "value": false
+    },
+    {
+      "action": "move_to",
+      "parameter": "duration",
+      "lost": "defaultValue",
+      "value": 500
+    },
+    {
+      "action": "move_to",
+      "parameter": "easing",
+      "lost": "source",
+      "value": "easing-functions"
+    },
+    {
+      "action": "move_to",
+      "parameter": "easing",
+      "lost": "defaultValue",
+      "value": "easeOut"
+    },
+    {
+      "action": "sprite_animate",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "sprite_animate",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "sprite_animate",
+      "parameter": "fromFrame",
+      "lost": "defaultValue",
+      "value": 0
+    },
+    {
+      "action": "sprite_animate",
+      "parameter": "toFrame",
+      "lost": "defaultValue",
+      "value": 7
+    },
+    {
+      "action": "sprite_animate",
+      "parameter": "duration",
+      "lost": "defaultValue",
+      "value": 1000
+    },
+    {
+      "action": "navigate_stage",
+      "parameter": "stageId",
+      "lost": "source",
+      "value": "stages"
+    },
+    {
+      "action": "navigate_stage",
+      "parameter": "reset",
+      "lost": "defaultValue",
+      "value": false
+    },
+    {
+      "action": "http",
+      "parameter": "method",
+      "lost": "defaultValue",
+      "value": "GET"
+    },
+    {
+      "action": "http",
+      "parameter": "body",
+      "lost": "multiline",
+      "value": true
+    },
+    {
+      "action": "http",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "http",
+      "parameter": "queryOperator",
+      "lost": "defaultValue",
+      "value": "=="
+    },
+    {
+      "action": "respond_http",
+      "parameter": "status",
+      "lost": "defaultValue",
+      "value": 200
+    },
+    {
+      "action": "data_action",
+      "parameter": "dataStore",
+      "lost": "source",
+      "value": "components"
+    },
+    {
+      "action": "data_action",
+      "parameter": "queryOperator",
+      "lost": "defaultValue",
+      "value": "=="
+    },
+    {
+      "action": "spawn_object",
+      "parameter": "templateId",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "spawn_object",
+      "parameter": "templateId",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "spawn_object",
+      "parameter": "referenceObject",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "spawn_object",
+      "parameter": "referenceObject",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "spawn_object",
+      "parameter": "spawnMode",
+      "lost": "defaultValue",
+      "value": "normal"
+    },
+    {
+      "action": "service",
+      "parameter": "service",
+      "lost": "source",
+      "value": "services"
+    },
+    {
+      "action": "service",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "store_token",
+      "parameter": "operation",
+      "lost": "defaultValue",
+      "value": "set"
+    },
+    {
+      "action": "store_token",
+      "parameter": "tokenKey",
+      "lost": "defaultValue",
+      "value": "auth_token"
+    },
+    {
+      "action": "show_toast",
+      "parameter": "toastType",
+      "lost": "defaultValue",
+      "value": "info"
+    },
+    {
+      "action": "call_method",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects_and_services"
+    },
+    {
+      "action": "call_method",
+      "parameter": "method",
+      "lost": "source",
+      "value": "methods_of_target"
+    },
+    {
+      "action": "call_method",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "play_audio",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "play_audio",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "stop_audio",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "stop_audio",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "load_theme_map",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "load_theme_map",
+      "parameter": "source",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "set_active_theme",
+      "parameter": "themeId",
+      "lost": "source",
+      "value": "themes"
+    },
+    {
+      "action": "set_active_theme",
+      "parameter": "savePreference",
+      "lost": "defaultValue",
+      "value": true
+    },
+    {
+      "action": "show_theme_dialog",
+      "parameter": "target",
+      "lost": "source",
+      "value": "theme_dialogs"
+    },
+    {
+      "action": "toggle_dialog",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "toggle_dialog",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "toggle_dialog",
+      "parameter": "mode",
+      "lost": "defaultValue",
+      "value": "toggle"
+    },
+    {
+      "action": "list_push",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_push",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "list_pop",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_pop",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_get",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_get",
+      "parameter": "index",
+      "lost": "placeholder",
+      "value": "0 oder ${var}"
+    },
+    {
+      "action": "list_get",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. objectId — leer = ganze Zeile"
+    },
+    {
+      "action": "list_get",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_set",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_set",
+      "parameter": "index",
+      "lost": "placeholder",
+      "value": "0 oder ${var}"
+    },
+    {
+      "action": "list_set",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "list_remove",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_remove",
+      "parameter": "index",
+      "lost": "placeholder",
+      "value": "0 oder ${var}"
+    },
+    {
+      "action": "list_remove",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_clear",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_shuffle",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_shuffle",
+      "parameter": "seed",
+      "lost": "placeholder",
+      "value": "z.B. 42"
+    },
+    {
+      "action": "list_contains",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_contains",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "list_contains",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_length",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "list_length",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_get",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_get",
+      "parameter": "key",
+      "lost": "placeholder",
+      "value": "Key oder ${var}"
+    },
+    {
+      "action": "map_get",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_set",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_set",
+      "parameter": "key",
+      "lost": "placeholder",
+      "value": "Key oder ${var}"
+    },
+    {
+      "action": "map_set",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "Literal oder ${var}"
+    },
+    {
+      "action": "map_delete",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_delete",
+      "parameter": "key",
+      "lost": "placeholder",
+      "value": "Key oder ${var}"
+    },
+    {
+      "action": "map_has",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_has",
+      "parameter": "key",
+      "lost": "placeholder",
+      "value": "Key oder ${var}"
+    },
+    {
+      "action": "map_has",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_keys",
+      "parameter": "target",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "map_keys",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "bind_event",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects_and_variables"
+    },
+    {
+      "action": "bind_event",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "bind_event",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "bind_event",
+      "parameter": "event",
+      "lost": "source",
+      "value": "events_of_target"
+    },
+    {
+      "action": "bind_event",
+      "parameter": "event",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "bind_event",
+      "parameter": "task",
+      "lost": "source",
+      "value": "tasks"
+    },
+    {
+      "action": "bind_event",
+      "parameter": "task",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "unbind_event",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects_and_variables"
+    },
+    {
+      "action": "unbind_event",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "unbind_event",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "unbind_event",
+      "parameter": "event",
+      "lost": "source",
+      "value": "events_of_target"
+    },
+    {
+      "action": "unbind_event",
+      "parameter": "event",
+      "lost": "defaultValue",
+      "value": ""
+    },
+    {
+      "action": "shake_screen",
+      "parameter": "intensity",
+      "lost": "defaultValue",
+      "value": "medium"
+    },
+    {
+      "action": "shake_screen",
+      "parameter": "duration",
+      "lost": "defaultValue",
+      "value": 250
+    },
+    {
+      "action": "record_set",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_set",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_set",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_set",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "record_set",
+      "parameter": "target",
+      "lost": "allowFreeText",
+      "value": true
+    },
+    {
+      "action": "record_set",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": "self"
+    },
+    {
+      "action": "record_set",
+      "parameter": "target",
+      "lost": "placeholder",
+      "value": "self / Objektname / Zeilenindex"
+    },
+    {
+      "action": "record_set",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. isSelected"
+    },
+    {
+      "action": "record_set",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "true / false / Zahl / ${var}"
+    },
+    {
+      "action": "record_get",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_get",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_get",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_get",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "record_get",
+      "parameter": "target",
+      "lost": "allowFreeText",
+      "value": true
+    },
+    {
+      "action": "record_get",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": "self"
+    },
+    {
+      "action": "record_get",
+      "parameter": "target",
+      "lost": "placeholder",
+      "value": "self / Objektname / Zeilenindex"
+    },
+    {
+      "action": "record_get",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. isSelected"
+    },
+    {
+      "action": "record_get",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "record_index",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_index",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_index",
+      "parameter": "target",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_index",
+      "parameter": "target",
+      "lost": "allowVariableBinding",
+      "value": true
+    },
+    {
+      "action": "record_index",
+      "parameter": "target",
+      "lost": "allowFreeText",
+      "value": true
+    },
+    {
+      "action": "record_index",
+      "parameter": "target",
+      "lost": "defaultValue",
+      "value": "self"
+    },
+    {
+      "action": "record_index",
+      "parameter": "target",
+      "lost": "placeholder",
+      "value": "self / Objektname / Zeilenindex"
+    },
+    {
+      "action": "record_index",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "record_find",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_find",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_find",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. isSelected"
+    },
+    {
+      "action": "record_find",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "true / false / Zahl / ${var}"
+    },
+    {
+      "action": "record_find",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "record_count",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_count",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_count",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. isSelected"
+    },
+    {
+      "action": "record_count",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "true / false / Zahl / ${var}"
+    },
+    {
+      "action": "record_count",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "record_reset",
+      "parameter": "list",
+      "lost": "source",
+      "value": "objects"
+    },
+    {
+      "action": "record_reset",
+      "parameter": "list",
+      "lost": "placeholder",
+      "value": "--- TObjectList waehlen ---"
+    },
+    {
+      "action": "record_reset",
+      "parameter": "field",
+      "lost": "placeholder",
+      "value": "z.B. isSelected"
+    },
+    {
+      "action": "record_reset",
+      "parameter": "value",
+      "lost": "placeholder",
+      "value": "leer lassen fuer Schema-Default"
+    },
+    {
+      "action": "stage_input",
+      "parameter": "payload",
+      "lost": "defaultValue",
+      "value": {}
+    },
+    {
+      "action": "stage_input",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    },
+    {
+      "action": "stage_output",
+      "parameter": "payload",
+      "lost": "defaultValue",
+      "value": {}
+    },
+    {
+      "action": "stage_output",
+      "parameter": "resultVariable",
+      "lost": "source",
+      "value": "variables"
+    }
+  ],
+  "hiddenActions": [
+    {
+      "id": "ACT-0005",
+      "name": "set_variable",
+      "flags": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "ACT-0012",
+      "name": "navigate",
+      "flags": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "ACT-0017",
+      "name": "execute_login_request",
+      "flags": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "ACT-0025",
+      "name": "store_token",
+      "flags": {
+        "hidden": true
+      }
+    }
+  ],
+  "inferred": [],
+  "verifiedComponents": [
+    {
+      "id": "COMP-0008",
+      "name": "TButton",
+      "methods": 9
+    },
+    {
+      "id": "COMP-0028",
+      "name": "TGameLoop",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0030",
+      "name": "TGameState",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0041",
+      "name": "TInputController",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0058",
+      "name": "TPanel",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0097",
+      "name": "TSprite",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0099",
+      "name": "TStage",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0111",
+      "name": "TTextToSpeech",
+      "methods": 7
+    },
+    {
+      "id": "COMP-0114",
+      "name": "TTimer",
+      "methods": 0
+    },
+    {
+      "id": "COMP-0121",
+      "name": "TWindow",
+      "methods": 0
+    }
+  ],
+  "sweUnavailable": [
+    {
+      "id": "COMP-0003",
+      "name": "TAudio",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0007",
+      "name": "TBooleanVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0011",
+      "name": "TCheckbox",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0013",
+      "name": "TColorPicker",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0018",
+      "name": "TDialogRoot",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0019",
+      "name": "TDropdown",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0020",
+      "name": "TEdit",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0022",
+      "name": "TFilePicker",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0023",
+      "name": "TFileUpload",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0032",
+      "name": "TGroupPanel",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0035",
+      "name": "TImage",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0036",
+      "name": "TImageGallery",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0037",
+      "name": "TImageList",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0038",
+      "name": "TImageSplitter",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0040",
+      "name": "TInlineOverlay",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0043",
+      "name": "TIntegerVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0044",
+      "name": "TIntervalTimer",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0046",
+      "name": "TLabel",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0047",
+      "name": "TLearningPointsOverlay",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0050",
+      "name": "TListVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0051",
+      "name": "TMemo",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0053",
+      "name": "TNumberInput",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0054",
+      "name": "TNumberLabel",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0055",
+      "name": "TObjectList",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0056",
+      "name": "TObjectVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0057",
+      "name": "TOverlay",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0060",
+      "name": "TProgressBar",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0061",
+      "name": "TPuzzleBoard",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0062",
+      "name": "TRandomVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0063",
+      "name": "TRangeVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0064",
+      "name": "TRealVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0065",
+      "name": "TRichText",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0070",
+      "name": "TServerEndpoint",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0077",
+      "name": "TServerProfile",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0088",
+      "name": "TShape",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0089",
+      "name": "TSidePanel",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0092",
+      "name": "TSpeech",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0093",
+      "name": "TSpeechRecognition",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0098",
+      "name": "TSpriteTemplate",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0103",
+      "name": "TStringMap",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0104",
+      "name": "TStringVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0108",
+      "name": "TTable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0113",
+      "name": "TThresholdVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0116",
+      "name": "TTriggerVariable",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0119",
+      "name": "TVideo",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0122",
+      "name": "TServerAuthorize",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0123",
+      "name": "TServerGuardian",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0124",
+      "name": "TServerRateLimit",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0125",
+      "name": "TServerProgress",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0127",
+      "name": "TServerInvite",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "COMP-0128",
+      "name": "TServerDeviceGrant",
+      "kind": "component",
+      "status": "geplant"
+    },
+    {
+      "id": "DOC-0002",
+      "name": "AGENT_API_REFERENCE.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0003",
+      "name": "AI_Agent_Integration_Plan.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0004",
+      "name": "AI_PROJECT_GENERATION.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0005",
+      "name": "AI_Test_Anleitung.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0006",
+      "name": "AgentAPI.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0007",
+      "name": "AgentController_Vorlagen.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0011",
+      "name": "BREAKOUT-LERNPROJEKT.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0012",
+      "name": "BREAKOUT-OBJEKTLISTE.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0028",
+      "name": "FlowEditor_DV_Konzept.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0031",
+      "name": "GCS-CMS-ANMELDUNG.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0032",
+      "name": "GCS-CMS-HAUSVERWALTUNG.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0033",
+      "name": "GCS-CMS-PROFIL.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0034",
+      "name": "GCS-CMS-SPEZIFIKATION.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0035",
+      "name": "GCS-CMS-SPIELSTART.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0036",
+      "name": "GCS-CMS-STAGES.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0037",
+      "name": "GCS-CMS-START.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0040",
+      "name": "GCS-CMS-VERWALTUNG.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0041",
+      "name": "GCS-CMS-WORKFLOWS.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0042",
+      "name": "GCS-OBJEKTLISTEN-TABELLEN.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0043",
+      "name": "GCS-SERVER-KOMPONENTEN.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0044",
+      "name": "GCS-TRAINING-SCHRITTPLAN.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0045",
+      "name": "GCS-TRAINING.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0047",
+      "name": "GameToolBox_KI_Integration_Schritt_fuer_Schritt.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0049",
+      "name": "JumpAndRun_BestPractice_Guide.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0050",
+      "name": "JumpAndRun_EndlessRunner_Guide.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0067",
+      "name": "NAMING_CONVENTIONS.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0071",
+      "name": "Planner_Ollama_Schritt_fuer_Schritt_Anleitung.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0072",
+      "name": "Planner_Prompt_Bereinigung_Schritt_fuer_Schritt.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0073",
+      "name": "QA_Report.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0075",
+      "name": "QA_Report_2026-10-07_16-50-49.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0076",
+      "name": "QA_Report_2026-10-09_20-22-39.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0077",
+      "name": "QA_Report_2026-10-09_20-24-42.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0078",
+      "name": "QA_Report_2026-10-10_09-25-42.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0079",
+      "name": "QA_Report_2026-10-10_09-29-30.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0080",
+      "name": "QA_Report_2026-10-10_09-33-55.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0081",
+      "name": "QA_Report_2026-10-10_10-30-07.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0082",
+      "name": "QA_Report_2026-10-10_10-32-40.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0083",
+      "name": "QA_Report_2026-10-10_11-06-52.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0084",
+      "name": "QA_Report_2026-10-10_19-49-27.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0085",
+      "name": "QA_Report_2026-10-10_19-57-16.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0086",
+      "name": "QA_Report_2026-10-10_20-02-08.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0087",
+      "name": "QA_Report_2026-10-11_17-22-10.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0088",
+      "name": "QA_Report_2026-10-11_17-23-29.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0089",
+      "name": "QA_Report_2026-10-11_17-23-56.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0090",
+      "name": "QA_Report_2026-10-11_17-23-57.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0091",
+      "name": "QA_Report_2026-10-11_17-24-31.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0092",
+      "name": "QA_Report_2026-10-11_17-29-53.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0093",
+      "name": "QA_Report_2026-10-11_17-30-39.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0094",
+      "name": "QA_Report_2026-10-15_11-03-31.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0095",
+      "name": "QA_Report_2026-10-16_10-55-30.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0096",
+      "name": "QA_Report_2026-10-16_11-21-50.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0097",
+      "name": "QA_Report_2026-10-16_14-39-56.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0098",
+      "name": "QA_Report_2026-10-16_14-42-05.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0099",
+      "name": "QA_Report_2026-10-16_14-42-50.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0100",
+      "name": "QA_Report_2026-10-16_14-43-44.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0101",
+      "name": "QA_Report_2026-10-16_16-27-26.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0102",
+      "name": "QA_Report_2026-10-16_16-34-59.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0106",
+      "name": "SNAKE-LERNPROJEKT.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0112",
+      "name": "VideoToSpriteSheet_GCS_Prompt.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0113",
+      "name": "VirtualGamepad_Anleitung_Kids.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0118",
+      "name": "architecture.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0128",
+      "name": "cms-login-test.json",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0136",
+      "name": "cms-workflow-browser-test.json",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0138",
+      "name": "coding-standards.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0163",
+      "name": "runtime-guide.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0184",
+      "name": "ui-inspector-guide.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0186",
+      "name": "AIAgentController.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0187",
+      "name": "ActionParameterStandardisierung.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0188",
+      "name": "ActionVisualisierungsSynchronisation.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0189",
+      "name": "Authentication_JWT.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0190",
+      "name": "BlueprintFlowDropdown.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0191",
+      "name": "DataActionInspector.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0192",
+      "name": "DataModels.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0193",
+      "name": "DynamicDropdowns.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0194",
+      "name": "EmojiPinFlow.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0195",
+      "name": "ExecuteCalculateVariable.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0196",
+      "name": "FlowEditorDetailAnzeige.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0197",
+      "name": "FlowEditorRenameSync.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0198",
+      "name": "LoginFlow.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0199",
+      "name": "SmartMapping.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0200",
+      "name": "SofortigeJSONSynchronisation.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0201",
+      "name": "SynchronisationLoeschenFlowEditor.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0203",
+      "name": "UseCaseTemplate.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0204",
+      "name": "VariableMorphing.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0205",
+      "name": "VariablentypPersistenz.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0231",
+      "name": "TESTBERICHT.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0232",
+      "name": "VERGLEICH.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0233",
+      "name": "GCS-PRINZIPIEN.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0234",
+      "name": "README.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0235",
+      "name": "index.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0236",
+      "name": "project.js",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0237",
+      "name": "runtime-standalone.js",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0238",
+      "name": "README.md",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0239",
+      "name": "app.js",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0240",
+      "name": "index.html",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0241",
+      "name": "style.css",
+      "kind": "document",
+      "status": "veraltet"
+    },
+    {
+      "id": "DOC-0242",
+      "name": "handbook-content.js",
+      "kind": "document",
+      "status": "veraltet"
+    }
+  ],
+  "portalMethods": {
+    "componentsWithMethods": 108,
+    "total": 553,
+    "sweRegistryMethods": 38
+  },
+  "portalSearch": {
+    "entries": 246,
+    "areas": {
+      "handbook": 23,
+      "components": 128,
+      "features": 24,
+      "architecture": 4,
+      "devref": 67
+    },
+    "duplicateHrefs": [],
+    "noConfidence": 246,
+    "noStatus": 246
+  },
+  "eventComparisons": [
+    {
+      "name": "TButton",
+      "portal": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd",
+        "onFlipMidpoint",
+        "onFocus",
+        "onBlur"
+      ],
+      "swe": [
+        {
+          "name": "onClick",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onDoubleClick",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onMouseEnter",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onMouseLeave",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onDragStart",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onDragEnd",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onDrop",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onTouchStart",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onTouchMove",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onTouchEnd",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onFlipMidpoint",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onFocus",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        },
+        {
+          "name": "onBlur",
+          "origin": "documented",
+          "source": "docs/reference/components/TButton.md"
+        }
+      ],
+      "hasSuperCall": false
+    },
+    {
+      "name": "TSprite",
+      "portal": [
+        "onEnter",
+        "onImageReady",
+        "onImageError",
+        "onCollision",
+        "onCollisionLeft",
+        "onCollisionRight",
+        "onCollisionTop",
+        "onCollisionBottom",
+        "onBoundaryHit",
+        "onStageExit",
+        "onClick",
+        "onFocus",
+        "onBlur",
+        "onFlipMidpoint"
+      ],
+      "swe": [
+        {
+          "name": "onEnter",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onImageReady",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onImageError",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onCollision",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onCollisionLeft",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onCollisionRight",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onCollisionTop",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onCollisionBottom",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onBoundaryHit",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        },
+        {
+          "name": "onStageExit",
+          "origin": "own",
+          "source": "src/components/TSprite.ts"
+        }
+      ],
+      "hasSuperCall": false
+    },
+    {
+      "name": "TVariable",
+      "portal": [
+        "onValueChanged"
+      ],
+      "swe": [
+        {
+          "name": "onValueChanged",
+          "origin": "own",
+          "source": "src/components/TVariable.ts"
+        }
+      ],
+      "hasSuperCall": true
+    },
+    {
+      "name": "TTimer",
+      "portal": [
+        "onTimer",
+        "onMaxIntervalReached"
+      ],
+      "swe": [
+        {
+          "name": "onTimer",
+          "origin": "own",
+          "source": "src/components/TTimer.ts"
+        },
+        {
+          "name": "onMaxIntervalReached",
+          "origin": "own",
+          "source": "src/components/TTimer.ts"
+        }
+      ],
+      "hasSuperCall": true
+    },
+    {
+      "name": "TGameLoop",
+      "portal": [
+        "onFrame"
+      ],
+      "swe": [
+        {
+          "name": "onFrame",
+          "origin": "own",
+          "source": "src/components/TGameLoop.ts"
+        }
+      ],
+      "hasSuperCall": false
+    }
+  ]
+}

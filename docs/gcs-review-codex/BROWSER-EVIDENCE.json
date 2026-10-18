@@ -1,0 +1,1790 @@
+{
+  "browser": "155.0.4283.45",
+  "offline": true,
+  "url": "file:///C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v2/docs/gcs-doc-portal-argon/index-argon.html",
+  "pageErrors": [],
+  "tests": [
+    {
+      "name": "area-home",
+      "textLength": 3934
+    },
+    {
+      "name": "area-handbook",
+      "textLength": 7590
+    },
+    {
+      "name": "area-components",
+      "textLength": 34464
+    },
+    {
+      "name": "area-features",
+      "textLength": 10679
+    },
+    {
+      "name": "area-architecture",
+      "textLength": 1945
+    },
+    {
+      "name": "area-devref",
+      "textLength": 3839
+    }
+  ],
+  "componentText": "Direkt zum Hauptinhalt springen\n🌳\nGCS Documentation Portal\nArgon Editorial Studio · v1.0\n🏠\nPortal\n📖\nHandbuch\n23\n🧩\nKomponenten\n128\n✨\nFeatures\n12\n🏛️\nArchitektur\n4\n🛠️\nEntwickler\n59\n🔍\nGlobale Suche im gesamten Portal…\nStrg K\n0 / 23\n🎙️\nSprechertext\n🌙\n🧩\nAlle 128 Komponenten\n🧱 BASIS & VERERBUNG (6)\nC014 TComponent C024 TFlowStage C058 TPanel ★ C096 TSplashStage C099 TStage ★ C121 TWindow ★\n🖼️ ANZEIGE & TEXT (10)\nC006 TBadge C046 TLabel C054 TNumberLabel C060 TProgressBar C065 TRichText C088 TShape C094 TSpeedlines C101 TStatusBar C102 TStickyNote C110 TTextControl\n🎬 MEDIEN & SPRACHE (9)\nC003 TAudio C035 TImage C036 TImageGallery C037 TImageList C038 TImageSplitter C092 TSpeech C093 TSpeechRecognition C111 TTextToSpeech ★ C119 TVideo\n⌨️ EINGABE & STEUERUNG (11)\nC008 TButton ★ C011 TCheckbox C013 TColorPicker C019 TDropdown C020 TEdit C021 TEmojiPicker C022 TFilePicker C023 TFileUpload C051 TMemo C053 TNumberInput C090 TSlider\n📐 CONTAINER & LAYOUT (6)\nC032 TGroupPanel C048 TLink C052 TNavBar C089 TSidePanel C106 TTabBar C107 TTabControl\n🗄️ DATEN & LISTEN (7)\nC015 TDataList C016 TDataStore C045 TKeyStore C049 TList C055 TObjectList C103 TStringMap C108 TTable\n🔢 VARIABLEN & ZUSTAND (11)\nC007 TBooleanVariable C043 TIntegerVariable C050 TListVariable C056 TObjectVariable C062 TRandomVariable C063 TRangeVariable C064 TRealVariable C104 TStringVariable C113 TThresholdVariable C116 TTriggerVariable C118 TVariable\n⏱️ ZEIT & LOGIK (2)\nC034 THeartbeat C044 TIntervalTimer\n🎮 SPIEL & PHYSIK (17)\nC002 TAnimation C005 TAvatar C009 TCard C010 TCardZone C026 TGameCard C028 TGameLoop ★ C030 TGameState ★ C031 TGridBoard C041 TInputController ★ C059 TParallaxBackground C061 TPuzzleBoard C091 TSpawner C097 TSprite ★ C098 TSpriteTemplate C109 TTetris C114 TTimer ★ C120 TVirtualGamepad\n🌐 SERVER & NETZWERK (29)\nC066 TServerAccess C067 TServerAuthenticate C068 TServerCards C069 TServerDecks C070 TServerEndpoint C071 TServerEnroll C072 TServerLiveSync C073 TServerParentAccount C074 TServerParty C075 TServerPerformance C076 TServerPlaySession C077 TServerProfile C078 TServerQuery C079 TServerResponse C080 TServerReward C081 TServerSession C082 TServerSponsorAgreement C083 TServerSponsorship C084 TServerSql C085 TServerStore C086 TServerUpload C087 TServerValidate C122 TServerAuthorize C123 TServerGuardian C124 TServerRateLimit C125 TServerProgress C126 TServerPrivacy C127 TServerInvite C128 TServerDeviceGrant\n⚙️ SYSTEM & DIENSTE (10)\nC001 TAPIServer C004 TAuthService C012 TCmsLiveSync C027 TGameHeader C029 TGameServer C033 THandshake C095 TSplashScreen C100 TStageController C105 TSystemInfo C117 TUserManager\n💬 DIALOGE & OVERLAYS (7)\nC018 TDialogRoot C039 TInfoWindow C040 TInlineOverlay C047 TLearningPointsOverlay C057 TOverlay C112 TThemeDialog C115 TToast\n🧩 WEITERE KOMPONENTEN (3)\nC017 TDebugLog C025 TForEach C042 TInspectorTemplate\n↺ Handbuch-Fortschritt zurücksetzen\nPortal\n›\nKomponentenreferenz\n›\n🎮 Spiel & Physik\n›\nCOMP-0097\nTSprite\nDev:\nimplementiert\nTest:\ntest vorhanden\nDoku:\ntechnisch geprüft\nINVENTAR-ID & KATEGORIE\nCOMP-0097 · 🎮 Spiel & Physik\nVERERBUNGSKETTE\nTSprite → TWindow → TComponent\nREGISTRIERUNG\nEditor: ✔ · Runtime: ✔\nQUELLDATEI & SCHEMA\nsrc/components/TSprite.ts\ndocs/schemas/schema_game.json\nPROJEKT-VERWENDUNG\nIn 18 mitgelieferten Projekten\nHandbuch-Kapitel:\n📖 A3: Den Baum platzieren\n📖 A9: Wachstumsstufen\n📖 A11: Bildquellen & Media\nVerwandte Komponenten:\n🧩 TWindow\n🧩 TComponent\n🧩 TSpriteTemplate\n🧩 TAnimation\n🧩 TAvatar\n🧩 TCard\n🔍\nKuratierte Referenzkarte (Qualitätsvorlage) — docStatus: technisch geprüft.<br/>manualReview: true im Inventar; generate-component-cards.cjs überschreibt sie nicht (außer mit --force).\nZweck\n\nDas zentrale Spielelement: bewegliches Bild-/Video-Objekt mit Physik (velocityX/Y, gravity), Kollision (Form shape, collisionGroup, konfigurierbare Hitbox), Sprite-Sheet-Ausschnitten (sourceRect*, imageListId/imageIndex), Animation (animationId → TAnimation) und Pool-/Template-Unterstützung (templateId, isPoolInstance — vgl. src/runtime/actions/handlers/ObjectPoolActions.ts).\n\nEigene Inspector-Eigenschaften (Auszug)\n\nGruppen: Motion (spawnX/Y, spawnWidth/Height, velocityX/Y, gravity, lerpSpeed), Kollision/Physik (collisionGroup, pushOutOnCollision, customHitbox, hitboxShape/OffsetX/Y/Width/Height), Bild (appearanceMode, imageListId, imageIndex, sourceWidth/Height, sourceRectX/Y/Width/Height, puzzleEdges, puzzleTabDepth, matchValue), Video (videoSource, videoObjectFit, videoAutoplay, videoLoop, videoMuted, videoVolume, videoPlaybackRate), Template/Pool (templateId, templateName).\n\nGeerbte Inspector-Eigenschaften\n\nvon TWindow: Geometrie (x, y, width, height, zIndex, rotation, align), visible, collisionEnabled (Basis-Schalter, unabhängig von der Sprite-Hitbox), protectFromOverlay, style.*, description. von TComponent: name, draggable, droppable, dragMode.\n\nEreignisse\n\nEigen (TSprite.getEvents(), Z. ~340): onEnter, onImageReady, onImageError, onCollision, onCollisionLeft, onCollisionRight, onCollisionTop, onCollisionBottom, onBoundaryHit, onStageExit.\n\nGeerbt: Standard-UI-Ereignisse aus TComponent (onClick, onDrag, onTouch, …) plus onFocus/onBlur/onFlipMidpoint aus TWindow.\n\nRuntime-Verdrahtung\nBewegung/Physik: src/runtime/GameLoopManager.ts, update()/smoothSync() in TSprite\nKollision: src/runtime/CollisionManager.ts (richtet onCollision*/onBoundaryHit)\nAnimation: src/runtime/AnimationManager.ts (animationId ↔ TAnimation)\nEditor-Rendering: src/editor/services/renderers/SpriteRenderer.ts\nPool-Instanzen: src/runtime/actions/handlers/ObjectPoolActions.ts (TSpawner)\nVerwendung\n\nSprites erscheinen in den meisten Spielprojekten (PingPong, Snake, Tetris, Madn, LeonasAxolotlSpiel, Lernprojekte). Multiplayer-relevant: smoothSync/renderX/renderY interpolieren entfernte Positionen (lerpSpeed), vgl. src/multiplayer/InputSyncer.ts/CollisionSyncer.ts.\n\nEinschränkungen / Offene Fragen\npuzzleEdges/puzzleTabDepth/matchValue sind Spezialfelder für\n\nTPuzzleBoard-Zusammenspiel — Semantik in AP 5 vertiefen.\n\n⚠ Vollständige Liste der ~40 Inspector-Felder: siehe generierte Karte\n\n(vorheriger Stand) bzw. getInspectorProperties() in TSprite.ts.\n\nQuellen\nsrc/components/TSprite.ts (417 Z.)\nsrc/runtime/CollisionManager.ts, src/runtime/AnimationManager.ts, src/runtime/GameLoopManager.ts\nsrc/runtime/actions/handlers/ObjectPoolActions.ts\nsrc/editor/services/renderers/SpriteRenderer.ts\ndocs/schemas/schema_game.json\n📚 _Analyse: 2026-10-17 · Commit 53e3dfb + Arbeitsstand · Devin (Cognition) — SWE-2 High_\n← ÜBERSICHT\nAlle 128 Komponenten\nWEITERFÜHREND →\n59 Runtime-Actions durchsuchen\nAUF DIESER SEITE\nZweck\nEigene Inspector-Eigenschaften (Auszug)\nGeerbte Inspector-Eigenschaften\nEreignisse\nRuntime-Verdrahtung\nVerwendung\nEinschränkungen / Offene Fragen\nQuellen\n🧩 TSprite\n\nCOMP-0097 · Spiel & Physik\nProps: 0 · Events: 14",
+  "plannedSearch": "🧩 Komponente · COMP-0035 · Medien & Sprache TImage\nCOMP-0035 TImage Medien & Sprache TImage - Eigenständige Bild-Komponente Zeigt ein Bild an, das auf dem Server gespeichert ist. Erbt von TPanel für Container-Funktionalität. D…\n🧩 Komponente · COMP-0036 · Medien & Sprache TImageGallery\nCOMP-0036 TImageGallery Medien & Sprache Nur in Schema-Datei vorhanden; keine Klassendatei und keine Server-Methoden gefunden. folder Bilderordner columns Spalten tileHeight K…\n🧩 Komponente · COMP-0037 · Medien & Sprache TImageList\nCOMP-0037 TImageList Medien & Sprache TImageList - Sprite-Sheet-Komponente Zeigt ein einzelnes Teilbild aus einem Sprite-Sheet (Raster-Bild) an. Das Quellbild wird durch `imag…\n🧩 Komponente · COMP-0038 · Medien & Sprache TImageSplitter\nCOMP-0038 TImageSplitter Medien & Sprache Nur in Schema-Datei vorhanden; keine Klassendatei und keine Server-Methoden gefunden. imageSource Bildquelle rows Zeilen columns Spal…\n📖 Handbuch · Kapitel A11 A11: Bildquellen & Media — Kapitel 11 — Bildquellen & Media-Tools\n…. 9 Fachbegriffe: - Eine Bildliste TImageList teilt ein Quellbild in gleich große Kacheln — z. B. drei Baum-Stadien nebeneinander = 3 × 1 Frames. - Der Frame-Index imageIndex wählt die …\n📖 Handbuch · Kapitel B3 B3: Weltreaktion — Teil B · Kapitel 3 — Weltreaktion: Der Baum reagiert aufs Lernen\n…riggerVariable.ts , src/components/TImageList.ts .…\n🧩 Komponente · COMP-0088 · Anzeige & Text TShape\n…ty Deckkraft text Text/Emoji contentImage Bild-Inhalt getInspectorProperties toDTO TShape Generierte Referenzkarte — Quelle: src/components/TShape.ts . Neu erzeugen: node scripts/genera…\n✨ Feature-Artikel · Fachartikel · ÜBERSICHT GCS Feature-Map & Use-Case-Wegweiser\n…orPicker , TDropdown - Spezial UI: TImage , TShape , TTable , TStatusBar , TToast , TVideo , TPlaybackControls - Kern-Dateien: src/components/ .ts Spracheingabe TSpeechRecognition - Bes…\n✨ Feature-Artikel · Fachartikel · EDITOR editor-project-management\n…Tool + spritesheet/ Video-Frames → TImageList -SpriteSheet Bild-Optimierer ImageTransparencyTool / ImageUtils Transparenz/Optimierung Audio Sequenzen AudioSequenceTool Audio-Sequenzen k…\n⚡ Action · Action · sprite_animate sprite_animate — Sprite-Frame Animation\n…mation Durchläuft die Frames einer TImageList von Start bis Ende (einmalig). target Ziel-Sprite fromFrame Start-Frame toFrame End-Frame duration Dauer (ms)…",
+  "hiddenAction": "Direkt zum Hauptinhalt springen\n🌳\nGCS Documentation Portal\nArgon Editorial Studio · v1.0\n🏠\nPortal\n📖\nHandbuch\n23\n🧩\nKomponenten\n128\n✨\nFeatures\n12\n🏛️\nArchitektur\n4\n🛠️\nEntwickler\n59\n🔍\nGlobale Suche im gesamten Portal…\nStrg K\n0 / 23\n🎙️\nSprechertext\n🌙\n🛠️\nEntwickler-Übersicht\n⚡ INTERAKTIVE REGISTER\n59 Runtime-Action-Katalog 242 Dokumenten-Inventar SWE2 KI-Referenzdaten-Vertrag\n🛠️ TECHNISCHE REFERENZDOKUMENTE\nREF Developer Guidelines & Arbeitsanweisungen REF GCS Runtime & Ausführungs-Leitfaden REF Externe Stage-Schnittstellen & Event-Vertrag REF ID-Schema & 3-Achsen-Statusmodell REF Technical Debt & Architektur-Befunde (TD-001 bis TD-017) REF Security-Plan & XSS-/Sandbox-Härtung REF Dokumentations- & Analyse-Tooling REF Phase-1-Abschlussbericht (Inventarisierung)\n↺ Handbuch-Fortschritt zurücksetzen\nEntwicklerreferenz · 59 Runtime-Actions\nAction-Katalog (ActionRegistry)\n\nAlle 59 registrierten Action-Typen aus docs/inventory/action-metadata.json inkl. Parameter-Spezifikation und Inspector-Hinweisen.\n\n⚡ execute_login_request\n0 Parameter\nLogin Request ausführen\n\nFührt den Login-Request gegen das Backend aus.\n\nPORTAL-KONTEXT\n📖 23 Handbuch-Kapitel\n🧩 128 Komponenten\n✨ 12 System-Features\n🏛️ 4 Architektur-Doks\n⚡ 59 Runtime-Actions\n🤝 SWE-2 Schnittstelle",
+  "searchQueries": [
+    {
+      "query": "TSprite",
+      "text": "🧩 Komponente · COMP-0097 · Spiel & Physik TSprite\nCOMP-0097 TSprite Spiel & Physik onEnter onImageReady onImageError onCollision onCollisionLeft onCollisionRight onCollisionTop onCollisionBottom onBoundaryHit onStageExit onCl…\n🧩 Komponente · COMP-0098 · Spiel & Physik TSpriteTemplate\nCOMP-0098 TSpriteTemplate Spiel & Physik TSpriteTemplate – Blueprint-Vorlage für Object-Pooling. Im Editor sichtbar (zur Konfiguration von Hitbox, Velocity, Aussehen). Zur Lau…\n📖 Handbuch · Kapitel A3 A3: Den Baum platzieren — Kapitel 3 — Den Baum platzieren\n… toolType, 10, 10 . Standardfarbe: TSprite.ts Z. 19. SCREENSHOT FEHLT: Drag&Drop-Geste — Sprite-Element wird von Toolbox „Game\" auf die Stage gezogen Schritt 2 — „Baum\" taufen 1. Klicke…\n📖 Handbuch · Kapitel A9 A9: Wachstumsstufen — Kapitel 9 — Bilder wechseln: Wachstumsstufen\n…/ height sind Sprite-Eigenschaften TSprite.ts Z. 19, 141 . SCREENSHOT FEHLT: Flow mit beiden Bedingungen in Reihe Erwartetes Ergebnis Drei sichtbare Stufen am Platzhalter-Quadrat: Wasse…\n📖 Handbuch · Kapitel A11 A11: Bildquellen & Media — Kapitel 11 — Bildquellen & Media-Tools\n… statt des Farbquadrats. Nachweis: TSprite.ts Z. 60–64, 142, 156–157 — appearanceMode , imageListId Quelle „imageLists\" , imageIndex 0-basiert . Schritt 3 — Stufen-Aktionen auf Bilder u…\n📖 Handbuch · Kapitel B4 B4: Das Baumhaus entsteht — Teil B · Kapitel 4 — Das Baumhaus entsteht\n…ode / x / y action-metadata.json ; TSpriteTemplate stellt einen Objekt-Pool bereit TSpriteTemplate.ts Z. 11–29, 61, 77–78 . Bedienungsschritte Schritt 1 — Baumhaus platzieren und verste…\n✨ Feature-Artikel · Fachartikel · ÜBERSICHT GCS Feature-Map & Use-Case-Wegweiser\n…hnitte aus Records - Beschreibung: TSprite.appearanceMode = sourceRect zeigt ein explizites Pixelrechteck aus backgroundImage . sourceWidth/sourceHeight beschreiben das Originalbild, so…\n✨ Feature-Artikel · Fachartikel · RUNTIME runtime-spielablauf\nSpielablauf — Game Loop, Stages, Kollisionen Dokumentationsstatus: entwurf quellverifiziert, nicht UI-getestet Analyse-Stand: Arbeitsstand 53e3dfb + uncommittete Änderungen · …\n🧩 Komponente · COMP-0028 · Spiel & Physik TGameLoop\n… wirkt nur auf vom Loop verwaltete TSprite s — statische Objekte ignorieren ihn. - onFrame wird pro Tick ausgewertet — schwere Logik dort bremst das Spiel. Beispiel json { \"type\": \"TGam…\n🛠️ Entwickler · Standards & Workflow Developer Guidelines & Arbeitsanweisungen\n…Game vorhydriert. - Verwendung: 1. TSpriteTemplate platzieren, poolSize , autoRecycle und lifetime konfigurieren. 2. Action spawn object nutzt eine Pool-Instanz Clone . Position/Velocit…\n🛠️ Entwickler · Qualität & Befunde Technical Debt & Architektur-Befunde (TD-001 bis TD-017)\n…5 PASS . Bereich: Sprite-Rendering TSprite / StageObjectRenderer — UI-Audit UI-03 Befund: spriteColor = 2d8a3e landet korrekt im Projekt Persistenz nach Wiederöffnen geprüft , die Stage…\n🛠️ Entwickler · Inventar & Governance Phase-1-Abschlussbericht (Inventarisierung)\n…s: technisch geprüft : 10 TButton, TSprite, TTextToSpeech aus QS + 7 Kern-Komponenten AP 7 - Dokumente aktuell : ~34 · möglicherweise veraltet : ~86 · noch nicht bewertet : ~84 · redund…\n⚡ Action · Action · spawn_object spawn_object — Objekt spawnen\n… Instanz aus dem Object Pool eines TSpriteTemplate. templateId Template referenceObject Spawnen bei Objekt spawnMode Template Spawn Modus offsetX Offset X offsetY Offset Y x Absolute X-…"
+    },
+    {
+      "query": "COMP-0097",
+      "text": "🧩 Komponente · COMP-0097 · Spiel & Physik TSprite\nCOMP-0097 TSprite Spiel & Physik onEnter onImageReady onImageError onCollision onCollisionLeft onCollisionRight onCollisionTop onCollisionBottom onBoundaryHit onStageExit onCl…"
+    },
+    {
+      "query": "FEAT-0001",
+      "text": "✨ Feature · FEAT-0001 · runtime FEAT-0001: Deklaratives GCS-Projektformat (Stages, Objekte, Variablen, Tasks, Actions)\nDeklaratives GCS-Projektformat (Stages, Objekte, Variablen, Tasks, Actions) Spiele und CMS-Oberflächen liegen als JSON-Projekt vor: meta, stages[] (objects, variables, tasks, …\n🏛️ Architektur · Kernarchitektur Systemarchitektur — Gesamtbild & Schichten\n…rnidee: deklaratives Projektformat FEAT-0001 Alles — Spiele, CMS-Oberflächen, sogar Server-Endpunkte — ist ein JSON-Projekt , kein separater Controller-Code. Ein GameProject enthält src…\n🛠️ Entwickler · Inventar & Governance ID-Schema & 3-Achsen-Statusmodell\n…atures und Fähigkeiten des Systems FEAT-0001 COMP- GCS-Komponenten T -Klassen COMP-0001 DOC- Inventarisierte Alt-Dokumente DOC-0001 Regeln: - IDs werden fortlaufend vierstellig vergeben…\n🛠️ Entwickler · Qualität & Befunde Technical Debt & Architektur-Befunde (TD-001 bis TD-017)\n…Assertion-Fehler stale Erwartung . FEAT-0001: test fehlgeschlagen . Bewertung: stale Erwartung; zählt Stages statisch statt dynamisch. TD-005 — CMS-Verbindungstest mit Timeout Bereich: …"
+    },
+    {
+      "query": "navigate_stage",
+      "text": "⚡ Action · Action · navigate_stage navigate_stage — Stage wechseln\nnavigate_stage Stage wechseln Wechselt zu einer anderen Stage innerhalb des Projekts. stageId Ziel-Stage reset Stage zurücksetzen"
+    },
+    {
+      "query": "onClick",
+      "text": "🧩 Komponente · COMP-0008 · Eingabe & Steuerung TButton\n…tton Eingabe & Steuerung icon Icon onClick onDoubleClick onMouseEnter onMouseLeave onDragStart onDragEnd onDrop onTouchStart onTouchMove onTouchEnd onFlipMidpoint onFocus onBlur trigger…\n🧩 Komponente · COMP-0014 · Basis & Vererbung TComponent\n…pable Droppable dragMode Drag Mode onClick onDoubleClick onMouseEnter onMouseLeave onDragStart onDragEnd onDrop onTouchStart onTouchMove onTouchEnd onFlipMidpoint getInspectorSections a…\n🧩 Komponente · COMP-0021 · Eingabe & Steuerung TEmojiPicker\n… requestId Anfragekennung onSelect onClick onFocus onBlur initRuntime newRequestId getEvents getInspectorProperties toDTO TEmojiPicker Generierte Referenzkarte — Quelle: src/components/…\n🧩 Komponente · COMP-0097 · Spiel & Physik TSprite\n…onBottom onBoundaryHit onStageExit onClick onFocus onBlur onFlipMidpoint TSprite Kuratierte Referenzkarte Qualitätsvorlage — docStatus: technisch geprüft . manualReview: true im Inventa…\n🧩 Komponente · COMP-0098 · Spiel & Physik TSpriteTemplate\n…o Recycle lifetime Lifetime (Sek.) onClick onDoubleClick onMouseEnter onMouseLeave onDragStart onDragEnd onDrop onTouchStart onTouchMove onTouchEnd onFocus onBlur onFlipMidpoint onColli…\n📖 Handbuch · Kapitel A5 A5: Tasks verstehen — Kapitel 5 — Tasks verstehen\n… wir hängen den Task an den Button onClick → Giessen und füllen ihn mit der Aktion „ Wasser + 1\". --- Quellen: src/editor/services/flow/FlowContextMenuSubmenus.ts Z. 24–57 , src/editor/…\n📖 Handbuch · Kapitel A6 A6: Aktionen: Gieß-Knopf — Kapitel 6 — Aktionen: der Gieß-Knopf\n…in Ereignis wie „wurde angeklickt\" onClick . Jeder sichtbare Baustein kennt eine Reihe davon. - Eine Aktion ist ein einzelner Schritt auf der To-do-Liste eines Tasks. - Der Aktions-Typ …\n📖 Handbuch · Kapitel A13 A13: Im Run-Modus testen — Kapitel 13 — Im Run-Modus testen\n…e - „Nichts passiert beim Klick\" → onClick fehlt am Button, oder Task Giessen hat keine Kette Kapitel 6/7 prüfen . - „Baum wächst nicht\" → Bedingung falsch verkabelt Wahr-Ausgang! Kapit…\n📖 Handbuch · Kapitel A15 A15: Feintuning & Abschluss — Kapitel 15 — Feintuning & Abschluss des Grundkurses\n…ope, Integer, Start 0 Task Giessen onClick des Buttons → increment Durst Timer Durst 5000 ms → decrement mit Boden-0-Bedingung Wachstum Wasser =3 → Stufe 2, Wasser =6 → Stufe 3 + state=…\n📖 Handbuch · Kapitel B1 B1: Die Aufgaben-Stufe — Teil B · Kapitel 1 — Die Aufgaben-Stufe: „Der wachsende Baum\"\n…erifiziert Button „Prüfen\" — Event onClick → Task ✅ implementiert & quellverifiziert Bedingung vergleicht Antwort.text mit Lösung ✅ implementiert & quellverifiziert Toast show toast „Ri…\n📖 Handbuch · Kapitel B6 B6: Freiwilliger Neustart — Teil B · Kapitel 6 — Selbst entscheiden: der freiwillige Neustart\n…Parameter . 2. Neustart → Events → onClick → NeuStarten . 3. Task WeiterSchauen anlegen → Aktion „Toast anzeigen\": Schau dir deinen Baum an — du hast es geschafft! 4. Bleiben → Events →…\n📖 Handbuch · Kapitel B7 B7: Zufallsaufgaben — Teil B · Kapitel 7 — Neue Aufgaben automatisch: Zufall & Formel\n…tton „Neue Aufgabe\" auf der Stage, onClick → NeueAufgabe . Alternativ: der erste Klick auf Pruefen prüft eine sichtbare Start-Frage, z. B. bleibt 3 + 4 = ? voreingestellt; NeueAufgabe s…\n📖 Handbuch · Kapitel B8 B8: Startmenü, Übergang & Klang — Teil B · Kapitel 8 — Feinschliff: Startmenü, Übergang, Klang\n…cht ist . 2. Button Los → Events → onClick → ZumSpiel . Nachweis: navigate stage Parameter stageId , reset und die Laufzeit-Wechsel-Implementierung mit Erhalt globaler Variablen — Edito…\n🧩 Komponente · COMP-0020 · Eingabe & Steuerung TEdit\n…. Events (inherited from TWindow): onClick - Fires when clicked onFocus - Fires when input gains focus onBlur - Fires when input loses focus Events (specific to TEdit): onChange - input…\n🧩 Komponente · COMP-0040 · Dialoge & Overlays TInlineOverlay\n…activationAction und feuert danach onClick mit dem neuen Zustand — genau einmal pro Aktivierung. - interactionMode 'passthrough': kein Zeiger-/Tastaturziel, Klicks gehen durch die Flaec…\n✨ Feature-Artikel · Fachartikel · EDITOR editor-inspector\n… → Task-Name → landet als events: {onClick: \"TaskName\"} im Objekt-JSON - Runtime-Dispatch siehe docs/reference/events.md RuntimeEventService - InspectorEventHandler verarbeitet Änderung…\n🛠️ Entwickler · Runtime & Engine GCS Runtime & Ausführungs-Leitfaden\n…st Taskname-Referenzen z.B. Object.onClick in actionSequence auf. - Suchreihenfolge: Aktive Stage - Blueprint-Stage - Projekt-Wurzel. - ActionExecutor : Führt die einzelnen Logik-Schrit…"
+    },
+    {
+      "query": "Wasser",
+      "text": "📖 Handbuch · Kapitel A4 A4: Variablen: Wasservorrat — Kapitel 4 — Variablen: der Wasservorrat\nKapitel 4 — Variablen: der Wasservorrat Status: quellverifizierter Entwurf — Variablen-Anlage, Inspector-Felder und das Komponenten-Regal sind im Editor-Code nachgewiesen; noc…\n📖 Handbuch · Kapitel A6 A6: Aktionen: Gieß-Knopf — Kapitel 6 — Aktionen: der Gieß-Knopf\n…ask enthält seine erste Aktion — „ Wasser um 1 erhöhen\". Voraussetzungen - Kapitel 1–5 abgeschlossen: Sprite Baum , Variable Wasser Integer, 0 und der leere Task Giessen existieren. Ver…\n📖 Handbuch · Kapitel A2 A2: Der Arbeitsplatz — Kapitel 2 — Der Arbeitsplatz: Editor-Bereiche kennenlernen\n…Variablen Variable, Speicher … der Wasservorrat 10 Bausteine Die übrigen Kategorien Media, Erweitert, System, Daten & Auth, Dialogs, Overlays, Server-Workflow, Dateien und Upload kommen…\n📖 Handbuch · Kapitel A3 A3: Den Baum platzieren — Kapitel 3 — Den Baum platzieren\n…Kapitel Kapitel 4 — Variablen: der Wasservorrat kapitel-04-variablen-wasser.md — wir legen die Variable Wasser an, die sich merkt, wie oft gegossen wurde. --- Quellen: src/editor/servic…\n📖 Handbuch · Kapitel A5 A5: Tasks verstehen — Kapitel 5 — Tasks verstehen\n…iese\" mit Sprite Baum und Variable Wasser existieren. Verwendete Bausteine Baustein Was er tut Woher --- --- --- Task Benannte To-do-Liste aus Aktionen, die das Spiel abarbeitet Flow-An…\n📖 Handbuch · Kapitel A7 A7: Bedingungen — Kapitel 7 — Bedingungen: wann wächst der Baum\n…ngung : „Hat der Baum mindestens 3 Wasser?\" — nur dann wächst er. Voraussetzungen - Kapitel 1–6 abgeschlossen: Giessen → WasserPlus1 Werte addieren, Wasser +1 ist verdrahtet. Verwendete…\n📖 Handbuch · Kapitel A8 A8: Der Flow-Editor — Kapitel 8 — Der Flow-Editor im Detail\n…jekt existiert die Kette Giessen → WasserPlus1 → Bedingung → BaumWaechst . Verwendete Bausteine Baustein Was er tut Woher --- --- --- Flow-Toolbox Werkzeugleiste „Flow Logic\" in der lin…\n📖 Handbuch · Kapitel A9 A9: Wachstumsstufen — Kapitel 9 — Bilder wechseln: Wachstumsstufen\n…abgeschlossen; die Kette Giessen → WasserPlus1 → Wasser = 3? → wahr → BaumWaechst existiert. Verwendete Bausteine Baustein Was er tut --- --- Bedingung 2. Frage Prüft die höhere Schwell…\n📖 Handbuch · Kapitel A10 A10: Der Durst-Timer — Kapitel 10 — Der Durst-Timer\n…ziel Am Ende dieses Kapitels sinkt Wasser automatisch: Ein Timer ruft alle 5 Sekunden den Task Durst auf, der Wasser um 1 verringert. Der Baum hat also „Durst\" — Gießen wird zur Dauerau…\n📖 Handbuch · Kapitel A11 A11: Bildquellen & Media — Kapitel 11 — Bildquellen & Media-Tools\n…uweisungen --- --- BaumWaechst bei Wasser =3 Baum.imageIndex → 1 BaumAusgewachsen bei Wasser =6 Baum.imageIndex → 2 Höhe/Breite/Farbe-Zuweisungen dürfen bleiben — sie schaden nicht. Nac…\n📖 Handbuch · Kapitel A12 A12: Game State & Sieg — Kapitel 12 — Spielzustand: „Gewonnen!\"\n…t am Ende Erwartetes Ergebnis Wenn Wasser = 6 erreicht ist: Baum auf Endstufe → Spielstand.state = won → Toast „Gewonnen!\". Selbst prüfen Funktionsprüfung - Regal zeigt Spielstand Game …\n📖 Handbuch · Kapitel A13 A13: Im Run-Modus testen — Kapitel 13 — Im Run-Modus testen\n…eines Projekts — was dort passiert Wasser-Werte, Positionen , ändert dein gespeichertes Projekt nicht . Testen ist also gefahrlos. Nachweis: safeDeepCopy this.editor.project → GameRunti…\n📖 Handbuch · Kapitel A15 A15: Feintuning & Abschluss — Kapitel 15 — Feintuning & Abschluss des Grundkurses\n… Was Soll-Zustand --- --- Variable Wasser Stage-Scope, Integer, Start 0 Task Giessen onClick des Buttons → increment Durst Timer Durst 5000 ms → decrement mit Boden-0-Bedingung Wachstum…\n📖 Handbuch · Kapitel B2 B2: Lernfortschritt zählen — Teil B · Kapitel 2 — Lernfortschritt zählen: `RichtigeAntworten`\n…ig: getrennte Welten In Teil A hat Wasser das Wachsen gesteuert. Hier nicht : Der Lernfortschritt lebt in RichtigeAntworten — eine eigene Variable, die nichts mit Gießen zu tun hat. Ric…\n🛠️ Entwickler · Qualität & Befunde Technical Debt & Architektur-Befunde (TD-001 bis TD-017)\n…Inspector-Umbenennung Variable 5 → Wasser zeigt der Regal-Eintrag zunächst noch den alten Namen/Details; die Daten sind korrekt gespeichert und nach erneutem Öffnen sichtbar. Reine Anze…"
+    }
+  ],
+  "actionSearchClick": {
+    "requested": "#devref/actions?q=navigate_stage",
+    "actual": "#devref"
+  },
+  "routes": [
+    {
+      "href": "#handbook/kapitel-01",
+      "actual": "#handbook/kapitel-01",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1990
+    },
+    {
+      "href": "#handbook/kapitel-02",
+      "actual": "#handbook/kapitel-02",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1856
+    },
+    {
+      "href": "#handbook/kapitel-03",
+      "actual": "#handbook/kapitel-03",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1851
+    },
+    {
+      "href": "#handbook/kapitel-04",
+      "actual": "#handbook/kapitel-04",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1906
+    },
+    {
+      "href": "#handbook/kapitel-05",
+      "actual": "#handbook/kapitel-05",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1766
+    },
+    {
+      "href": "#handbook/kapitel-06",
+      "actual": "#handbook/kapitel-06",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1892
+    },
+    {
+      "href": "#handbook/kapitel-07",
+      "actual": "#handbook/kapitel-07",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1823
+    },
+    {
+      "href": "#handbook/kapitel-08",
+      "actual": "#handbook/kapitel-08",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1757
+    },
+    {
+      "href": "#handbook/kapitel-09",
+      "actual": "#handbook/kapitel-09",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1809
+    },
+    {
+      "href": "#handbook/kapitel-10",
+      "actual": "#handbook/kapitel-10",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1775
+    },
+    {
+      "href": "#handbook/kapitel-11",
+      "actual": "#handbook/kapitel-11",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1833
+    },
+    {
+      "href": "#handbook/kapitel-12",
+      "actual": "#handbook/kapitel-12",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1747
+    },
+    {
+      "href": "#handbook/kapitel-13",
+      "actual": "#handbook/kapitel-13",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1767
+    },
+    {
+      "href": "#handbook/kapitel-14",
+      "actual": "#handbook/kapitel-14",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1781
+    },
+    {
+      "href": "#handbook/kapitel-15",
+      "actual": "#handbook/kapitel-15",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1834
+    },
+    {
+      "href": "#handbook/b-kapitel-01",
+      "actual": "#handbook/b-kapitel-01",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1987
+    },
+    {
+      "href": "#handbook/b-kapitel-02",
+      "actual": "#handbook/b-kapitel-02",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1849
+    },
+    {
+      "href": "#handbook/b-kapitel-03",
+      "actual": "#handbook/b-kapitel-03",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1987
+    },
+    {
+      "href": "#handbook/b-kapitel-04",
+      "actual": "#handbook/b-kapitel-04",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1955
+    },
+    {
+      "href": "#handbook/b-kapitel-05",
+      "actual": "#handbook/b-kapitel-05",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1947
+    },
+    {
+      "href": "#handbook/b-kapitel-06",
+      "actual": "#handbook/b-kapitel-06",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1907
+    },
+    {
+      "href": "#handbook/b-kapitel-07",
+      "actual": "#handbook/b-kapitel-07",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 2030
+    },
+    {
+      "href": "#handbook/b-kapitel-08",
+      "actual": "#handbook/b-kapitel-08",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1975
+    },
+    {
+      "href": "#components/TAPIServer",
+      "actual": "#components/TAPIServer",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4914
+    },
+    {
+      "href": "#components/TAnimation",
+      "actual": "#components/TAnimation",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4767
+    },
+    {
+      "href": "#components/TAudio",
+      "actual": "#components/TAudio",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4774
+    },
+    {
+      "href": "#components/TAuthService",
+      "actual": "#components/TAuthService",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4592
+    },
+    {
+      "href": "#components/TAvatar",
+      "actual": "#components/TAvatar",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4266
+    },
+    {
+      "href": "#components/TBadge",
+      "actual": "#components/TBadge",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4219
+    },
+    {
+      "href": "#components/TBooleanVariable",
+      "actual": "#components/TBooleanVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5297
+    },
+    {
+      "href": "#components/TButton",
+      "actual": "#components/TButton",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6125
+    },
+    {
+      "href": "#components/TCard",
+      "actual": "#components/TCard",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4486
+    },
+    {
+      "href": "#components/TCardZone",
+      "actual": "#components/TCardZone",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5089
+    },
+    {
+      "href": "#components/TCheckbox",
+      "actual": "#components/TCheckbox",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4393
+    },
+    {
+      "href": "#components/TCmsLiveSync",
+      "actual": "#components/TCmsLiveSync",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5050
+    },
+    {
+      "href": "#components/TColorPicker",
+      "actual": "#components/TColorPicker",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4278
+    },
+    {
+      "href": "#components/TComponent",
+      "actual": "#components/TComponent",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4702
+    },
+    {
+      "href": "#components/TDataList",
+      "actual": "#components/TDataList",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4708
+    },
+    {
+      "href": "#components/TDataStore",
+      "actual": "#components/TDataStore",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4684
+    },
+    {
+      "href": "#components/TDebugLog",
+      "actual": "#components/TDebugLog",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4110
+    },
+    {
+      "href": "#components/TDialogRoot",
+      "actual": "#components/TDialogRoot",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5123
+    },
+    {
+      "href": "#components/TDropdown",
+      "actual": "#components/TDropdown",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4959
+    },
+    {
+      "href": "#components/TEdit",
+      "actual": "#components/TEdit",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5467
+    },
+    {
+      "href": "#components/TEmojiPicker",
+      "actual": "#components/TEmojiPicker",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4736
+    },
+    {
+      "href": "#components/TFilePicker",
+      "actual": "#components/TFilePicker",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4533
+    },
+    {
+      "href": "#components/TFileUpload",
+      "actual": "#components/TFileUpload",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4533
+    },
+    {
+      "href": "#components/TFlowStage",
+      "actual": "#components/TFlowStage",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4012
+    },
+    {
+      "href": "#components/TForEach",
+      "actual": "#components/TForEach",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5618
+    },
+    {
+      "href": "#components/TGameCard",
+      "actual": "#components/TGameCard",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4400
+    },
+    {
+      "href": "#components/TGameHeader",
+      "actual": "#components/TGameHeader",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4485
+    },
+    {
+      "href": "#components/TGameLoop",
+      "actual": "#components/TGameLoop",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5408
+    },
+    {
+      "href": "#components/TGameServer",
+      "actual": "#components/TGameServer",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4810
+    },
+    {
+      "href": "#components/TGameState",
+      "actual": "#components/TGameState",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5083
+    },
+    {
+      "href": "#components/TGridBoard",
+      "actual": "#components/TGridBoard",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4847
+    },
+    {
+      "href": "#components/TGroupPanel",
+      "actual": "#components/TGroupPanel",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4741
+    },
+    {
+      "href": "#components/THandshake",
+      "actual": "#components/THandshake",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5180
+    },
+    {
+      "href": "#components/THeartbeat",
+      "actual": "#components/THeartbeat",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5219
+    },
+    {
+      "href": "#components/TImage",
+      "actual": "#components/TImage",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5348
+    },
+    {
+      "href": "#components/TImageGallery",
+      "actual": "#components/TImageGallery",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4719
+    },
+    {
+      "href": "#components/TImageList",
+      "actual": "#components/TImageList",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5461
+    },
+    {
+      "href": "#components/TImageSplitter",
+      "actual": "#components/TImageSplitter",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5088
+    },
+    {
+      "href": "#components/TInfoWindow",
+      "actual": "#components/TInfoWindow",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4916
+    },
+    {
+      "href": "#components/TInlineOverlay",
+      "actual": "#components/TInlineOverlay",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6270
+    },
+    {
+      "href": "#components/TInputController",
+      "actual": "#components/TInputController",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5243
+    },
+    {
+      "href": "#components/TInspectorTemplate",
+      "actual": "#components/TInspectorTemplate",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5022
+    },
+    {
+      "href": "#components/TIntegerVariable",
+      "actual": "#components/TIntegerVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5391
+    },
+    {
+      "href": "#components/TIntervalTimer",
+      "actual": "#components/TIntervalTimer",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5203
+    },
+    {
+      "href": "#components/TKeyStore",
+      "actual": "#components/TKeyStore",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4507
+    },
+    {
+      "href": "#components/TLabel",
+      "actual": "#components/TLabel",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6168
+    },
+    {
+      "href": "#components/TLearningPointsOverlay",
+      "actual": "#components/TLearningPointsOverlay",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5148
+    },
+    {
+      "href": "#components/TLink",
+      "actual": "#components/TLink",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4306
+    },
+    {
+      "href": "#components/TList",
+      "actual": "#components/TList",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4685
+    },
+    {
+      "href": "#components/TListVariable",
+      "actual": "#components/TListVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5030
+    },
+    {
+      "href": "#components/TMemo",
+      "actual": "#components/TMemo",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4466
+    },
+    {
+      "href": "#components/TNavBar",
+      "actual": "#components/TNavBar",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4371
+    },
+    {
+      "href": "#components/TNumberInput",
+      "actual": "#components/TNumberInput",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4520
+    },
+    {
+      "href": "#components/TNumberLabel",
+      "actual": "#components/TNumberLabel",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4976
+    },
+    {
+      "href": "#components/TObjectList",
+      "actual": "#components/TObjectList",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5856
+    },
+    {
+      "href": "#components/TObjectVariable",
+      "actual": "#components/TObjectVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5024
+    },
+    {
+      "href": "#components/TOverlay",
+      "actual": "#components/TOverlay",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5343
+    },
+    {
+      "href": "#components/TPanel",
+      "actual": "#components/TPanel",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5052
+    },
+    {
+      "href": "#components/TParallaxBackground",
+      "actual": "#components/TParallaxBackground",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4703
+    },
+    {
+      "href": "#components/TProgressBar",
+      "actual": "#components/TProgressBar",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5042
+    },
+    {
+      "href": "#components/TPuzzleBoard",
+      "actual": "#components/TPuzzleBoard",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5277
+    },
+    {
+      "href": "#components/TRandomVariable",
+      "actual": "#components/TRandomVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4661
+    },
+    {
+      "href": "#components/TRangeVariable",
+      "actual": "#components/TRangeVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4341
+    },
+    {
+      "href": "#components/TRealVariable",
+      "actual": "#components/TRealVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4101
+    },
+    {
+      "href": "#components/TRichText",
+      "actual": "#components/TRichText",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4234
+    },
+    {
+      "href": "#components/TServerAccess",
+      "actual": "#components/TServerAccess",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4447
+    },
+    {
+      "href": "#components/TServerAuthenticate",
+      "actual": "#components/TServerAuthenticate",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4474
+    },
+    {
+      "href": "#components/TServerCards",
+      "actual": "#components/TServerCards",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4579
+    },
+    {
+      "href": "#components/TServerDecks",
+      "actual": "#components/TServerDecks",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4563
+    },
+    {
+      "href": "#components/TServerEndpoint",
+      "actual": "#components/TServerEndpoint",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4789
+    },
+    {
+      "href": "#components/TServerEnroll",
+      "actual": "#components/TServerEnroll",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4465
+    },
+    {
+      "href": "#components/TServerLiveSync",
+      "actual": "#components/TServerLiveSync",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4634
+    },
+    {
+      "href": "#components/TServerParentAccount",
+      "actual": "#components/TServerParentAccount",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4500
+    },
+    {
+      "href": "#components/TServerParty",
+      "actual": "#components/TServerParty",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4535
+    },
+    {
+      "href": "#components/TServerPerformance",
+      "actual": "#components/TServerPerformance",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4682
+    },
+    {
+      "href": "#components/TServerPlaySession",
+      "actual": "#components/TServerPlaySession",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4802
+    },
+    {
+      "href": "#components/TServerProfile",
+      "actual": "#components/TServerProfile",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4302
+    },
+    {
+      "href": "#components/TServerQuery",
+      "actual": "#components/TServerQuery",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4549
+    },
+    {
+      "href": "#components/TServerResponse",
+      "actual": "#components/TServerResponse",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4639
+    },
+    {
+      "href": "#components/TServerReward",
+      "actual": "#components/TServerReward",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4651
+    },
+    {
+      "href": "#components/TServerSession",
+      "actual": "#components/TServerSession",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4681
+    },
+    {
+      "href": "#components/TServerSponsorAgreement",
+      "actual": "#components/TServerSponsorAgreement",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4653
+    },
+    {
+      "href": "#components/TServerSponsorship",
+      "actual": "#components/TServerSponsorship",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4613
+    },
+    {
+      "href": "#components/TServerSql",
+      "actual": "#components/TServerSql",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4531
+    },
+    {
+      "href": "#components/TServerStore",
+      "actual": "#components/TServerStore",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4368
+    },
+    {
+      "href": "#components/TServerUpload",
+      "actual": "#components/TServerUpload",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4643
+    },
+    {
+      "href": "#components/TServerValidate",
+      "actual": "#components/TServerValidate",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4391
+    },
+    {
+      "href": "#components/TShape",
+      "actual": "#components/TShape",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4682
+    },
+    {
+      "href": "#components/TSidePanel",
+      "actual": "#components/TSidePanel",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5171
+    },
+    {
+      "href": "#components/TSlider",
+      "actual": "#components/TSlider",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4970
+    },
+    {
+      "href": "#components/TSpawner",
+      "actual": "#components/TSpawner",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4991
+    },
+    {
+      "href": "#components/TSpeech",
+      "actual": "#components/TSpeech",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5030
+    },
+    {
+      "href": "#components/TSpeechRecognition",
+      "actual": "#components/TSpeechRecognition",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5030
+    },
+    {
+      "href": "#components/TSpeedlines",
+      "actual": "#components/TSpeedlines",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4681
+    },
+    {
+      "href": "#components/TSplashScreen",
+      "actual": "#components/TSplashScreen",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4541
+    },
+    {
+      "href": "#components/TSplashStage",
+      "actual": "#components/TSplashStage",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4615
+    },
+    {
+      "href": "#components/TSprite",
+      "actual": "#components/TSprite",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6831
+    },
+    {
+      "href": "#components/TSpriteTemplate",
+      "actual": "#components/TSpriteTemplate",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5873
+    },
+    {
+      "href": "#components/TStage",
+      "actual": "#components/TStage",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5360
+    },
+    {
+      "href": "#components/TStageController",
+      "actual": "#components/TStageController",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5950
+    },
+    {
+      "href": "#components/TStatusBar",
+      "actual": "#components/TStatusBar",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5203
+    },
+    {
+      "href": "#components/TStickyNote",
+      "actual": "#components/TStickyNote",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4413
+    },
+    {
+      "href": "#components/TStringMap",
+      "actual": "#components/TStringMap",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4954
+    },
+    {
+      "href": "#components/TStringVariable",
+      "actual": "#components/TStringVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5159
+    },
+    {
+      "href": "#components/TSystemInfo",
+      "actual": "#components/TSystemInfo",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4960
+    },
+    {
+      "href": "#components/TTabBar",
+      "actual": "#components/TTabBar",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4282
+    },
+    {
+      "href": "#components/TTabControl",
+      "actual": "#components/TTabControl",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4528
+    },
+    {
+      "href": "#components/TTable",
+      "actual": "#components/TTable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5617
+    },
+    {
+      "href": "#components/TTetris",
+      "actual": "#components/TTetris",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4872
+    },
+    {
+      "href": "#components/TTextControl",
+      "actual": "#components/TTextControl",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4383
+    },
+    {
+      "href": "#components/TTextToSpeech",
+      "actual": "#components/TTextToSpeech",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6363
+    },
+    {
+      "href": "#components/TThemeDialog",
+      "actual": "#components/TThemeDialog",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4424
+    },
+    {
+      "href": "#components/TThresholdVariable",
+      "actual": "#components/TThresholdVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4531
+    },
+    {
+      "href": "#components/TTimer",
+      "actual": "#components/TTimer",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5410
+    },
+    {
+      "href": "#components/TToast",
+      "actual": "#components/TToast",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5472
+    },
+    {
+      "href": "#components/TTriggerVariable",
+      "actual": "#components/TTriggerVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4297
+    },
+    {
+      "href": "#components/TUserManager",
+      "actual": "#components/TUserManager",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4414
+    },
+    {
+      "href": "#components/TVariable",
+      "actual": "#components/TVariable",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5226
+    },
+    {
+      "href": "#components/TVideo",
+      "actual": "#components/TVideo",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4657
+    },
+    {
+      "href": "#components/TVirtualGamepad",
+      "actual": "#components/TVirtualGamepad",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4874
+    },
+    {
+      "href": "#components/TWindow",
+      "actual": "#components/TWindow",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5399
+    },
+    {
+      "href": "#components/TServerAuthorize",
+      "actual": "#components/TServerAuthorize",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3871
+    },
+    {
+      "href": "#components/TServerGuardian",
+      "actual": "#components/TServerGuardian",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3868
+    },
+    {
+      "href": "#components/TServerRateLimit",
+      "actual": "#components/TServerRateLimit",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3871
+    },
+    {
+      "href": "#components/TServerProgress",
+      "actual": "#components/TServerProgress",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3868
+    },
+    {
+      "href": "#components/TServerPrivacy",
+      "actual": "#components/TServerPrivacy",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3871
+    },
+    {
+      "href": "#components/TServerInvite",
+      "actual": "#components/TServerInvite",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3862
+    },
+    {
+      "href": "#components/TServerDeviceGrant",
+      "actual": "#components/TServerDeviceGrant",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3877
+    },
+    {
+      "href": "#features/FEAT-0001",
+      "actual": "#features/FEAT-0001",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3982
+    },
+    {
+      "href": "#features/FEAT-0002",
+      "actual": "#features/FEAT-0002",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3114
+    },
+    {
+      "href": "#features/FEAT-0003",
+      "actual": "#features/FEAT-0003",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3285
+    },
+    {
+      "href": "#features/FEAT-0004",
+      "actual": "#features/FEAT-0004",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3208
+    },
+    {
+      "href": "#features/FEAT-0005",
+      "actual": "#features/FEAT-0005",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5231
+    },
+    {
+      "href": "#features/FEAT-0006",
+      "actual": "#features/FEAT-0006",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 2927
+    },
+    {
+      "href": "#features/FEAT-0007",
+      "actual": "#features/FEAT-0007",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3073
+    },
+    {
+      "href": "#features/FEAT-0008",
+      "actual": "#features/FEAT-0008",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3870
+    },
+    {
+      "href": "#features/FEAT-0009",
+      "actual": "#features/FEAT-0009",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3187
+    },
+    {
+      "href": "#features/FEAT-0010",
+      "actual": "#features/FEAT-0010",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3066
+    },
+    {
+      "href": "#features/FEAT-0011",
+      "actual": "#features/FEAT-0011",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3700
+    },
+    {
+      "href": "#features/FEAT-0012",
+      "actual": "#features/FEAT-0012",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 3555
+    },
+    {
+      "href": "#features/feat-doc-feature-map",
+      "actual": "#features/feat-doc-feature-map",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 28993
+    },
+    {
+      "href": "#features/feat-doc-cms",
+      "actual": "#features/feat-doc-cms",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 8519
+    },
+    {
+      "href": "#features/feat-doc-editor-flow-editor",
+      "actual": "#features/feat-doc-editor-flow-editor",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5866
+    },
+    {
+      "href": "#features/feat-doc-editor-inspector",
+      "actual": "#features/feat-doc-editor-inspector",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5027
+    },
+    {
+      "href": "#features/feat-doc-editor-project-management",
+      "actual": "#features/feat-doc-editor-project-management",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6597
+    },
+    {
+      "href": "#features/feat-doc-editor",
+      "actual": "#features/feat-doc-editor",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 4519
+    },
+    {
+      "href": "#features/feat-doc-editor-stage-editor",
+      "actual": "#features/feat-doc-editor-stage-editor",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6197
+    },
+    {
+      "href": "#features/feat-doc-editor-views-run-simulator",
+      "actual": "#features/feat-doc-editor-views-run-simulator",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5168
+    },
+    {
+      "href": "#features/feat-doc-lernwelten",
+      "actual": "#features/feat-doc-lernwelten",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6074
+    },
+    {
+      "href": "#features/feat-doc-multiplayer",
+      "actual": "#features/feat-doc-multiplayer",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 7315
+    },
+    {
+      "href": "#features/feat-doc-multiplayer-sicherheit",
+      "actual": "#features/feat-doc-multiplayer-sicherheit",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 7365
+    },
+    {
+      "href": "#features/feat-doc-runtime-spielablauf",
+      "actual": "#features/feat-doc-runtime-spielablauf",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 7041
+    },
+    {
+      "href": "#architecture/overview",
+      "actual": "#architecture/overview",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 9429
+    },
+    {
+      "href": "#architecture/module-map",
+      "actual": "#architecture/module-map",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 8279
+    },
+    {
+      "href": "#architecture/execution-flow",
+      "actual": "#architecture/execution-flow",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5579
+    },
+    {
+      "href": "#architecture/arch-readme",
+      "actual": "#architecture/arch-readme",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 1349
+    },
+    {
+      "href": "#devref/guidelines",
+      "actual": "#devref/guidelines",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 75609
+    },
+    {
+      "href": "#devref/runtime-guide",
+      "actual": "#devref/runtime-guide",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 2684
+    },
+    {
+      "href": "#devref/stage-interfaces",
+      "actual": "#devref/stage-interfaces",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 7734
+    },
+    {
+      "href": "#devref/id-schema",
+      "actual": "#devref/id-schema",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 6506
+    },
+    {
+      "href": "#devref/technical-debt",
+      "actual": "#devref/technical-debt",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 25342
+    },
+    {
+      "href": "#devref/security-plan",
+      "actual": "#devref/security-plan",
+      "redirected": false,
+      "containsNotFoundPhrase": true,
+      "length": 18954
+    },
+    {
+      "href": "#devref/tooling",
+      "actual": "#devref/tooling",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5431
+    },
+    {
+      "href": "#devref/phase1-report",
+      "actual": "#devref/phase1-report",
+      "redirected": false,
+      "containsNotFoundPhrase": false,
+      "length": 5258
+    },
+    {
+      "href": "#devref/actions?q=property",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=action",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=set_child_property",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=variable",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=set_variable",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=calculate",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=negate",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=increment",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=animate",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=move_to",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=sprite_animate",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=navigate",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=navigate_stage",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=restart_game",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=http",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=respond_http",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=execute_login_request",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=data_action",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=handle_api_request",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=spawn_object",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=destroy_object",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=service",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=create_room",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=join_room",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=store_token",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=show_toast",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=call_method",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=play_audio",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=stop_audio",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=load_theme_map",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=set_active_theme",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=show_theme_dialog",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=close_overlay",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=toggle_dialog",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_push",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_pop",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_get",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_set",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_remove",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_clear",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_shuffle",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_contains",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=list_length",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=map_get",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=map_set",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=map_delete",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=map_has",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=map_keys",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=bind_event",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=unbind_event",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=shake_screen",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_set",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_get",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_index",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_find",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_count",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=record_reset",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=stage_input",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    },
+    {
+      "href": "#devref/actions?q=stage_output",
+      "actual": "#devref",
+      "redirected": true,
+      "containsNotFoundPhrase": false,
+      "length": 3839
+    }
+  ],
+  "networkRequests": []
+}

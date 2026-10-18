@@ -1,0 +1,20 @@
+=== VALIDIERUNG GCS-WISSENSBASIS ===
+Entities: 688 | Chunks: 1774 | ID-Map: 306
+unauflösbare Relationen: 0 | fehlende Quellen: 0 | Parameter-Warnungen: 0
+geplant/veraltet markiert: 148
+---
+WARNUNGEN (13):
+  ⚠ DOC-0231: Quelldatei (bekannt) fehlt: docs/handbook-html/TESTBERICHT.md
+  ⚠ DOC-0232: Quelldatei (bekannt) fehlt: docs/handbook-html/VERGLEICH.md
+  ⚠ DOC-0233: Quelldatei (bekannt) fehlt: docs/handbook-html/gcs-native/GCS-PRINZIPIEN.md
+  ⚠ DOC-0234: Quelldatei (bekannt) fehlt: docs/handbook-html/gcs-native/README.md
+  ⚠ DOC-0235: Quelldatei (bekannt) fehlt: docs/handbook-html/gcs-native/index.html
+  ⚠ DOC-0236: Quelldatei (bekannt) fehlt: docs/handbook-html/gcs-native/project.js
+  ⚠ DOC-0237: Quelldatei (bekannt) fehlt: docs/handbook-html/gcs-native/runtime-standalone.js
+  ⚠ DOC-0238: Quelldatei (bekannt) fehlt: docs/handbook-html/modern/README.md
+  ⚠ DOC-0239: Quelldatei (bekannt) fehlt: docs/handbook-html/modern/app.js
+  ⚠ DOC-0240: Quelldatei (bekannt) fehlt: docs/handbook-html/modern/index.html
+  ⚠ DOC-0241: Quelldatei (bekannt) fehlt: docs/handbook-html/modern/style.css
+  ⚠ DOC-0242: Quelldatei (bekannt) fehlt: docs/handbook-html/shared/handbook-content.js
+  ⚠ 7 dokumentierte Entities ohne Chunks: COMP-0122, COMP-0123, COMP-0124, COMP-0125, COMP-0126, COMP-0127, COMP-0128
+ERGEBNIS: BESTANDEN (13 Warnungen)

@@ -1,0 +1,164 @@
+{
+  "counts": {
+    "action-type": 59,
+    "component": 128,
+    "concept": 15,
+    "document": 242,
+    "event": 158,
+    "feature": 12,
+    "guide-chapter": 23,
+    "method": 38,
+    "schema": 13
+  },
+  "schemaInvalid": 0,
+  "relations": 0,
+  "missingSources": 13,
+  "propertiesEmpty": 20,
+  "actions": 0,
+  "parameterLoss": 181,
+  "chunkProblems": {
+    "duplicateIds": [
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:9-tests",
+      "FEAT-0005:_intro",
+      "FEAT-0005:8-bekannte-einschraenkungen-amp-fehler",
+      "FEAT-0005:9-tests",
+      "FEAT-0005:_intro",
+      "FEAT-0005:uebersicht",
+      "FEAT-0005:_intro",
+      "FEAT-0005:_intro",
+      "FEAT-0005:editor-grundlayout-aus-editor-ts-index-html-containern",
+      "FEAT-0005:feature-dokumente",
+      "FEAT-0005:globale-bedienkonzepte-code-belegt",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-stage-arbeitsflaeche",
+      "FEAT-0005:2-toolbox-links",
+      "FEAT-0005:3-komponenten-palette",
+      "FEAT-0005:4-sidepanel-regal-editorsidepanel-editorshelfmodel",
+      "FEAT-0005:5-stage-verwaltung-menue-stages",
+      "FEAT-0005:6-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:7-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-zweck-amp-benutzerperspektive",
+      "FEAT-0005:2-ort-amp-bedienung",
+      "FEAT-0005:3-flowtoolbox-elemente-code-belegt-flowtoolbox-ts-z-21-31",
+      "FEAT-0005:4-knotentypen-src-editor-flow",
+      "FEAT-0005:5-kanten-semantik-aus-taskexecutor-executeflowchart-z-308",
+      "FEAT-0005:6-pascal-synchronisation",
+      "FEAT-0005:7-refactoring-amp-sicherheit",
+      "FEAT-0005:8-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:9-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-zweck-amp-ort",
+      "FEAT-0005:2-property-editoren",
+      "FEAT-0005:3-event-verbindungen-event-tab",
+      "FEAT-0005:4-property-runtime",
+      "FEAT-0005:5-variablenverwaltung",
+      "FEAT-0005:6-umbenennen-amp-refactoring",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:8-beispiel",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-view-system",
+      "FEAT-0005:2-run-modus-editorrunmanager-330-z",
+      "FEAT-0005:3-api-simulator-editorsimulatormanager",
+      "FEAT-0005:4-debug-log-tdebuglog-debuglogservice",
+      "FEAT-0005:5-json-amp-code-view",
+      "FEAT-0005:6-management-view",
+      "FEAT-0005:7-einschraenkungen-amp-offene-punkte",
+      "FEAT-0005:_intro",
+      "FEAT-0005:1-datei-menue-menu_bar-json-editormenumanager-editordatamanager",
+      "FEAT-0005:2-bearbeiten-menue-undo-redo",
+      "FEAT-0005:3-plattform-menue-export-amp-test",
+      "FEAT-0005:4-stage-import",
+      "FEAT-0005:5-themes",
+      "FEAT-0005:6-werkzeuge-menue-media-tools",
+      "FEAT-0005:7-dialoge-src-editor-dialogs",
+      "FEAT-0005:8-abhaengigkeiten-zwischen-features",
+      "FEAT-0005:9-einschraenkungen-amp-offene-punkte",
+      "FEAT-0006:_intro",
+      "FEAT-0007:_intro",
+      "FEAT-0007:_intro",
+      "FEAT-0008:_intro",
+      "FEAT-0008:_intro",
+      "FEAT-0009:_intro",
+      "FEAT-0009:_intro",
+      "FEAT-0012:_intro",
+      "FEAT-0012:_intro",
+      "FEAT-0012:_intro"
+    ],
+    "unknownEntities": [],
+    "badLengths": [],
+    "oversized": []
+  },
+  "build": {
+    "validationShipped": {
+      "exitCode": 0
+    },
+    "builds": [
+      {
+        "swe": {
+          "exitCode": 0
+        },
+        "argon": {
+          "exitCode": 0
+        }
+      },
+      {
+        "swe": {
+          "exitCode": 0
+        },
+        "argon": {
+          "exitCode": 0
+        }
+      }
+    ],
+    "validationFresh": {
+      "exitCode": 0
+    },
+    "repeatability": {
+      "byteDifferent": [
+        "docs/gcs-knowledge-swe2/entities/action-types-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/components-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/concepts-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/documents-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/events-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/features-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/guide-chapters-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/methods-swe2.json",
+        "docs/gcs-knowledge-swe2/entities/schemas-swe2.json",
+        "docs/gcs-knowledge-swe2/knowledge-index-swe2.json",
+        "docs/gcs-doc-portal-argon/data/portal-data-argon.json",
+        "docs/gcs-doc-portal-argon/data/portal-data-argon.js"
+      ],
+      "normalizedDifferent": [],
+      "shippedVsFreshNormalizedDifferent": [
+        "docs/gcs-doc-portal-argon/data/portal-data-argon.json",
+        "docs/gcs-doc-portal-argon/data/portal-data-argon.js"
+      ]
+    },
+    "negativeMissingExtractedAt": {
+      "exitCode": 0
+    },
+    "negativeIndependentSchemaAccepts": false,
+    "reorderedBuild": {
+      "exitCode": 0
+    },
+    "idMapStableUnderReorder": true
+  },
+  "protectedUnchanged": true
+}

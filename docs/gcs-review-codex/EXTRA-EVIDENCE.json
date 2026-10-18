@@ -1,0 +1,168 @@
+{
+  "featureMismatches": [],
+  "documentMismatches": [],
+  "guideSourceMismatches": [],
+  "guideMapping": [
+    {
+      "route": "kapitel-01",
+      "file": "kapitel-01-projekt-anlegen.md",
+      "swe": [
+        "GUIDE-0009"
+      ]
+    },
+    {
+      "route": "kapitel-02",
+      "file": "kapitel-02-arbeitsplatz.md",
+      "swe": [
+        "GUIDE-0010"
+      ]
+    },
+    {
+      "route": "kapitel-03",
+      "file": "kapitel-03-baum-platzieren.md",
+      "swe": [
+        "GUIDE-0011"
+      ]
+    },
+    {
+      "route": "kapitel-04",
+      "file": "kapitel-04-variablen-wasser.md",
+      "swe": [
+        "GUIDE-0012"
+      ]
+    },
+    {
+      "route": "kapitel-05",
+      "file": "kapitel-05-tasks-verstehen.md",
+      "swe": [
+        "GUIDE-0013"
+      ]
+    },
+    {
+      "route": "kapitel-06",
+      "file": "kapitel-06-giess-knopf.md",
+      "swe": [
+        "GUIDE-0014"
+      ]
+    },
+    {
+      "route": "kapitel-07",
+      "file": "kapitel-07-bedingungen.md",
+      "swe": [
+        "GUIDE-0015"
+      ]
+    },
+    {
+      "route": "kapitel-08",
+      "file": "kapitel-08-flow-editor.md",
+      "swe": [
+        "GUIDE-0016"
+      ]
+    },
+    {
+      "route": "kapitel-09",
+      "file": "kapitel-09-wachstumsstufen.md",
+      "swe": [
+        "GUIDE-0017"
+      ]
+    },
+    {
+      "route": "kapitel-10",
+      "file": "kapitel-10-durst-timer.md",
+      "swe": [
+        "GUIDE-0018"
+      ]
+    },
+    {
+      "route": "kapitel-11",
+      "file": "kapitel-11-bilder-media.md",
+      "swe": [
+        "GUIDE-0019"
+      ]
+    },
+    {
+      "route": "kapitel-12",
+      "file": "kapitel-12-game-state.md",
+      "swe": [
+        "GUIDE-0020"
+      ]
+    },
+    {
+      "route": "kapitel-13",
+      "file": "kapitel-13-run-test.md",
+      "swe": [
+        "GUIDE-0021"
+      ]
+    },
+    {
+      "route": "kapitel-14",
+      "file": "kapitel-14-export.md",
+      "swe": [
+        "GUIDE-0022"
+      ]
+    },
+    {
+      "route": "kapitel-15",
+      "file": "kapitel-15-feintuning.md",
+      "swe": [
+        "GUIDE-0023"
+      ]
+    },
+    {
+      "route": "b-kapitel-01",
+      "file": "b-kapitel-01-aufgaben-stufe.md",
+      "swe": [
+        "GUIDE-0001"
+      ]
+    },
+    {
+      "route": "b-kapitel-02",
+      "file": "b-kapitel-02-richtige-antworten.md",
+      "swe": [
+        "GUIDE-0002"
+      ]
+    },
+    {
+      "route": "b-kapitel-03",
+      "file": "b-kapitel-03-weltreaktion.md",
+      "swe": [
+        "GUIDE-0003"
+      ]
+    },
+    {
+      "route": "b-kapitel-04",
+      "file": "b-kapitel-04-baumhaus.md",
+      "swe": [
+        "GUIDE-0004"
+      ]
+    },
+    {
+      "route": "b-kapitel-05",
+      "file": "b-kapitel-05-dragdrop.md",
+      "swe": [
+        "GUIDE-0005"
+      ]
+    },
+    {
+      "route": "b-kapitel-06",
+      "file": "b-kapitel-06-neustart.md",
+      "swe": [
+        "GUIDE-0006"
+      ]
+    },
+    {
+      "route": "b-kapitel-07",
+      "file": "b-kapitel-07-zufallsaufgaben.md",
+      "swe": [
+        "GUIDE-0007"
+      ]
+    },
+    {
+      "route": "b-kapitel-08",
+      "file": "b-kapitel-08-feinschliff.md",
+      "swe": [
+        "GUIDE-0008"
+      ]
+    }
+  ]
+}

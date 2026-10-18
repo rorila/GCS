@@ -1,0 +1,55 @@
+{
+  "validationShipped": {
+    "exitCode": 0
+  },
+  "builds": [
+    {
+      "swe": {
+        "exitCode": 0
+      },
+      "argon": {
+        "exitCode": 0
+      }
+    },
+    {
+      "swe": {
+        "exitCode": 0
+      },
+      "argon": {
+        "exitCode": 0
+      }
+    }
+  ],
+  "validationFresh": {
+    "exitCode": 0
+  },
+  "repeatability": {
+    "byteDifferent": [
+      "docs/gcs-knowledge-swe2/entities/action-types-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/components-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/concepts-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/documents-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/events-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/features-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/guide-chapters-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/methods-swe2.json",
+      "docs/gcs-knowledge-swe2/entities/schemas-swe2.json",
+      "docs/gcs-knowledge-swe2/knowledge-index-swe2.json",
+      "docs/gcs-doc-portal-argon/data/portal-data-argon.json",
+      "docs/gcs-doc-portal-argon/data/portal-data-argon.js"
+    ],
+    "normalizedDifferent": [],
+    "shippedVsFreshNormalizedDifferent": [
+      "docs/gcs-doc-portal-argon/data/portal-data-argon.json",
+      "docs/gcs-doc-portal-argon/data/portal-data-argon.js"
+    ]
+  },
+  "negativeMissingExtractedAt": {
+    "exitCode": 0
+  },
+  "negativeIndependentSchemaAccepts": false,
+  "reorderedBuild": {
+    "exitCode": 0
+  },
+  "idMapStableUnderReorder": true
+}

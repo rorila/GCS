@@ -1,0 +1,31 @@
+{
+  "reports": [
+    {
+      "file": "REVIEW-CODEX.md",
+      "bytes": 20306
+    },
+    {
+      "file": "INTEGRATION-CODEX.md",
+      "bytes": 7711
+    },
+    {
+      "file": "FINDINGS-CODEX.json",
+      "bytes": 14696
+    },
+    {
+      "file": "TESTPLAN-CODEX.md",
+      "bytes": 6669
+    }
+  ],
+  "classificationCounts": {
+    "Fehler": 8,
+    "Risiko": 3,
+    "Verbesserungsvorschlag": 1
+  },
+  "protectedFiles": 607,
+  "protectedUnchanged": true,
+  "missingReportLinks": [],
+  "featureMismatches": 0,
+  "documentMismatches": 0,
+  "guideSourceMismatches": 0
+}
