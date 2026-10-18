@@ -1,0 +1,141 @@
+{
+  "counts": {
+    "action-type": 59,
+    "component": 128,
+    "concept": 15,
+    "document": 242,
+    "event": 158,
+    "feature": 12,
+    "guide-chapter": 23,
+    "method": 38,
+    "schema": 13
+  },
+  "search": 1817,
+  "duplicates": 82,
+  "tests": {
+    "integrationShipped": {
+      "exitCode": 1,
+      "summary": [
+        "=== Ergebnis: 29 bestanden, 1 fehlgeschlagen ===",
+        "  ✘ [FAIL] SWE-2-Wissensbasis (docs/gcs-knowledge-swe2/) wurde nicht verändert (read-only) — ?? docs/gcs-review-codex/audit-v2/sandbox/repo/docs/gcs-knowledge-swe2/"
+      ]
+    },
+    "sweValidationShipped": {
+      "exitCode": 0,
+      "summary": [
+        "ERGEBNIS: BESTANDEN (13 Warnungen)"
+      ]
+    },
+    "sweBuild1": {
+      "exitCode": 0,
+      "summary": []
+    },
+    "argonBuild1": {
+      "exitCode": 0,
+      "summary": []
+    },
+    "integrationFresh": {
+      "exitCode": 1,
+      "summary": [
+        "=== Ergebnis: 29 bestanden, 1 fehlgeschlagen ===",
+        "  ✘ [FAIL] SWE-2-Wissensbasis (docs/gcs-knowledge-swe2/) wurde nicht verändert (read-only) — ?? docs/gcs-review-codex/audit-v2/sandbox/repo/docs/gcs-knowledge-swe2/"
+      ]
+    },
+    "sweValidationFresh": {
+      "exitCode": 0,
+      "summary": [
+        "ERGEBNIS: BESTANDEN (13 Warnungen)"
+      ]
+    },
+    "sweBuild2": {
+      "exitCode": 0,
+      "summary": []
+    },
+    "argonBuild2": {
+      "exitCode": 0,
+      "summary": []
+    },
+    "repeat": {
+      "byteDifferent": [
+        "docs\\gcs-doc-portal-argon\\data\\portal-data-argon.json",
+        "docs\\gcs-doc-portal-argon\\data\\portal-data-argon.js",
+        "docs\\gcs-knowledge-swe2\\entities\\action-types-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\components-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\concepts-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\documents-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\events-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\features-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\guide-chapters-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\methods-swe2.json",
+        "docs\\gcs-knowledge-swe2\\entities\\schemas-swe2.json",
+        "docs\\gcs-knowledge-swe2\\knowledge-index-swe2.json"
+      ],
+      "normalizedDifferent": [],
+      "shippedDifferent": []
+    },
+    "importNegatives": [
+      {
+        "label": "major2",
+        "accepted": false,
+        "error": "[import-swe2-argon] Inkompatible SWE-2 schemaVersion: 2.0.0"
+      },
+      {
+        "label": "invalidSemver",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 0
+      },
+      {
+        "label": "falseManifestCount",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 0
+      },
+      {
+        "label": "duplicateEntity",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 0
+      },
+      {
+        "label": "missingRequiredField",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 0
+      },
+      {
+        "label": "unresolvedRelation",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 1
+      },
+      {
+        "label": "missingStatus",
+        "accepted": true,
+        "entityCount": 688,
+        "unresolved": 0
+      },
+      {
+        "label": "missingRecord",
+        "accepted": true,
+        "entityCount": 687,
+        "unresolved": 1
+      }
+    ],
+    "validatorMissingExtractedAt": {
+      "exitCode": 0,
+      "summary": [
+        "ERGEBNIS: BESTANDEN (13 Warnungen)"
+      ]
+    },
+    "schemaAcceptsMissingExtractedAt": false,
+    "staleManifest": {
+      "exitCode": 0,
+      "summary": []
+    },
+    "restoreBuild": {
+      "exitCode": 0,
+      "summary": []
+    }
+  }
+}

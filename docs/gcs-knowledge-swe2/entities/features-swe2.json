@@ -58,14 +58,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:3b90a762d172ef7f"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -114,14 +119,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:18c9ae3ac8e36df1"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -171,14 +181,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:acb76b933900b557"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -236,14 +251,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1733a3b32b76839c"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -385,14 +405,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:55e9eb1bb7a4f58d"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -439,14 +464,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:d6dc3a6d1fda5870"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -508,14 +538,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:0bd680f9aab2a3d8"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -596,14 +631,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a0a47ce17118b3c1"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -668,14 +708,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:f547b0907b4bd434"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -731,14 +776,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a22ddba6b0a19afb"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -797,14 +847,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:4ee8a4efa31d700f"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  },
  {
@@ -877,14 +932,19 @@
   "version": {
    "lastChecked": "2026-10-17",
    "commit": "53e3dfb",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c7f2660f9ffbf1a1"
   },
   "provenance": {
    "method": [
     "inventory"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "status": "documented",
+    "description": "documented",
+    "relations": "documented"
+   }
   }
  }
 ]

@@ -3,10 +3,11 @@
  *
  * Verantwortlichkeiten:
  * - Hash-Routing für alle 6 Portal-Bereiche (#home, #handbook, #components, #features, #architecture, #devref)
+ * - Direkte Unterstützung aller kanonischen SWE-2-IDs (COMP, FEAT, ACT, MTH, EVT, SCM, GUIDE, DOC, CON)
  * - Dynamische Kontext-Sidebar inkl. Schnellfilter
  * - Kapitel-Leseansicht mit interaktiven Checklisten, Fortschrittsring & deutschen Sprecher-Drehbüchern
- * - Interaktive Katalog-Filter (Komponenten, Features, Runtime-Actions, Dokumenten-Inventar)
- * - Globale Spotlight-Volltextsuche (Strg+K oder /) mit Bereichs-Filter-Pills
+ * - Interaktive Katalog-Filter (Komponenten, Features, Actions, Methoden, Events, Schemas, Dokumenten-Inventar)
+ * - Globale Spotlight-Volltextsuche (Strg+K oder /) auf Basis von chunks-swe2.jsonl (1.774 Chunks)
  * - Persistenz im Browser (localStorage: gcs_handbook_modern_v1)
  */
 (function () {
@@ -15,41 +16,24 @@
   const STORAGE_KEY = 'gcs_handbook_modern_v1';
   const DATA = window.GCS_PORTAL_DATA_ARGON;
   const VIEWS = window.ArgonPortalViews;
+  const SWE2 = window.ArgonSwe2Adapter;
 
-  if (!DATA || !VIEWS) {
+  if (!DATA || !VIEWS || !SWE2) {
     document.body.innerHTML =
-      '<div style="padding:40px;font-family:sans-serif;color:#ef4444">Fehler: <code>data/portal-data-argon.js</code> oder <code>views-argon.js</code> konnte nicht geladen werden. Bitte <code>node docs/gcs-doc-portal-argon/build-argon.cjs</code> ausführen.</div>';
+      '<div style="padding:40px;font-family:sans-serif;color:#ef4444">Fehler: <code>data/portal-data-argon.js</code>, <code>swe2-adapter-argon.js</code> oder <code>views-argon.js</code> konnte nicht geladen werden. Bitte <code>node docs/gcs-doc-portal-argon/build-argon.cjs</code> ausführen.</div>';
     return;
   }
 
   const esc = VIEWS.esc;
 
-  const defaultState = {
-    theme: 'dark',
-    speakerMode: false,
-    completedChapters: {},
-    checkedItems: {},
-    lastVisited: null,
-    activeFilter: 'all'
-  };
-
+  const defaultState = { theme: 'dark', speakerMode: false, completedChapters: {}, checkedItems: {}, lastVisited: null, activeFilter: 'all' };
   let state = loadState();
 
   const uiState = {
-    activeArea: 'home',
-    activeSubId: null,
-    sidebarFilter: '',
-    compCategory: 'all',
-    compStatus: 'all',
-    compQuery: '',
-    featCategory: 'all',
-    devSubView: 'overview',
-    actionQuery: '',
-    docInvQuery: '',
-    docInvRating: 'all',
-    searchScope: 'all',
-    searchSelectedIdx: 0,
-    searchMatches: []
+    activeArea: 'home', activeSubId: null, sidebarFilter: '',
+    compCategory: 'all', compStatus: 'all', compQuery: '', featCategory: 'all',
+    devSubView: 'overview', actionQuery: '', methodQuery: '', eventQuery: '', schemaQuery: '',
+    docInvQuery: '', docInvRating: 'all', searchScope: 'all', searchSelectedIdx: 0, searchMatches: []
   };
 
   function loadState() {
@@ -58,9 +42,7 @@
       if (!raw) return { ...defaultState };
       const parsed = JSON.parse(raw);
       return { ...defaultState, ...parsed, completedChapters: parsed.completedChapters || {}, checkedItems: parsed.checkedItems || {} };
-    } catch (_) {
-      return { ...defaultState };
-    }
+    } catch (_) { return { ...defaultState }; }
   }
 
   function saveState() {
@@ -69,59 +51,24 @@
 
   const byId = (id) => document.getElementById(id);
   const el = {
-    html: document.documentElement,
-    sidebar: byId('sidebar'),
-    btnSidebarToggle: byId('btn-sidebar-toggle'),
-    areaNav: byId('area-nav'),
-    badgeHandbook: byId('badge-count-handbook'),
-    badgeComponents: byId('badge-count-components'),
-    badgeFeatures: byId('badge-count-features'),
-    badgeArchitecture: byId('badge-count-architecture'),
-    badgeDevref: byId('badge-count-devref'),
-    btnCourseOverview: byId('btn-course-overview'),
-    sidebarOverviewLabel: byId('sidebar-overview-label'),
-    sidebarQuickFilter: byId('sidebar-quick-filter'),
-    navTree: byId('chapter-nav-tree'),
-    btnResetProgress: byId('btn-reset-progress'),
-    progressCircle: byId('progress-ring-circle'),
-    progressLabel: byId('progress-label'),
-    btnSpeakerGlobal: byId('btn-toggle-speaker-global'),
-    btnTheme: byId('btn-toggle-theme'),
-    themeIcon: byId('theme-icon'),
-    mainContent: byId('main-content'),
-    viewDashboard: byId('view-dashboard'),
-    viewChapter: byId('view-chapter'),
-    viewDetail: byId('view-detail'),
-    chapGroupLabel: byId('chap-group-label'),
-    chapNumBadge: byId('chap-num-badge'),
-    chapTitle: byId('chap-title'),
-    btnMarkComplete: byId('btn-mark-complete'),
-    btnMarkCompleteBottom: byId('btn-mark-complete-bottom'),
-    completeIcon: byId('complete-icon'),
-    completeText: byId('complete-text'),
-    chapStatusNote: byId('chap-status-note'),
-    chapComponentsRow: byId('chap-components-row'),
-    chapSpeakerPanel: byId('chap-speaker-panel'),
-    speakerVideoTitle: byId('speaker-video-title'),
-    speakerSyncNotes: byId('speaker-sync-notes'),
-    speakerScriptText: byId('speaker-script-text'),
-    btnCloseSpeaker: byId('btn-close-speaker'),
-    chapBody: byId('chap-body'),
-    linkPrevChap: byId('link-prev-chap'),
-    prevChapTitle: byId('prev-chap-title'),
-    linkNextChap: byId('link-next-chap'),
-    nextChapTitle: byId('next-chap-title'),
-    tocAside: byId('toc-aside'),
-    tocHeading: byId('toc-heading'),
-    tocList: byId('toc-list'),
-    tocContextCard: byId('toc-context-card'),
-    btnOpenSearch: byId('btn-open-search'),
-    searchModal: byId('search-modal'),
-    searchInput: byId('search-input'),
-    btnCloseSearch: byId('btn-close-search'),
-    searchScopeBar: byId('search-scope-bar'),
-    searchMeta: byId('search-meta'),
-    searchResults: byId('search-results')
+    html: document.documentElement, sidebar: byId('sidebar'), btnSidebarToggle: byId('btn-sidebar-toggle'),
+    areaNav: byId('area-nav'), badgeHandbook: byId('badge-count-handbook'), badgeComponents: byId('badge-count-components'),
+    badgeFeatures: byId('badge-count-features'), badgeArchitecture: byId('badge-count-architecture'), badgeDevref: byId('badge-count-devref'),
+    btnCourseOverview: byId('btn-course-overview'), sidebarOverviewLabel: byId('sidebar-overview-label'),
+    sidebarQuickFilter: byId('sidebar-quick-filter'), navTree: byId('chapter-nav-tree'), btnResetProgress: byId('btn-reset-progress'),
+    progressCircle: byId('progress-ring-circle'), progressLabel: byId('progress-label'),
+    btnSpeakerGlobal: byId('btn-toggle-speaker-global'), btnTheme: byId('btn-toggle-theme'), themeIcon: byId('theme-icon'),
+    mainContent: byId('main-content'), viewDashboard: byId('view-dashboard'), viewChapter: byId('view-chapter'), viewDetail: byId('view-detail'),
+    chapGroupLabel: byId('chap-group-label'), chapNumBadge: byId('chap-num-badge'), chapTitle: byId('chap-title'),
+    btnMarkComplete: byId('btn-mark-complete'), btnMarkCompleteBottom: byId('btn-mark-complete-bottom'),
+    completeIcon: byId('complete-icon'), completeText: byId('complete-text'), chapStatusNote: byId('chap-status-note'),
+    chapComponentsRow: byId('chap-components-row'), chapSpeakerPanel: byId('chap-speaker-panel'),
+    speakerVideoTitle: byId('speaker-video-title'), speakerSyncNotes: byId('speaker-sync-notes'),
+    speakerScriptText: byId('speaker-script-text'), btnCloseSpeaker: byId('btn-close-speaker'), chapBody: byId('chap-body'),
+    linkPrevChap: byId('link-prev-chap'), prevChapTitle: byId('prev-chap-title'), linkNextChap: byId('link-next-chap'), nextChapTitle: byId('next-chap-title'),
+    tocAside: byId('toc-aside'), tocHeading: byId('toc-heading'), tocList: byId('toc-list'), tocContextCard: byId('toc-context-card'),
+    btnOpenSearch: byId('btn-open-search'), searchModal: byId('search-modal'), searchInput: byId('search-input'),
+    btnCloseSearch: byId('btn-close-search'), searchScopeBar: byId('search-scope-bar'), searchMeta: byId('search-meta'), searchResults: byId('search-results')
   };
 
   function isChapterDone(chap) {
@@ -194,12 +141,11 @@
     el.sidebarOverviewLabel.textContent = areaConfig.label;
     el.btnCourseOverview.classList.toggle('is-active', !subId);
 
-    // 1. Handbuch-Sidebar (und Standard auf #home)
     if (area === 'handbook' || area === 'home') {
       const groups = [];
       const groupMap = new Map();
       for (const chap of DATA.handbook.chapters) {
-        if (q && !`${chap.num} ${chap.shortTitle} ${chap.title}`.toLowerCase().includes(q)) continue;
+        if (q && !`${chap.num} ${chap.guideId || ''} ${chap.shortTitle} ${chap.title}`.toLowerCase().includes(q)) continue;
         if (!groupMap.has(chap.groupId)) {
           const g = { id: chap.groupId, title: chap.groupTitle, part: chap.part, items: [] };
           groupMap.set(chap.groupId, g);
@@ -214,123 +160,53 @@
           ${g.items.map(c => {
             const done = isChapterDone(c);
             const active = area === 'handbook' && subId === c.id;
-            return `
-              <a href="#handbook/${esc(c.id)}" class="hb-nav-item ${active ? 'is-active' : ''} ${done ? 'is-done' : ''}">
-                <span class="hb-nav-num">${esc(c.num)}</span>
-                <span class="hb-nav-label">${esc(c.shortTitle)}</span>
-                <span class="hb-nav-check" aria-hidden="true">${done ? '✔' : ''}</span>
-              </a>
-            `;
+            return `<a href="#handbook/${esc(c.id)}" class="hb-nav-item ${active ? 'is-active' : ''} ${done ? 'is-done' : ''}"><span class="hb-nav-num">${esc(c.num)}</span><span class="hb-nav-label">${esc(c.shortTitle)}</span><span class="hb-nav-check" aria-hidden="true">${done ? '✔' : ''}</span></a>`;
           }).join('')}
         </div>
       `).join('') || '<div style="padding:14px;font-size:0.82rem;color:var(--text-muted)">Keine Treffer in der Navigation.</div>';
       return;
     }
 
-    // 2. Komponenten-Sidebar (11 Kategorien + Komponenten)
     if (area === 'components') {
-      const cats = DATA.components.categories;
-      const items = DATA.components.items;
       let html = '';
-
-      for (const cat of cats) {
-        const catItems = items.filter(c => {
-          if (c.categoryKey !== cat.id) return false;
-          if (q && !`${c.name} ${c.id} ${c.summary}`.toLowerCase().includes(q)) return false;
-          return true;
-        });
+      for (const cat of DATA.components.categories) {
+        const catItems = DATA.components.items.filter(c => c.categoryKey === cat.id && (!q || `${c.name} ${c.id} ${c.summary}`.toLowerCase().includes(q)));
         if (catItems.length === 0) continue;
-
-        html += `
-          <div class="hb-nav-group">
-            <div class="hb-nav-group-title">${cat.icon} ${esc(cat.label)} (${catItems.length})</div>
-            ${catItems.map(c => `
-              <a href="#components/${esc(c.name)}" class="hb-nav-item ${subId === c.name ? 'is-active' : ''} ${c.isCurated ? 'is-done' : ''}">
-                <span class="hb-nav-num">${esc(c.id.replace('COMP-0', 'C'))}</span>
-                <span class="hb-nav-label">${esc(c.name)}</span>
-                <span class="hb-nav-check" title="${c.isCurated ? 'Kuratierte Referenzkarte' : ''}">${c.isCurated ? '★' : ''}</span>
-              </a>
-            `).join('')}
-          </div>
-        `;
+        html += `<div class="hb-nav-group"><div class="hb-nav-group-title">${cat.icon} ${esc(cat.label)} (${catItems.length})</div>${catItems.map(c => `<a href="#components/${esc(c.name)}" class="hb-nav-item ${subId === c.name ? 'is-active' : ''} ${c.isCurated ? 'is-done' : ''}"><span class="hb-nav-num">${esc(c.id.replace('COMP-0', 'C'))}</span><span class="hb-nav-label">${esc(c.name)}</span><span class="hb-nav-check" title="${c.isCurated ? 'Kuratierte Referenzkarte' : ''}">${c.isCurated ? '★' : ''}</span></a>`).join('')}</div>`;
       }
       el.navTree.innerHTML = html || '<div style="padding:14px;font-size:0.82rem;color:var(--text-muted)">Keine Komponenten gefunden.</div>';
       return;
     }
 
-    // 3. Features-Sidebar (12 Inventar-Features + 12 Fachartikel)
     if (area === 'features') {
       const inv = DATA.features.inventory.filter(f => !q || `${f.id} ${f.name} ${f.category}`.toLowerCase().includes(q));
       const docs = DATA.features.articles.filter(a => !q || `${a.title} ${a.category}`.toLowerCase().includes(q));
-
       el.navTree.innerHTML = `
-        <div class="hb-nav-group">
-          <div class="hb-nav-group-title">✨ System-Features (${inv.length})</div>
-          ${inv.map(f => `
-            <a href="#features/${esc(f.id)}" class="hb-nav-item ${subId === f.id ? 'is-active' : ''} is-done">
-              <span class="hb-nav-num">${esc(f.id.replace('FEAT-00', 'F'))}</span>
-              <span class="hb-nav-label">${esc(f.name)}</span>
-            </a>
-          `).join('')}
-        </div>
-        <div class="hb-nav-group">
-          <div class="hb-nav-group-title">📄 Feature-Fachartikel (${docs.length})</div>
-          ${docs.map(a => `
-            <a href="#features/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''}">
-              <span class="hb-nav-num">DOK</span>
-              <span class="hb-nav-label">${esc(a.title)}</span>
-            </a>
-          `).join('')}
-        </div>
+        <div class="hb-nav-group"><div class="hb-nav-group-title">✨ System-Features (${inv.length})</div>${inv.map(f => `<a href="#features/${esc(f.id)}" class="hb-nav-item ${subId === f.id ? 'is-active' : ''} is-done"><span class="hb-nav-num">${esc(f.id.replace('FEAT-00', 'F'))}</span><span class="hb-nav-label">${esc(f.name)}</span></a>`).join('')}</div>
+        <div class="hb-nav-group"><div class="hb-nav-group-title">📄 Feature-Fachartikel (${docs.length})</div>${docs.map(a => `<a href="#features/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''}"><span class="hb-nav-num">DOK</span><span class="hb-nav-label">${esc(a.title)}</span></a>`).join('')}</div>
       `;
       return;
     }
 
-    // 4. Architektur-Sidebar
     if (area === 'architecture') {
       const docs = DATA.architecture.articles.filter(a => !q || `${a.title} ${a.summary}`.toLowerCase().includes(q));
-      el.navTree.innerHTML = `
-        <div class="hb-nav-group">
-          <div class="hb-nav-group-title">🏛️ Kanonische Dokumente (${docs.length})</div>
-          ${docs.map((a, i) => `
-            <a href="#architecture/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''} is-done">
-              <span class="hb-nav-num">0${i + 1}</span>
-              <span class="hb-nav-label">${esc(a.title)}</span>
-            </a>
-          `).join('')}
-        </div>
-      `;
+      el.navTree.innerHTML = `<div class="hb-nav-group"><div class="hb-nav-group-title">🏛️ Kanonische Dokumente (${docs.length})</div>${docs.map((a, i) => `<a href="#architecture/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''} is-done"><span class="hb-nav-num">0${i + 1}</span><span class="hb-nav-label">${esc(a.title)}</span></a>`).join('')}</div>`;
       return;
     }
 
-    // 5. Entwicklerreferenz-Sidebar
     if (area === 'devref') {
       const docs = DATA.devref.articles.filter(a => !q || `${a.title} ${a.category}`.toLowerCase().includes(q));
       el.navTree.innerHTML = `
         <div class="hb-nav-group">
-          <div class="hb-nav-group-title">⚡ Interaktive Register</div>
-          <a href="#devref/actions" class="hb-nav-item ${subId === 'actions' ? 'is-active' : ''} is-done">
-            <span class="hb-nav-num">${DATA.devref.actions.length}</span>
-            <span class="hb-nav-label">Runtime-Action-Katalog</span>
-          </a>
-          <a href="#devref/doc-inventory" class="hb-nav-item ${subId === 'doc-inventory' ? 'is-active' : ''} is-done">
-            <span class="hb-nav-num">${DATA.devref.documentInventory.length}</span>
-            <span class="hb-nav-label">Dokumenten-Inventar</span>
-          </a>
-          <a href="#devref/swe2-interface" class="hb-nav-item ${subId === 'swe2-interface' ? 'is-active' : ''} is-done">
-            <span class="hb-nav-num">SWE2</span>
-            <span class="hb-nav-label">KI-Referenzdaten-Vertrag</span>
-          </a>
+          <div class="hb-nav-group-title">⚡ SWE-2 Entity-Register</div>
+          <a href="#devref/actions" class="hb-nav-item ${subId === 'actions' ? 'is-active' : ''} is-done"><span class="hb-nav-num">${DATA.devref.actions.length}</span><span class="hb-nav-label">Action-Typen (ACT)</span></a>
+          <a href="#devref/methods" class="hb-nav-item ${subId === 'methods' ? 'is-active' : ''} is-done"><span class="hb-nav-num">${(DATA.devref.methods || []).length}</span><span class="hb-nav-label">Methoden-Katalog (MTH)</span></a>
+          <a href="#devref/events" class="hb-nav-item ${subId === 'events' ? 'is-active' : ''} is-done"><span class="hb-nav-num">${(DATA.devref.events || []).length}</span><span class="hb-nav-label">Event-Katalog (EVT)</span></a>
+          <a href="#devref/schemas" class="hb-nav-item ${(subId === 'schemas' || subId === 'concepts') ? 'is-active' : ''} is-done"><span class="hb-nav-num">${(DATA.devref.schemas || []).length}+${(DATA.devref.concepts || []).length}</span><span class="hb-nav-label">Schemas &amp; Konzepte</span></a>
+          <a href="#devref/doc-inventory" class="hb-nav-item ${subId === 'doc-inventory' ? 'is-active' : ''} is-done"><span class="hb-nav-num">${DATA.devref.documentInventory.length}</span><span class="hb-nav-label">Dokumenten-Inventar (DOC)</span></a>
+          <a href="#devref/swe2-interface" class="hb-nav-item ${subId === 'swe2-interface' ? 'is-active' : ''} is-done"><span class="hb-nav-num">SWE2</span><span class="hb-nav-label">Wissensbasis-Status</span></a>
         </div>
-        <div class="hb-nav-group">
-          <div class="hb-nav-group-title">🛠️ Technische Referenzdokumente</div>
-          ${docs.map(a => `
-            <a href="#devref/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''}">
-              <span class="hb-nav-num">REF</span>
-              <span class="hb-nav-label">${esc(a.title)}</span>
-            </a>
-          `).join('')}
-        </div>
+        <div class="hb-nav-group"><div class="hb-nav-group-title">🛠️ Technische Referenzdokumente</div>${docs.map(a => `<a href="#devref/${esc(a.id)}" class="hb-nav-item ${subId === a.id ? 'is-active' : ''}"><span class="hb-nav-num">REF</span><span class="hb-nav-label">${esc(a.title)}</span></a>`).join('')}</div>
       `;
     }
   }
@@ -343,17 +219,12 @@
     if (headings && headings.length > 0) {
       el.tocList.innerHTML = headings
         .filter(h => h.level === 2 || h.level === 3)
-        .map(h => `
-          <a href="#${esc(h.id)}" class="hb-toc-link hb-toc-l${h.level}" data-toc-target="${esc(h.id)}">
-            ${esc(h.text)}
-          </a>
-        `).join('');
-
+        .map(h => `<a href="#${esc(h.id)}" class="hb-toc-link hb-toc-l${h.level}" data-toc-target="${esc(h.id)}">${esc(h.text)}</a>`)
+        .join('');
       el.tocList.querySelectorAll('.hb-toc-link').forEach(link => {
         link.addEventListener('click', e => {
           e.preventDefault();
-          const targetId = link.getAttribute('data-toc-target');
-          const targetEl = document.getElementById(targetId);
+          const targetEl = document.getElementById(link.getAttribute('data-toc-target'));
           if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
@@ -361,24 +232,20 @@
       const c = DATA.meta.counts;
       el.tocList.innerHTML = `
         <a href="#handbook" class="hb-toc-link">📖 ${c.handbookChapters} Handbuch-Kapitel</a>
-        <a href="#components" class="hb-toc-link">🧩 ${c.components} Komponenten</a>
-        <a href="#features" class="hb-toc-link">✨ ${c.features} System-Features</a>
-        <a href="#architecture" class="hb-toc-link">🏛️ ${c.architectureDocs} Architektur-Doks</a>
-        <a href="#devref/actions" class="hb-toc-link">⚡ ${c.actions} Runtime-Actions</a>
-        <a href="#devref/swe2-interface" class="hb-toc-link">🤝 SWE-2 Schnittstelle</a>
+        <a href="#components" class="hb-toc-link">🧩 ${c.components} Komponenten (COMP)</a>
+        <a href="#features" class="hb-toc-link">✨ ${c.features} System-Features (FEAT)</a>
+        <a href="#devref/actions" class="hb-toc-link">⚡ ${c.actions} Runtime-Actions (ACT)</a>
+        <a href="#devref/methods" class="hb-toc-link">🔧 ${c.methods} Methoden (MTH)</a>
+        <a href="#devref/events" class="hb-toc-link">🔔 ${c.events} Events (EVT)</a>
+        <a href="#devref/schemas" class="hb-toc-link">📐 ${c.schemas} Schemas &amp; ${c.concepts} Konzepte</a>
+        <a href="#devref/swe2-interface" class="hb-toc-link">🤝 SWE-2 Wissensbasis (${c.swe2EntitiesTotal})</a>
       `;
     }
 
-    if (contextHtml) {
-      el.tocContextCard.classList.remove('hb-hidden');
-      el.tocContextCard.innerHTML = contextHtml;
-    } else {
-      el.tocContextCard.classList.add('hb-hidden');
-      el.tocContextCard.innerHTML = '';
-    }
+    el.tocContextCard.classList.toggle('hb-hidden', !contextHtml);
+    el.tocContextCard.innerHTML = contextHtml || '';
   }
 
-  // --- Ansicht umschalten ---
   function showView(which) {
     el.viewDashboard.classList.toggle('hb-hidden', which !== 'dashboard');
     el.viewChapter.classList.toggle('hb-hidden', which !== 'chapter');
@@ -410,6 +277,9 @@
 
     bindLiveInput('comp-catalog-search', 'compQuery', () => VIEWS.renderComponentsCatalog(DATA, uiState));
     bindLiveInput('devref-action-search', 'actionQuery', () => VIEWS.renderDevRefOverview(DATA, uiState));
+    bindLiveInput('devref-method-search', 'methodQuery', () => VIEWS.renderDevRefOverview(DATA, uiState));
+    bindLiveInput('devref-event-search', 'eventQuery', () => VIEWS.renderDevRefOverview(DATA, uiState));
+    bindLiveInput('devref-schema-search', 'schemaQuery', () => VIEWS.renderDevRefOverview(DATA, uiState));
     bindLiveInput('devref-docinv-search', 'docInvQuery', () => VIEWS.renderDevRefOverview(DATA, uiState));
 
     const compStatus = byId('comp-status-select');
@@ -447,12 +317,47 @@
     }
   }
 
-  // --- Handbuch-Kapitel rendern (#handbook/<chapterId>) ---
+  function renderInvalidRouteNotice(rawHash, reason) {
+    uiState.activeSubId = null;
+    showView('dashboard');
+    el.viewDashboard.innerHTML = `
+      <div class="hb-hero-card">
+        <div class="hb-hero-badge" style="background:var(--accent-danger-soft);color:var(--accent-danger)">⚠️ Ungültige oder nicht gefundene Adresse</div>
+        <h1 class="hb-hero-title">Die angeforderte Portal-Adresse konnte nicht aufgelöst werden</h1>
+        <p class="hb-hero-lead">Angeforderter Hash: <code>${esc(rawHash || '(leer)')}</code> · Ursache: <strong>${esc(reason || 'Unbekannte Route oder Entity-ID')}</strong></p>
+        <div class="hb-hero-actions">
+          <a href="#home" class="hb-primary-btn" style="text-decoration:none">🏠 Zur Portal-Startseite</a>
+          <a href="#components" class="hb-secondary-btn" style="text-decoration:none;padding:9px 14px;border:1px solid var(--border-strong);border-radius:8px">🧩 Komponentenreferenz (128)</a>
+          <a href="#handbook" class="hb-secondary-btn" style="text-decoration:none;padding:9px 14px;border:1px solid var(--border-strong);border-radius:8px">📖 Autoren-Handbuch (23)</a>
+        </div>
+      </div>
+    `;
+    renderSidebar();
+    renderRightToc([], '');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function extractDomHeadings(containerEl) {
+    if (!containerEl) return [];
+    const nodes = containerEl.querySelectorAll('h2[id], h3[id]');
+    const list = [];
+    nodes.forEach(node => {
+      const id = node.getAttribute('id');
+      if (!id) return;
+      const level = node.tagName.toLowerCase() === 'h3' ? 3 : 2;
+      list.push({ level, id, text: (node.textContent || '').trim() });
+    });
+    return list;
+  }
+
+  // --- Handbuch-Kapitel rendern (#handbook/<chapterId|GUIDE-xxxx>) ---
   function renderChapterView(chapterId, scrollTargetId) {
     const chapters = DATA.handbook.chapters;
-    const idx = chapters.findIndex(c => c.id === chapterId);
+    const idx = chapters.findIndex(
+      c => c.id === chapterId || (c.guideId && c.guideId.toLowerCase() === chapterId.toLowerCase())
+    );
     if (idx === -1) {
-      window.location.hash = '#handbook';
+      renderInvalidRouteNotice(`#handbook/${chapterId}`, `Handbuch-Kapitel "${chapterId}" existiert nicht.`);
       return;
     }
 
@@ -464,7 +369,7 @@
     showView('chapter');
 
     el.chapGroupLabel.textContent = chap.groupTitle;
-    el.chapNumBadge.textContent = `Kapitel ${chap.num}`;
+    el.chapNumBadge.textContent = `Kapitel ${chap.num} · ${chap.guideId || ''}`;
     el.chapTitle.textContent = chap.title;
 
     if (chap.statusNote) {
@@ -486,7 +391,7 @@
     if (chap.mediaSection) {
       el.speakerVideoTitle.textContent = chap.mediaSection.videoTitle || `Kapitel ${chap.num}`;
       el.speakerSyncNotes.textContent = chap.mediaSection.syncNotes || 'Visuelle Demonstration direkt im GCS-Editor';
-      el.speakerScriptText.textContent = chap.mediaSection.scriptText || '';
+      el.speakerScriptText.textContent = chap.mediaSection.scriptText || chap.mediaSection.script || '';
       el.chapSpeakerPanel.classList.toggle('hb-hidden', !state.speakerMode);
     } else {
       el.chapSpeakerPanel.classList.add('hb-hidden');
@@ -494,31 +399,31 @@
 
     el.chapBody.innerHTML = chap.htmlContent;
 
-    // Interaktive Checklisten-Punkte verdrahten
     el.chapBody.querySelectorAll('.hb-check-item').forEach(itemEl => {
-      const checkId = itemEl.getAttribute('data-check-id');
       const inputEl = itemEl.querySelector('.hb-check-input');
+      const checkId = itemEl.getAttribute('data-check-id') || (inputEl && inputEl.getAttribute('data-check-id'));
       const checked = Boolean(state.checkedItems[checkId]);
-      inputEl.checked = checked;
-      itemEl.classList.toggle('is-checked', checked);
+      if (inputEl) {
+        inputEl.checked = checked;
+        itemEl.classList.toggle('is-checked', checked);
 
-      inputEl.addEventListener('change', () => {
-        if (inputEl.checked) {
-          state.checkedItems[checkId] = true;
-        } else {
-          delete state.checkedItems[checkId];
-        }
-        itemEl.classList.toggle('is-checked', inputEl.checked);
-        saveState();
-        updateCompleteButtonsUI(chap);
-        updateGlobalProgressUI();
-        renderSidebar();
-      });
+        inputEl.addEventListener('change', () => {
+          if (inputEl.checked) {
+            state.checkedItems[checkId] = true;
+          } else {
+            delete state.checkedItems[checkId];
+          }
+          itemEl.classList.toggle('is-checked', inputEl.checked);
+          saveState();
+          updateCompleteButtonsUI(chap);
+          updateGlobalProgressUI();
+          renderSidebar();
+        });
+      }
     });
 
     updateCompleteButtonsUI(chap);
 
-    // Vorheriges / Nächstes Kapitel
     const prev = idx > 0 ? chapters[idx - 1] : null;
     const next = idx < chapters.length - 1 ? chapters[idx + 1] : null;
 
@@ -538,13 +443,12 @@
       el.nextChapTitle.textContent = 'Weiter zur Komponentenreferenz (128)';
     }
 
-    // Rechte Spalte: TOC + Sprechertext-Box
     const speakerCardHtml = chap.mediaSection ? `
       <div class="hb-toc-speaker-head">🎙️ Sprecher-Drehbuch</div>
       <p class="hb-toc-speaker-sub">Zu diesem Kapitel gehört ein deutsches Voice-Over-Skript.</p>
       <button type="button" id="btn-toc-speaker" class="hb-secondary-btn">Drehbuch ein-/ausblenden</button>
     ` : '';
-    renderRightToc(chap.headings, speakerCardHtml);
+    renderRightToc(extractDomHeadings(el.chapBody), speakerCardHtml);
 
     const btnTocSpeaker = document.getElementById('btn-toc-speaker');
     if (btnTocSpeaker) {
@@ -595,20 +499,65 @@
     renderChapterView(chap.id);
   }
 
-  // --- Zentraler Hash-Router ---
+  // --- Zentraler Hash-Router (mit fehlerfreier URI-Dekodierung A13 & echten DOM-TOC-Ankern A11) ---
   function handleRoute() {
-    const rawHash = decodeURIComponent(window.location.hash || '').replace(/^#/, '').trim();
     el.sidebar.classList.remove('is-open');
+    const rawWindowHash = window.location.hash || '';
+    let fullHash = '';
+    try {
+      fullHash = decodeURIComponent(rawWindowHash).replace(/^#/, '').trim();
+    } catch (_) {
+      updateAreaNavUI('home');
+      renderInvalidRouteNotice(rawWindowHash, 'Ungültige URL-Prozentkodierung (URIError wurde abgefangen).');
+      return;
+    }
 
-    // Abwärtskompatibilität für direkte Kapitel-Hashes (#kapitel-01-... oder #b-kapitel-01-...)
-    const legacyChap = DATA.handbook.chapters.find(c => c.id === rawHash);
+    const [rawPath, rawQuery] = fullHash.split('?');
+    const queryParams = new URLSearchParams(rawQuery || '');
+    const qParam = queryParams.get('q') || '';
+
+    // Direkte Kapitel-Hashes (#kapitel-01-... oder #GUIDE-0001)
+    const legacyChap = DATA.handbook.chapters.find(
+      c => c.id === rawPath || (c.guideId && c.guideId.toLowerCase() === rawPath.toLowerCase())
+    );
     if (legacyChap) {
       updateAreaNavUI('handbook');
       renderChapterView(legacyChap.id);
       return;
     }
 
-    const parts = rawHash.split('/').filter(Boolean);
+    // Direkte kanonische SWE-2-IDs (#COMP-0001, #FEAT-0001, #ACT-0001, #MTH-0001, #EVT-0001, #SCM-0001, #CON-0001, #DOC-0001)
+    const upperPath = rawPath.toUpperCase();
+    if (/^COMP-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#components/${upperPath}`;
+      return;
+    }
+    if (/^FEAT-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#features/${upperPath}`;
+      return;
+    }
+    if (/^ACT-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#devref/actions?q=${encodeURIComponent(upperPath)}`;
+      return;
+    }
+    if (/^MTH-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#devref/methods?q=${encodeURIComponent(upperPath)}`;
+      return;
+    }
+    if (/^EVT-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#devref/events?q=${encodeURIComponent(upperPath)}`;
+      return;
+    }
+    if (/^(SCM|CON)-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#devref/schemas?q=${encodeURIComponent(upperPath)}`;
+      return;
+    }
+    if (/^DOC-\d{4}$/.test(upperPath)) {
+      window.location.hash = `#devref/doc-inventory?q=${encodeURIComponent(upperPath)}`;
+      return;
+    }
+
+    const parts = rawPath.split('/').filter(Boolean);
     const root = parts[0] || 'home';
     const sub = parts.slice(1).join('/') || null;
 
@@ -620,14 +569,14 @@
       el.viewDashboard.innerHTML = VIEWS.renderPortalHome(DATA, state, viewHelpers);
       renderSidebar();
       renderRightToc([], `
-        <div class="hb-toc-speaker-head">🤝 SWE-2 Ready</div>
-        <p class="hb-toc-speaker-sub">Kanonische IDs (COMP / FEAT / DOC) sind im gesamten Portal aktiv verlinkt.</p>
+        <div class="hb-toc-speaker-head">🤝 SWE-2 Integrated</div>
+        <p class="hb-toc-speaker-sub">Alle ${DATA.meta.counts.swe2EntitiesTotal} SWE-2-Entities und ${DATA.meta.counts.swe2ChunksTotal} Such-Chunks sind im Portal aktiv verknüpft.</p>
       `);
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
 
-    // 2. AUTOREN-HANDBUCH (#handbook oder #handbook/<id>)
+    // 2. AUTOREN-HANDBUCH (#handbook oder #handbook/<id|GUIDE-xxxx>)
     if (root === 'handbook') {
       updateAreaNavUI('handbook');
       if (!sub) {
@@ -649,6 +598,7 @@
       updateAreaNavUI('components');
       if (!sub) {
         uiState.activeSubId = null;
+        if (qParam) uiState.compQuery = qParam;
         showView('dashboard');
         el.viewDashboard.innerHTML = VIEWS.renderComponentsCatalog(DATA, uiState);
         bindDashboardEvents();
@@ -660,16 +610,18 @@
           c => c.name.toLowerCase() === sub.toLowerCase() || c.id.toLowerCase() === sub.toLowerCase()
         );
         if (!comp) {
-          window.location.hash = '#components';
+          renderInvalidRouteNotice(rawWindowHash, `Komponente "${sub}" wurde in der SWE-2-Wissensbasis nicht gefunden.`);
           return;
         }
         uiState.activeSubId = comp.name;
         showView('detail');
         el.viewDetail.innerHTML = VIEWS.renderComponentDetail(comp, DATA);
         renderSidebar();
-        renderRightToc(comp.headings || [], `
+        // A11 Fix: Rechte Seitennavigation direkt aus den tatsächlich im DOM vorhandenen Überschriften-IDs erzeugen
+        const detailHeadings = extractDomHeadings(el.viewDetail);
+        renderRightToc(detailHeadings, `
           <div class="hb-toc-speaker-head">🧩 ${esc(comp.name)}</div>
-          <p class="hb-toc-speaker-sub">${esc(comp.id)} · ${esc(comp.categoryLabel)}<br/>Props: ${comp.properties.length} · Events: ${comp.events.length}</p>
+          <p class="hb-toc-speaker-sub">${esc(comp.id)} · ${esc(comp.categoryLabel)}<br/>Props: ${comp.properties.length} · Events: ${comp.events.length} · Meth: ${(comp.methods || []).length}</p>
         `);
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
@@ -692,21 +644,14 @@
         const docFeat = DATA.features.articles.find(a => a.id.toLowerCase() === sub.toLowerCase());
         const item = invFeat || docFeat;
         if (!item) {
-          window.location.hash = '#features';
+          renderInvalidRouteNotice(rawWindowHash, `Feature oder Fachartikel "${sub}" wurde nicht gefunden.`);
           return;
         }
         uiState.activeSubId = item.id;
         showView('detail');
         el.viewDetail.innerHTML = VIEWS.renderFeatureDetail(item, Boolean(invFeat), DATA);
         renderSidebar();
-        const headings = invFeat
-          ? [
-              { level: 2, id: 'quellen-tests', text: 'Maßgebliche Quelldateien & Tests' },
-              { level: 2, id: 'testlaeufe', text: 'Protokollierte Testläufe' },
-              { level: 2, id: 'querverweise', text: 'Komponenten & Handbuch-Kapitel' }
-            ]
-          : (docFeat.headings || []);
-        renderRightToc(headings, '');
+        renderRightToc(extractDomHeadings(el.viewDetail), '');
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
       return;
@@ -725,7 +670,7 @@
       } else {
         const doc = DATA.architecture.articles.find(a => a.id === sub);
         if (!doc) {
-          window.location.hash = '#architecture';
+          renderInvalidRouteNotice(rawWindowHash, `Architektur-Dokument "${sub}" wurde nicht gefunden.`);
           return;
         }
         uiState.activeSubId = doc.id;
@@ -734,18 +679,26 @@
           doc, 'architecture', 'Architektur-Dokumentation', '#architecture', DATA.architecture.articles
         );
         renderSidebar();
-        renderRightToc(doc.headings || [], '');
+        renderRightToc(extractDomHeadings(el.viewDetail), '');
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
       return;
     }
 
-    // 6. ENTWICKLERREFERENZ (#devref, #devref/actions, #devref/doc-inventory, #devref/swe2-interface, #devref/<docId>)
+    // 6. ENTWICKLERREFERENZ (#devref, #devref/actions, #devref/methods, #devref/events, #devref/schemas, #devref/doc-inventory, #devref/swe2-interface, #devref/<docId>)
     if (root === 'devref') {
       updateAreaNavUI('devref');
-      if (!sub || sub === 'actions' || sub === 'doc-inventory' || sub === 'swe2-interface') {
+      const catalogViews = ['actions', 'methods', 'events', 'schemas', 'concepts', 'doc-inventory', 'swe2-interface'];
+      if (!sub || catalogViews.includes(sub)) {
         uiState.activeSubId = sub || null;
         uiState.devSubView = sub || 'overview';
+        if (qParam) {
+          if (sub === 'actions') uiState.actionQuery = qParam;
+          if (sub === 'methods') uiState.methodQuery = qParam;
+          if (sub === 'events') uiState.eventQuery = qParam;
+          if (sub === 'schemas' || sub === 'concepts') uiState.schemaQuery = qParam;
+          if (sub === 'doc-inventory') uiState.docInvQuery = qParam;
+        }
         showView('dashboard');
         el.viewDashboard.innerHTML = VIEWS.renderDevRefOverview(DATA, uiState);
         bindDashboardEvents();
@@ -755,7 +708,7 @@
       } else {
         const doc = DATA.devref.articles.find(a => a.id === sub);
         if (!doc) {
-          window.location.hash = '#devref';
+          renderInvalidRouteNotice(rawWindowHash, `Entwickler-Referenzdokument "${sub}" wurde nicht gefunden.`);
           return;
         }
         uiState.activeSubId = doc.id;
@@ -764,17 +717,16 @@
           doc, 'devref', 'Entwicklerreferenz', '#devref', DATA.devref.articles
         );
         renderSidebar();
-        renderRightToc(doc.headings || [], '');
+        renderRightToc(extractDomHeadings(el.viewDetail), '');
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
       return;
     }
 
-    // Fallback: Startseite
-    window.location.hash = '#home';
+    renderInvalidRouteNotice(rawWindowHash, `Unbekannter Portal-Bereich "${root}".`);
   }
 
-  // --- Globale Spotlight-Volltextsuche (Strg+K) ---
+  // --- Globale Spotlight-Volltextsuche (Strg+K) über alle 693 Entities + 1.774 Chunks + Fachartikel (A02, A03) ---
   function openSearchModal() {
     el.searchModal.classList.remove('hb-hidden');
     el.searchInput.focus();
@@ -787,72 +739,94 @@
   }
 
   function highlightMatch(text, query) {
-    const safe = esc(text);
+    const safe = esc(text ?? '');
     if (!query) return safe;
-    const escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedQ = String(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!escapedQ) return safe;
     return safe.replace(new RegExp(`(${escapedQ})`, 'ig'), '<mark>$1</mark>');
   }
 
   function performSearch(rawQuery) {
-    const q = (rawQuery || '').trim().toLowerCase();
-    const scope = uiState.searchScope || 'all';
-    const index = DATA.searchIndex || [];
+    try {
+      const q = String(rawQuery ?? '').trim().toLowerCase();
+      const scope = uiState.searchScope || 'all';
+      const index = Array.isArray(DATA.searchIndex) ? DATA.searchIndex : [];
 
-    if (!q) {
-      uiState.searchMatches = [];
-      el.searchMeta.innerHTML =
-        `Durchsucht <strong>${index.length} Einträge</strong> im gesamten Portal — z. B. <code>TSprite</code>, <code>Wasser</code>, <code>FEAT-0001</code>, <code>navigate_stage</code> oder <code>TD-009</code>`;
-      el.searchResults.innerHTML = '';
-      return;
-    }
+      if (!q) {
+        uiState.searchMatches = [];
+        el.searchMeta.innerHTML =
+          `Durchsucht <strong>${index.length} Einträge</strong> (${DATA.meta.counts.swe2EntitiesTotal} SWE-2-Entities + ${DATA.meta.counts.swe2ChunksTotal} Chunks + Fachartikel) — z. B. <code>TSprite</code>, <code>COMP-0097</code>, <code>FEAT-0001</code>, <code>ACT-0001</code>, <code>MTH-0001</code>, <code>EVT-0001</code> oder <code>SCM-0001</code>`;
+        el.searchResults.innerHTML = '';
+        return;
+      }
 
-    const terms = q.split(/\s+/).filter(Boolean);
-    const matches = [];
+      const terms = q.split(/\s+/).filter(Boolean);
+      const matches = [];
 
-    for (const entry of index) {
-      if (scope !== 'all' && entry.area !== scope) continue;
-      const titleLow = (entry.title || '').toLowerCase();
-      const badgeLow = (entry.badge || '').toLowerCase();
-      const kwLow = (entry.keywords || '').toLowerCase();
-      const textLow = (entry.text || '').toLowerCase();
+      for (const entry of index) {
+        if (!entry || typeof entry !== 'object') continue;
+        if (scope !== 'all' && entry.area !== scope) continue;
 
-      let score = 0;
-      let allFound = true;
-      for (const t of terms) {
-        const inTitle = titleLow.includes(t);
-        const inBadge = badgeLow.includes(t);
-        const inKw = kwLow.includes(t);
-        const inText = textLow.includes(t);
-        if (!inTitle && !inBadge && !inKw && !inText) {
-          allFound = false;
-          break;
+        // A02 Fix: Defensive String-Normalisierung für alle Suchfelder (verhindert TypeError bei undefined text)
+        const titleStr = String(entry.title ?? '');
+        const badgeStr = String(entry.badge ?? '');
+        const kwStr = String(entry.keywords ?? '');
+        const textStr = String(entry.text ?? entry.subtitle ?? entry.title ?? '');
+
+        const titleLow = titleStr.toLowerCase();
+        const badgeLow = badgeStr.toLowerCase();
+        const kwLow = kwStr.toLowerCase();
+        const textLow = textStr.toLowerCase();
+        const entityIdLow = String(entry.entityId ?? '').toLowerCase();
+
+        let score = 0;
+        let allFound = true;
+        for (const t of terms) {
+          const inTitle = titleLow.includes(t);
+          const inBadge = badgeLow.includes(t);
+          const inKw = kwLow.includes(t);
+          const inText = textLow.includes(t);
+          if (!inTitle && !inBadge && !inKw && !inText) {
+            allFound = false;
+            break;
+          }
+          if (entityIdLow === t || badgeLow === t) score += 60;
+          if (titleLow === t) score += 45;
+          if (inTitle) score += 14;
+          if (inBadge) score += 12;
+          if (inKw) score += 8;
+          if (inText) score += 2;
         }
-        if (titleLow === t || badgeLow === t) score += 25;
-        if (inTitle) score += 12;
-        if (inBadge) score += 8;
-        if (inKw) score += 6;
-        if (inText) score += 2;
+
+        if (!allFound) continue;
+
+        // Kanonische Entity-Basistreffer leicht bevorzugen, damit exakte IDs/Namen ganz oben stehen (A03)
+        if (entry.entryType === 'entity') score += 10;
+
+        let snippet = textStr;
+        const firstPos = textLow.indexOf(terms[0]);
+        if (firstPos > 40) {
+          snippet = '…' + textStr.slice(Math.max(0, firstPos - 35), firstPos + 150) + '…';
+        } else if (textStr.length > 0) {
+          snippet = textStr.slice(0, 175) + (textStr.length > 175 ? '…' : '');
+        } else {
+          snippet = String(entry.subtitle ?? titleStr);
+        }
+
+        matches.push({ entry, score, snippet });
       }
 
-      if (!allFound) continue;
+      matches.sort((a, b) => b.score - a.score);
+      uiState.searchMatches = matches.slice(0, 45);
+      uiState.searchSelectedIdx = 0;
 
-      let snippet = entry.text || '';
-      const firstPos = textLow.indexOf(terms[0]);
-      if (firstPos > 40) {
-        snippet = '…' + entry.text.slice(Math.max(0, firstPos - 35), firstPos + 150) + '…';
-      } else {
-        snippet = entry.text.slice(0, 175) + (entry.text.length > 175 ? '…' : '');
-      }
-
-      matches.push({ entry, score, snippet });
+      el.searchMeta.textContent = `${matches.length} Treffer für „${String(rawQuery).trim()}“ (in ${index.length} SWE-2-Entities, Chunks & Einträgen)`;
+      renderSearchResults(terms[0]);
+    } catch (err) {
+      uiState.searchMatches = [];
+      el.searchMeta.textContent = 'Suche abgeschlossen (0 Treffer).';
+      el.searchResults.innerHTML = `<div class="hb-search-empty">Für diese Eingabe konnten keine Treffer ermittelt werden (${esc(err && err.message ? err.message : 'Ungültige Anfrage')}).</div>`;
     }
-
-    matches.sort((a, b) => b.score - a.score);
-    uiState.searchMatches = matches.slice(0, 35);
-    uiState.searchSelectedIdx = 0;
-
-    el.searchMeta.textContent = `${matches.length} Treffer für „${rawQuery.trim()}“`;
-    renderSearchResults(terms[0]);
   }
 
   function renderSearchResults(highlightTerm) {
@@ -861,15 +835,25 @@
       return;
     }
 
-    el.searchResults.innerHTML = uiState.searchMatches.map((m, idx) => `
-      <a href="${esc(m.entry.href)}" class="hb-search-item ${idx === uiState.searchSelectedIdx ? 'is-selected' : ''}" data-search-idx="${idx}">
-        <div class="hb-search-item-top">
-          <span class="hb-search-chap">${esc(m.entry.areaLabel)} · ${highlightMatch(m.entry.badge, highlightTerm)}</span>
-          <span class="hb-search-sec">${highlightMatch(m.entry.title, highlightTerm)}</span>
-        </div>
-        <div class="hb-search-snippet">${highlightMatch(m.snippet, highlightTerm)}</div>
-      </a>
-    `).join('');
+    el.searchResults.innerHTML = uiState.searchMatches.map((m, idx) => {
+      const e = m.entry;
+      let flagsHtml = '';
+      if (e.entryType === 'entity') flagsHtml += ' <span class="hb-status-pill hb-status-ok">🎯 Entity</span>';
+      if (e.missing) flagsHtml += ' <span class="hb-status-pill hb-status-danger">🗑️ gelöscht</span>';
+      if (e.statusDev === 'geplant') flagsHtml += ' <span class="hb-status-pill hb-status-warn">🚧 geplant</span>';
+      if (e.statusDev === 'veraltet') flagsHtml += ' <span class="hb-status-pill hb-status-danger">🗄️ veraltet</span>';
+      if (e.confidence === 'inferred') flagsHtml += ' <span class="hb-status-pill hb-status-warn">⚠️ inferred</span>';
+
+      return `
+        <a href="${esc(e.href)}" class="hb-search-item ${idx === uiState.searchSelectedIdx ? 'is-selected' : ''}" data-search-idx="${idx}">
+          <div class="hb-search-item-top">
+            <span class="hb-search-chap">${esc(e.areaLabel)} · ${highlightMatch(e.badge, highlightTerm)}${flagsHtml}</span>
+            <span class="hb-search-sec">${highlightMatch(e.title, highlightTerm)}</span>
+          </div>
+          <div class="hb-search-snippet">${highlightMatch(m.snippet, highlightTerm)}${e.sourceDoc ? ` <small class="hb-muted">[Quelle: ${esc(e.sourceDoc)}]</small>` : ''}</div>
+        </a>
+      `;
+    }).join('');
 
     el.searchResults.querySelectorAll('.hb-search-item').forEach(link => {
       link.addEventListener('click', () => closeSearchModal());
@@ -909,7 +893,6 @@
       }
     });
 
-    // Suche
     el.btnOpenSearch.addEventListener('click', openSearchModal);
     el.btnCloseSearch.addEventListener('click', closeSearchModal);
     el.searchModal.addEventListener('click', e => {
@@ -930,7 +913,6 @@
       });
     }
 
-    // Globale Tastaturkürzel (Strg+K, /, Pfeiltasten, Esc)
     window.addEventListener('keydown', e => {
       const inModal = !el.searchModal.classList.contains('hb-hidden');
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {

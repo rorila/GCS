@@ -13,13 +13,21 @@ manuell in den `entities/`/`chunks/`-Dateien gepflegt.**
 # Wissensbasis (neu) erzeugen
 node docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs
 
-# Validieren
+# Validieren (optional: --dir=<snapshot> für andere Snapshots)
 node docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs
+
+# Regressionstests (Positiv- + Negativtests, Codex-Befunde)
+node docs/gcs-knowledge-swe2/test-knowledge-swe2.cjs
+
+# Byte-reproduzierbarer Build (fixierter Zeitstempel)
+SWE2_BUILD_TIME=2026-01-01T00:00:00Z node docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs
 ```
 
-Beide Skripte laufen unter Windows/Node ≥ 18, ohne npm-Dependencies
-(nur `fs`/`path`/`crypto`). Sie lesen ausschließlich aus `docs/` und `src/`
-und schreiben ausschließlich nach `docs/gcs-knowledge-swe2/`.
+Die Skripte laufen unter Windows/Node ≥ 18 ohne zusätzliche
+npm-Installation (`typescript` ist bereits Projekt-Dependency und wird
+nur für die AST-Auswertung von `getEvents()` benötigt). Sie lesen
+ausschließlich aus `docs/` und `src/` und schreiben ausschließlich nach
+`docs/gcs-knowledge-swe2/`.
 
 ## Dateien
 
@@ -28,20 +36,25 @@ und schreiben ausschließlich nach `docs/gcs-knowledge-swe2/`.
 | `knowledge-index-swe2.json` | Manifest: Schema-Version, Zähler, Dateiübersicht, Provenance-Legende |
 | `knowledge-schema-swe2.json` | JSON-Schema (draft 2020-12) der Entity-Struktur |
 | `id-map-swe2.json` | **Persistente Schlüssel→ID-Zuordnung** — garantiert ID-Stabilität über Rebuilds. Muss mit der Wissensbasis versioniert werden. |
-| `entities/components-swe2.json` | 128 Komponenten (COMP-####) mit Eigenschaften, Events, Methoden, Vererbung, Relationen |
+| `entities/components-swe2.json` | 128 Komponenten (COMP-####) mit Eigenschaften, Events (inkl. Vererbung + Bedingungen), Methoden, Vererbung, Relationen |
 | `entities/features-swe2.json` | 12 Features (FEAT-####) |
-| `entities/action-types-swe2.json` | 59 Action-Typen (ACT-####) mit Parametern und Flags |
+| `entities/action-types-swe2.json` | 59 Action-Typen (ACT-####) mit vollständigen Registry-Parametern und Flags |
 | `entities/methods-swe2.json` | 38 Methoden (MTH-####) aus MethodRegistry |
-| `entities/events-swe2.json` | 158 Events (EVT-####) aus `getEvents()` + Referenz-Doku |
+| `entities/events-swe2.json` | 163 Events (EVT-####) aus `getEvents()`-AST + Referenz-Doku |
 | `entities/schemas-swe2.json` | 13 Schema-Module (SCM-####) |
 | `entities/guide-chapters-swe2.json` | 23 Handbuchkapitel (GUIDE-####) |
 | `entities/documents-swe2.json` | 242 Dokumente (DOC-####) inkl. `missing`-Markierung |
 | `entities/concepts-swe2.json` | 15 Konzept-/Referenzdokumente (CON-####) |
-| `chunks/chunks-swe2.jsonl` | 1287 RAG-Chunks (JSONL, 1 Objekt/Zeile) |
-| `build-knowledge-swe2.cjs` | Build-Pipeline |
-| `validate-knowledge-swe2.cjs` | Validierungslauf |
+| `chunks/chunks-swe2.jsonl` | 1774 RAG-Chunks (JSONL, eindeutige IDs `<entity>:<doc>:<section>`) |
+| `build-knowledge-swe2.cjs` | Build-Pipeline (mit Self-Check, Abbruch bei fehlerhaften Daten) |
+| `validate-knowledge-swe2.cjs` | Validierungslauf (`--dir` für andere Snapshots) |
+| `test-knowledge-swe2.cjs` | Regressionstests inkl. Negativtests |
 | `ARCHITEKTUR-SWE2.md` | Technischer Aufbau der Pipeline |
 | `SCHNITTSTELLE-ARGON.md` | Datenvertrag für das Dokumentationsportal (Argon) |
+| `SCHNITTSTELLENAENDERUNGEN-SWE2.md` | Änderungen 1.0.0 → 1.1.0 + Auswirkungen auf Argon |
+| `KORREKTURBERICHT-SWE2.md` | Korrekturen nach Codex-Audit |
+| `REGRESSIONSTESTS-SWE2.md` | Testübersicht mit Codex-Bezug |
+| `ARGON-REPARATURPLAN-SWE2.md` | Konkreter Änderungsplan für das Portal (kein Code) |
 
 ## Wichtigste Konventionen
 
@@ -55,6 +68,12 @@ und schreiben ausschließlich nach `docs/gcs-knowledge-swe2/`.
 - **Verifikationsgrad:** `provenance.confidence` =
   `verified` (Quellcode/Registry belegt) · `documented` (Doku-Selbstauskunft) ·
   `inferred` (abgeleitet, nicht vollständig verifiziert).
+  **Wichtig:** Die Entity-Stufe ist das **Maximum** der faktenbezogenen
+  Stufen unter `provenance.facts` — kein Beweis aller Einzelangaben.
+  Eigenschaften und Events tragen eigene `confidence`-Felder.
+- **Event-Vererbung:** `events[]` enthält eigene (`origin: own`) und
+  geerbte (`origin: inherited`, `declaredIn`, `inheritedFrom`) Events;
+  Bedingungen stehen in `conditions` (z. B. `isHiddenInRun`).
 - **Nichts wird erfunden:** fehlende Angaben bleiben `undefined`;
   Dokumentationslücken stehen in `limitations`/`openQuestions`.
 - **Gelöschte Dokumente** tragen `missing: true` und `status.dev: "veraltet"`.

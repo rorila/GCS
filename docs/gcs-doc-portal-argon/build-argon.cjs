@@ -1,6 +1,6 @@
 /**
  * build-argon.cjs — Zentraler Build-Prozess für das GCS Documentation Portal (Argon)
- * mit vollständiger Integration der SWE-2-Wissensbasis (docs/gcs-knowledge-swe2/).
+ * mit vollständiger Integration der SWE-2-Wissensbasis (docs/gcs-knowledge-swe2/ Schema 1.1.0).
  *
  * Liest alle Dokumentations- und SWE-2-Quellen strikt read-only aus und erzeugt:
  * - docs/gcs-doc-portal-argon/data/portal-data-argon.json
@@ -10,12 +10,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {
   CHAPTER_SPECS,
+  escapeHtml,
   parseMarkdownBlocks,
   renderBlocksToHtml,
   parseHandbookChapter
 } = require('./parser-argon.cjs');
 const {
   normalizeRelPath,
+  normalizeDevStatus,
   loadSwe2KnowledgeBase,
   createRouteResolver,
   buildSearchIndexFromSwe2Chunks
@@ -59,6 +61,14 @@ function normalizeCategoryKey(rawCat) {
   return CATEGORY_META[s] ? s : 'sonstige';
 }
 
+function toPlainSearchText(raw) {
+  return String(raw || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[#>*`|_\[\]()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
   const mdRel = swe2Comp.sources?.docs?.find(d => d.endsWith('.md')) || `docs/reference/components/${swe2Comp.name}.md`;
   const mdFile = path.join(ROOT, mdRel);
@@ -66,7 +76,6 @@ function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
   let raw = '';
   let parsed = { title: swe2Comp.name, statusNote: '', headings: [], checklists: [], screenshots: [], blocks: [] };
   const metaTable = {};
-  const mdProps = [];
   let isCurated = false;
 
   if (hasMdFile) {
@@ -80,65 +89,41 @@ function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
           metaTable[row[0].replace(/`/g, '').trim()] = row[1].replace(/`/g, '').trim();
         }
       }
-      if (b.type === 'table' && b.headers.length >= 3 && b.headers[0].toLowerCase().includes('name')) {
-        for (const row of b.rows) {
-          mdProps.push({
-            name: (row[0] || '').replace(/`/g, '').trim(),
-            label: (row[1] || '').trim(),
-            type: (row[2] || '').replace(/`/g, '').trim(),
-            group: (row[3] || 'Allgemein').trim(),
-            source: 'markdown'
-          });
-        }
-      }
     }
   }
 
-  // Merge SWE-2 properties (mit Typ, Default, Beschreibung, Quelle) + Markdown-Inspector-Zeilen
-  const propMap = new Map();
+  // Kanonische SWE-2 properties aus Schema 1.1.0 (inkl. options, default, confidence, source).
+  // Keine Vermischung mit unbestätigten Markdown-Tabellenzeilen (A06, A09).
+  const properties = [];
   if (swe2Comp.properties && typeof swe2Comp.properties === 'object') {
     for (const [propName, pDef] of Object.entries(swe2Comp.properties)) {
-      propMap.set(propName, {
+      properties.push({
         name: propName,
         label: pDef.label || propName,
         type: pDef.type || 'unknown',
         defaultValue: pDef.default !== undefined ? pDef.default : '—',
+        options: Array.isArray(pDef.options) ? pDef.options : null,
         description: pDef.description || '',
         group: pDef.group || 'SCHEMA',
-        source: pDef.source || 'schema'
+        source: pDef.source || 'schema',
+        confidence: pDef.confidence || swe2Comp.provenance?.facts?.properties || 'documented'
       });
     }
   }
-  for (const mp of mdProps) {
-    if (!mp.name) continue;
-    if (propMap.has(mp.name)) {
-      const existing = propMap.get(mp.name);
-      if (!existing.label || existing.label === mp.name) existing.label = mp.label;
-      if (existing.group === 'SCHEMA' && mp.group) existing.group = mp.group;
-    } else {
-      propMap.set(mp.name, {
-        name: mp.name,
-        label: mp.label || mp.name,
-        type: mp.type || 'string',
-        defaultValue: '—',
-        description: '',
-        group: mp.group || 'INSPECTOR',
-        source: 'markdown'
-      });
-    }
-  }
-  const properties = Array.from(propMap.values());
 
-  // Events mit stabiler SWE-2-ID (EVT-####) und Herkunft verknüpfen
+  // Events mit stabiler SWE-2-ID (EVT-####), origin (own/inherited), declaredIn, inheritedFrom & conditions (A07, A09)
   const eventsDetail = (swe2Comp.events || []).map(ev => {
     const evtEntity = kb.eventByName.get(ev.name);
     return {
       id: evtEntity ? evtEntity.id : null,
       name: ev.name,
-      origin: ev.origin || 'documented',
+      origin: ev.origin || 'own',
+      declaredIn: ev.declaredIn || swe2Comp.name,
+      inheritedFrom: ev.inheritedFrom || null,
+      conditions: Array.isArray(ev.conditions) ? ev.conditions : [],
       source: ev.source || '',
       declaredByCount: evtEntity?.declaredBy?.length || 1,
-      confidence: evtEntity?.provenance?.confidence || swe2Comp.provenance?.confidence || 'documented'
+      confidence: ev.confidence || evtEntity?.provenance?.confidence || swe2Comp.provenance?.facts?.events || 'documented'
     };
   });
   const events = eventsDetail.map(e => e.name);
@@ -152,7 +137,7 @@ function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
       origin: m.origin || 'documented',
       source: m.source || '',
       parameters: mthEntity?.parameters || [],
-      confidence: mthEntity?.provenance?.confidence || swe2Comp.provenance?.confidence || 'documented'
+      confidence: m.confidence || mthEntity?.provenance?.confidence || 'documented'
     };
   });
   const methods = methodsDetail.map(m => m.name);
@@ -177,13 +162,15 @@ function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
     return true;
   });
 
+  // A01 Fix (P0): Vollständiges HTML-Escaping für alle dynamischen Felder im Fallback-Zweig!
   const htmlContent = hasMdFile
     ? renderBlocksToHtml(contentBlocks, context)
-    : `<div class="hb-callout hb-callout-info"><div class="hb-callout-icon">ℹ️</div><div class="hb-callout-body"><strong>SWE-2-Entity (${swe2Comp.id}):</strong> ${swe2Comp.description || 'Komponente aus Schema/Inventar.'}</div></div>`;
+    : `<div class="hb-callout hb-callout-info"><div class="hb-callout-icon">ℹ️</div><div class="hb-callout-body"><strong>SWE-2-Entity (${escapeHtml(swe2Comp.id)}):</strong> ${escapeHtml(swe2Comp.description || 'Komponente aus Schema/Inventar.')}</div></div>`;
 
   const codeSources = swe2Comp.sources?.code || [];
   const docSources = swe2Comp.sources?.docs || [];
   const testSources = swe2Comp.sources?.tests || [];
+  const devStatus = normalizeDevStatus(swe2Comp.status?.dev);
 
   return {
     id: swe2Comp.id,
@@ -193,11 +180,15 @@ function parseComponentWithSwe2(swe2Comp, invComp, compDir, kb, context) {
     categoryKey: catKey,
     categoryLabel: catMeta.label,
     categoryIcon: catMeta.icon,
-    devStatus: swe2Comp.status?.dev || 'implementiert',
+    devStatus,
     testStatus: swe2Comp.status?.test || 'nicht getestet',
     docStatus: swe2Comp.status?.doc || (isCurated ? 'technisch geprüft' : 'entwurf'),
-    status: swe2Comp.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'entwurf' },
-    provenance: swe2Comp.provenance || { method: ['inventory'], confidence: 'documented' },
+    status: {
+      dev: devStatus,
+      test: swe2Comp.status?.test || 'nicht getestet',
+      doc: swe2Comp.status?.doc || (isCurated ? 'technisch geprüft' : 'entwurf')
+    },
+    provenance: swe2Comp.provenance || { method: ['inventory'], confidence: 'documented', facts: {} },
     confidence: swe2Comp.provenance?.confidence || 'documented',
     version: swe2Comp.version || {},
     isCurated,
@@ -240,22 +231,28 @@ function parseGenericMarkdownDoc(docSpec, rootDir, kb, context) {
 
   const relNorm = normalizeRelPath(docSpec.path);
   const swe2Doc = kb.docByPath.get(relNorm);
+  const plainText = toPlainSearchText(raw);
+  const devStatus = swe2Doc ? normalizeDevStatus(swe2Doc.status?.dev) : 'implementiert';
 
   return {
     id: docSpec.id,
+    docId: swe2Doc ? swe2Doc.id : null,
     swe2DocId: swe2Doc ? swe2Doc.id : null,
     title: docSpec.title || parsed.title,
     category: docSpec.category || 'Allgemein',
     path: relNorm,
     summary: docSpec.summary || swe2Doc?.description || (parsed.blocks.find(b => b.type === 'p')?.text || '').slice(0, 240),
-    status: swe2Doc?.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'technisch geprüft' },
+    status: swe2Doc?.status || { dev: devStatus, test: 'nicht getestet', doc: 'technisch geprüft' },
+    devStatus,
     confidence: swe2Doc?.provenance?.confidence || 'documented',
+    provenance: swe2Doc?.provenance || { method: ['doc'], confidence: 'documented', facts: {} },
     docMeta: swe2Doc?.docMeta || null,
     statusNote: parsed.statusNote,
     headings: parsed.headings,
     components: compMatches,
     features: featMatches,
-    htmlContent
+    htmlContent,
+    plainText
   };
 }
 
@@ -316,22 +313,26 @@ function parseTechnicalDebtItems(rootDir, context) {
     const areaMatch = sec.match(/\*\*Bereich:\*\*\s*([^\n]+)/);
     const findingMatch = sec.match(/\*\*Befund:\*\*\s*([^\n]+)/);
     const parsed = parseMarkdownBlocks(sec, { id, defaultTitle: cleanTitle });
+    const plainText = toPlainSearchText(sec);
     items.push({
       id,
       title: cleanTitle,
       priority,
       area: areaMatch ? areaMatch[1].replace(/`/g, '').trim() : '',
       summary: findingMatch ? findingMatch[1].replace(/`/g, '').trim() : '',
-      htmlContent: renderBlocksToHtml(parsed.blocks.slice(1), context)
+      htmlContent: renderBlocksToHtml(parsed.blocks.slice(1), context),
+      text: plainText,
+      plainText
     });
   }
   return items;
 }
 
-function buildPortalData() {
-  // 1. SWE-2-Wissensbasis einlesen (Manifest zuerst, dann alle 688 Entities + 1.774 Chunks)
-  const kb = loadSwe2KnowledgeBase(ROOT, config.swe2Integration);
-  const inventoryRaw = JSON.parse(fs.readFileSync(path.join(ROOT, config.sources.inventoryJson), 'utf8'));
+function buildPortalData(options = {}) {
+  const rootDir = options.rootDir || ROOT;
+  // 1. SWE-2-Wissensbasis einlesen (Manifest zuerst, inkl. SHA-256-Checksums, 693 Entities & 1.774 Chunks)
+  const kb = loadSwe2KnowledgeBase(rootDir, config.swe2Integration);
+  const inventoryRaw = JSON.parse(fs.readFileSync(path.join(rootDir, config.sources.inventoryJson), 'utf8'));
   const invCompById = new Map((inventoryRaw.components || []).map(c => [c.id, c]));
 
   const knownComponents = new Set(kb.entities.components.map(c => c.name));
@@ -345,22 +346,30 @@ function buildPortalData() {
   const portalRouteByDocPath = new Map();
 
   // 2. Autoren-Handbuch (23 Kapitel) + Verknüpfung mit GUIDE-0001..0023
-  const userGuideDir = path.join(ROOT, config.sources.userGuideDir);
+  const userGuideDir = path.join(rootDir, config.sources.userGuideDir);
   const chapters = CHAPTER_SPECS.map(spec => {
     const ch = parseHandbookChapter(spec, userGuideDir, parseContext);
     const docRel = normalizeRelPath(`docs/user-guide/${spec.file}`);
     const swe2Guide = kb.guideByDocPath.get(docRel);
     ch.guideId = swe2Guide ? swe2Guide.id : null;
     ch.guideName = swe2Guide ? swe2Guide.name : ch.num;
+    ch.groupId = ch.group;
+    ch.groupTitle = ch.group;
+    ch.htmlContent = ch.modernHtml;
+    if (ch.mediaSection && !ch.mediaSection.scriptText) {
+      ch.mediaSection.scriptText = ch.mediaSection.script || '';
+    }
     ch.status = swe2Guide?.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'fachlich freigegeben' };
+    ch.devStatus = normalizeDevStatus(swe2Guide?.status?.dev);
     ch.confidence = swe2Guide?.provenance?.confidence || 'documented';
+    ch.provenance = swe2Guide?.provenance || { method: ['doc'], confidence: 'documented', facts: {} };
     ch.version = swe2Guide?.version || {};
     portalRouteByDocPath.set(docRel, `#handbook/${ch.id}`);
     return ch;
   });
 
   // 3. Komponentenreferenz (128 Komponenten aus SWE-2 + Markdown-Steckbriefe)
-  const compDir = path.join(ROOT, config.sources.componentsDir);
+  const compDir = path.join(rootDir, config.sources.componentsDir);
   const components = kb.entities.components.map(swe2Comp => {
     const comp = parseComponentWithSwe2(swe2Comp, invCompById.get(swe2Comp.id), compDir, kb, parseContext);
     for (const docPath of swe2Comp.sources?.docs || []) {
@@ -379,7 +388,7 @@ function buildPortalData() {
   });
 
   // 4. Feature-Fachartikel, Architektur-Doks & Entwickler-Doks parsen und im Pfad-Router registrieren
-  const featureArticles = collectFeatureMarkdownDocs(path.join(ROOT, config.sources.featuresDir), ROOT, kb, parseContext);
+  const featureArticles = collectFeatureMarkdownDocs(path.join(rootDir, config.sources.featuresDir), rootDir, kb, parseContext);
   featureArticles.forEach(fa => portalRouteByDocPath.set(normalizeRelPath(fa.path), `#features/${fa.id}`));
 
   const archSpecs = [
@@ -388,11 +397,11 @@ function buildPortalData() {
     { id: 'execution-flow', title: 'Ausführungsfluss (Editor → Runtime → Actions)', category: 'Laufzeit & Engine', path: 'docs/architecture/execution-flow.md' },
     { id: 'arch-readme', title: 'Architektur-Dokumentation — Konventionen & Überblick', category: 'Grundlagen', path: 'docs/architecture/README.md' }
   ];
-  const architectureDocs = archSpecs.map(s => parseGenericMarkdownDoc(s, ROOT, kb, parseContext)).filter(Boolean);
+  const architectureDocs = archSpecs.map(s => parseGenericMarkdownDoc(s, rootDir, kb, parseContext)).filter(Boolean);
   architectureDocs.forEach(ad => portalRouteByDocPath.set(normalizeRelPath(ad.path), `#architecture/${ad.id}`));
 
   const devRefArticles = config.sources.developerDocs
-    .map(s => parseGenericMarkdownDoc(s, ROOT, kb, parseContext))
+    .map(s => parseGenericMarkdownDoc(s, rootDir, kb, parseContext))
     .filter(Boolean);
   devRefArticles.forEach(dd => portalRouteByDocPath.set(normalizeRelPath(dd.path), `#devref/${dd.id}`));
 
@@ -423,7 +432,6 @@ function buildPortalData() {
     delete comp.rawRelations;
 
     const rel = new Set();
-    // Primär: SWE-2 relations (inherits, seeAlso) über stabile COMP-IDs
     for (const r of comp.relations) {
       if ((r.type === 'inherits' || r.type === 'seeAlso') && compById[r.target]) {
         rel.add(compById[r.target].name);
@@ -478,6 +486,8 @@ function buildPortalData() {
       }
     });
 
+    const devStatus = normalizeDevStatus(f.status?.dev);
+
     return {
       id: f.id,
       kind: 'feature',
@@ -485,11 +495,11 @@ function buildPortalData() {
       title: f.title || f.name,
       category: f.category || 'runtime',
       summary: f.description || '',
-      devStatus: f.status?.dev || 'implementiert',
+      devStatus,
       testStatus: f.status?.test || 'nicht getestet',
       docStatus: f.status?.doc || 'technisch geprüft',
       status: f.status || {},
-      provenance: f.provenance || { method: ['inventory'], confidence: 'documented' },
+      provenance: f.provenance || { method: ['inventory'], confidence: 'documented', facts: {} },
       confidence: f.provenance?.confidence || 'documented',
       version: f.version || {},
       dependsOn,
@@ -507,7 +517,7 @@ function buildPortalData() {
     };
   });
 
-  // 7. Action-Typen (ACT-0001..0059), Methoden (MTH-0001..0038), Events (EVT-0001..0158),
+  // 7. Action-Typen (ACT-0001..0059), Methoden (MTH-0001..0038), Events (EVT-0001..0163),
   //    Schemas (SCM-0001..0013), Konzepte (CON-0001..0015) & Dokumente (DOC-0001..0242)
   const actions = kb.entities.actionTypes.map(act => ({
     id: act.id,
@@ -516,12 +526,27 @@ function buildPortalData() {
     name: act.name,
     label: act.title || act.name,
     description: act.description || '',
-    parameters: act.parameters || [],
+    parameters: (act.parameters || []).map(p => ({
+      name: p.name,
+      label: p.label || p.name,
+      type: p.type || 'string',
+      options: Array.isArray(p.options) ? p.options : undefined,
+      defaultValue: p.defaultValue !== undefined ? p.defaultValue : undefined,
+      source: p.source || undefined,
+      hint: p.hint || undefined,
+      placeholder: p.placeholder || undefined,
+      allowVariableBinding: p.allowVariableBinding,
+      allowFreeText: p.allowFreeText,
+      multiline: p.multiline,
+      visibleWhen: p.visibleWhen || undefined
+    })),
     flags: act.flags || {},
-    status: act.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'entwurf' },
-    devStatus: act.status?.dev || 'implementiert',
+    limitations: act.limitations || [],
+    relations: routeResolver.resolveRelations(act.relations || []),
+    status: act.status || {},
+    devStatus: normalizeDevStatus(act.status?.dev),
     confidence: act.provenance?.confidence || 'verified',
-    provenance: act.provenance || {},
+    provenance: act.provenance || { method: ['code'], confidence: 'verified', facts: {} },
     sources: act.sources || {},
     version: act.version || {}
   }));
@@ -533,9 +558,10 @@ function buildPortalData() {
     title: m.title || m.name,
     description: m.description || '',
     parameters: m.parameters || [],
-    status: m.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'entwurf' },
-    devStatus: m.status?.dev || 'implementiert',
+    status: m.status || {},
+    devStatus: normalizeDevStatus(m.status?.dev),
     confidence: m.provenance?.confidence || 'verified',
+    provenance: m.provenance || { method: ['code'], confidence: 'verified', facts: {} },
     sources: m.sources || {},
     usedByComponents: components.filter(c => c.methods.includes(m.name)).map(c => ({ id: c.id, name: c.name }))
   }));
@@ -548,9 +574,10 @@ function buildPortalData() {
     description: ev.description || '',
     declaredBy: ev.declaredBy || [],
     relations: routeResolver.resolveRelations(ev.relations || []),
-    status: ev.status || { dev: 'implementiert', test: 'nicht getestet', doc: 'entwurf' },
-    devStatus: ev.status?.dev || 'implementiert',
+    status: ev.status || {},
+    devStatus: normalizeDevStatus(ev.status?.dev),
     confidence: ev.provenance?.confidence || 'verified',
+    provenance: ev.provenance || { method: ['schema'], confidence: 'verified', facts: {} },
     sources: ev.sources || {}
   }));
 
@@ -562,8 +589,9 @@ function buildPortalData() {
     description: sc.description || '',
     relations: routeResolver.resolveRelations(sc.relations || []),
     status: sc.status || {},
-    devStatus: sc.status?.dev || 'implementiert',
+    devStatus: normalizeDevStatus(sc.status?.dev),
     confidence: sc.provenance?.confidence || 'verified',
+    provenance: sc.provenance || { method: ['schema'], confidence: 'verified', facts: {} },
     sources: sc.sources || {}
   }));
 
@@ -577,8 +605,9 @@ function buildPortalData() {
       description: con.description || '',
       relations: routeResolver.resolveRelations(con.relations || []),
       status: con.status || {},
-      devStatus: con.status?.dev || 'implementiert',
+      devStatus: normalizeDevStatus(con.status?.dev),
       confidence: con.provenance?.confidence || 'documented',
+      provenance: con.provenance || { method: ['doc'], confidence: 'documented', facts: {} },
       sources: con.sources || {},
       portalHref: route.href
     };
@@ -587,6 +616,7 @@ function buildPortalData() {
   const documentInventory = kb.entities.documents.map(doc => {
     const route = routeResolver.resolveEntityRoute(doc);
     const fileRel = normalizeRelPath(doc.sources?.docs?.[0] || doc.title);
+    const devStatus = normalizeDevStatus(doc.status?.dev);
     return {
       id: doc.id,
       kind: 'document',
@@ -594,23 +624,112 @@ function buildPortalData() {
       file: fileRel,
       type: doc.category || 'dokument',
       note: doc.description || '',
-      rating: doc.docMeta?.rating || (doc.status?.dev === 'veraltet' ? 'möglicherweise veraltet' : 'aktuell'),
+      rating: doc.docMeta?.rating || (devStatus === 'veraltet' ? 'möglicherweise veraltet' : 'aktuell'),
       reviewDepth: doc.docMeta?.reviewDepth || 'metadaten',
       basis: doc.docMeta?.basis || '',
       canonical: Boolean(doc.docMeta?.canonical),
       missing: Boolean(doc.missing),
       status: doc.status || {},
-      devStatus: doc.status?.dev || 'implementiert',
+      devStatus,
       confidence: doc.provenance?.confidence || 'documented',
+      provenance: doc.provenance || { method: ['inventory'], confidence: 'documented', facts: {} },
       portalHref: route.linkable ? route.href : null
     };
   });
 
-  const techDebtItems = parseTechnicalDebtItems(ROOT, parseContext);
+  const techDebtItems = parseTechnicalDebtItems(rootDir, parseContext);
 
-  // 8. Globaler Suchindex aus allen 1.774 SWE-2-Chunks (chunks-swe2.jsonl) + Portal-Fachartikeln
+  // 8. Globaler Suchindex aus allen 693 SWE-2-Basis-Entities + 1.774 SWE-2-Chunks + Portal-Fachartikeln & Technical Debt (A02, A03)
   const chunkSearchEntries = buildSearchIndexFromSwe2Chunks(kb, routeResolver);
   const searchIndex = [...chunkSearchEntries];
+
+  for (const fa of featureArticles) {
+    searchIndex.push({
+      area: 'features',
+      areaLabel: '✨ Feature-Doku',
+      id: fa.id,
+      entityId: fa.docId || fa.id,
+      kind: 'feature-article',
+      entryType: 'article',
+      badge: fa.docId || fa.category,
+      title: fa.title,
+      subtitle: fa.path,
+      href: `#features/${fa.id}`,
+      linkable: true,
+      sourceDoc: fa.path,
+      statusDev: fa.devStatus || 'implementiert',
+      confidence: fa.confidence || 'documented',
+      missing: false,
+      keywords: [...(fa.components || []), ...(fa.features || []), fa.category, fa.docId || ''].join(' '),
+      text: String(fa.plainText || fa.summary || fa.title || '')
+    });
+  }
+
+  for (const ad of architectureDocs) {
+    searchIndex.push({
+      area: 'architecture',
+      areaLabel: '🏛️ Architektur',
+      id: ad.id,
+      entityId: ad.docId || ad.id,
+      kind: 'architecture-doc',
+      entryType: 'article',
+      badge: ad.docId || ad.category,
+      title: ad.title,
+      subtitle: ad.path,
+      href: `#architecture/${ad.id}`,
+      linkable: true,
+      sourceDoc: ad.path,
+      statusDev: ad.devStatus || 'implementiert',
+      confidence: ad.confidence || 'verified',
+      missing: false,
+      keywords: [...(ad.components || []), ...(ad.features || []), ad.docId || ''].join(' '),
+      text: String(ad.plainText || ad.summary || ad.title || '')
+    });
+  }
+
+  for (const dd of devRefArticles) {
+    searchIndex.push({
+      area: 'devref',
+      areaLabel: '🛠️ Entwickler',
+      id: dd.id,
+      entityId: dd.docId || dd.id,
+      kind: 'devref-doc',
+      entryType: 'article',
+      badge: dd.docId || dd.category,
+      title: dd.title,
+      subtitle: dd.path,
+      href: `#devref/${dd.id}`,
+      linkable: true,
+      sourceDoc: dd.path,
+      statusDev: dd.devStatus || 'implementiert',
+      confidence: dd.confidence || 'documented',
+      missing: false,
+      keywords: [...(dd.components || []), ...(dd.features || []), dd.category, dd.docId || ''].join(' '),
+      text: String(dd.plainText || dd.summary || dd.title || '')
+    });
+  }
+
+  for (const td of techDebtItems) {
+    searchIndex.push({
+      area: 'devref',
+      areaLabel: '🛠️ Tech-Debt',
+      id: `td-${td.id}`,
+      entityId: td.id,
+      kind: 'tech-debt',
+      entryType: 'article',
+      badge: td.id,
+      title: `${td.id}: ${td.title}`,
+      subtitle: 'Technical Debt & Qualitätsbefunde',
+      href: '#devref/technical-debt',
+      linkable: true,
+      sourceDoc: 'docs/inventory/TECHNICAL-DEBT.md',
+      statusDev: 'implementiert',
+      confidence: 'verified',
+      missing: false,
+      keywords: `${td.id} ${td.title} Technical Debt Befund`,
+      text: String(td.text || td.summary || td.title || '')
+    });
+  }
 
   // Prüfe, ob alle SWE-2-Relations auflösbar sind
   let unresolvedRelationsCount = 0;
@@ -620,6 +739,9 @@ function buildPortalData() {
     }
   }
 
+  // Deterministischer Build-Zeitstempel für reproduzierbare Builds (A14)
+  const deterministicGeneratedAt = process.env.ARGON_BUILD_TIME || kb.manifest.generated || new Date().toISOString();
+
   const payload = {
     meta: {
       portalId: config.portalId,
@@ -627,7 +749,7 @@ function buildPortalData() {
       subtitle: config.subtitle,
       edition: config.edition,
       version: config.version,
-      generatedAt: new Date().toISOString(),
+      generatedAt: deterministicGeneratedAt,
       analysisCommit: kb.manifest.sourceCommit || '53e3dfb',
       counts: {
         handbookChapters: chapters.length,
@@ -655,6 +777,12 @@ function buildPortalData() {
       },
       swe2Integration: {
         ...config.swe2Integration,
+        schemaVersion: kb.manifest.schemaVersion,
+        sourceCommit: kb.manifest.sourceCommit,
+        totalEntities: kb.entityById.size,
+        totalChunks: kb.chunks.length,
+        unresolvedRelationsCount,
+        entityCountsByKind: kb.manifest.counts.byKind,
         manifest: kb.manifest,
         status: {
           enabled: true,
@@ -692,24 +820,26 @@ function buildPortalData() {
     searchIndex
   };
 
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(path.join(DATA_DIR, 'portal-data-argon.json'), JSON.stringify(payload, null, 2), 'utf8');
-  fs.writeFileSync(
-    path.join(DATA_DIR, 'portal-data-argon.js'),
-    `// AUTOMATISCH GENERIERT durch build-argon.cjs (inkl. SWE-2-Wissensbasis) — NICHT MANUELL EDITIEREN\nwindow.GCS_PORTAL_DATA_ARGON = ${JSON.stringify(payload).replace(/</g, '\\u003c')};\n`,
-    'utf8'
-  );
+  if (options.writeFiles !== false) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(path.join(DATA_DIR, 'portal-data-argon.json'), JSON.stringify(payload, null, 2), 'utf8');
+    fs.writeFileSync(
+      path.join(DATA_DIR, 'portal-data-argon.js'),
+      `// AUTOMATISCH GENERIERT durch build-argon.cjs (inkl. SWE-2-Wissensbasis Schema v${kb.manifest.schemaVersion}) — NICHT MANUELL EDITIEREN\nwindow.GCS_PORTAL_DATA_ARGON = ${JSON.stringify(payload).replace(/</g, '\\u003c')};\n`,
+      'utf8'
+    );
 
-  console.log(
-    `[build-argon] Portal-Daten mit SWE-2-Wissensbasis erfolgreich erzeugt:\n` +
-    `  - SWE-2-Manifest:  v${kb.manifest.schemaVersion} (${kb.manifest.counts.entities} Entities, ${kb.chunks.length} Chunks, ${unresolvedRelationsCount} unauflösbare Relations)\n` +
-    `  - Handbuch:        ${payload.meta.counts.handbookChapters} Kapitel (GUIDE-0001..0023)\n` +
-    `  - Komponenten:     ${payload.meta.counts.components} (COMP-0001..0128 in ${payload.meta.counts.componentCategories} Kategorien)\n` +
-    `  - Features:        ${payload.meta.counts.features} Features (FEAT-0001..0012) + ${payload.meta.counts.featureArticles} Fachartikel\n` +
-    `  - Architektur:     ${payload.meta.counts.architectureDocs} Dokumente\n` +
-    `  - Entwicklerref.:  ${payload.meta.counts.actions} Actions (ACT), ${payload.meta.counts.methods} Methoden (MTH), ${payload.meta.counts.events} Events (EVT), ${payload.meta.counts.schemas} Schemas (SCM), ${payload.meta.counts.concepts} Konzepte (CON), ${payload.meta.counts.inventoryDocuments} Dokumente (DOC, davon ${payload.meta.counts.missingDocuments} missing)\n` +
-    `  - Suchindex:       ${payload.meta.counts.searchEntries} Chunks & Einträge`
-  );
+    console.log(
+      `[build-argon] Portal-Daten mit SWE-2-Wissensbasis erfolgreich erzeugt:\n` +
+      `  - SWE-2-Manifest:  v${kb.manifest.schemaVersion} (${kb.manifest.counts.entities} Entities, ${kb.chunks.length} Chunks, ${unresolvedRelationsCount} unauflösbare Relations)\n` +
+      `  - Handbuch:        ${payload.meta.counts.handbookChapters} Kapitel (GUIDE-0001..0023)\n` +
+      `  - Komponenten:     ${payload.meta.counts.components} (COMP-0001..0128 in ${payload.meta.counts.componentCategories} Kategorien)\n` +
+      `  - Features:        ${payload.meta.counts.features} Features (FEAT-0001..0012) + ${payload.meta.counts.featureArticles} Fachartikel\n` +
+      `  - Architektur:     ${payload.meta.counts.architectureDocs} Dokumente\n` +
+      `  - Entwicklerref.:  ${payload.meta.counts.actions} Actions (ACT), ${payload.meta.counts.methods} Methoden (MTH), ${payload.meta.counts.events} Events (EVT), ${payload.meta.counts.schemas} Schemas (SCM), ${payload.meta.counts.concepts} Konzepte (CON), ${payload.meta.counts.inventoryDocuments} Dokumente (DOC, davon ${payload.meta.counts.missingDocuments} missing)\n` +
+      `  - Suchindex:       ${payload.meta.counts.searchEntries} Einträge (${kb.entityById.size} Entities + ${kb.chunks.length} Chunks + Fachartikel)`
+    );
+  }
 
   return payload;
 }
@@ -718,4 +848,4 @@ if (require.main === module) {
   buildPortalData();
 }
 
-module.exports = { buildPortalData };
+module.exports = { buildPortalData, parseComponentWithSwe2 };

@@ -14,8 +14,8 @@
   "parameters": [
    {
     "name": "changes",
-    "type": "keyvalue",
     "label": "Zuweisungen",
+    "type": "keyvalue",
     "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
    }
   ],
@@ -32,14 +32,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1b0d0e198fd136e7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -57,8 +62,8 @@
   "parameters": [
    {
     "name": "changes",
-    "type": "keyvalue",
     "label": "Zuweisungen",
+    "type": "keyvalue",
     "hint": "Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu."
    }
   ],
@@ -77,14 +82,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c80c4eac7792c374"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -102,20 +112,22 @@
   "parameters": [
    {
     "name": "target",
-    "type": "object",
     "label": "Eltern-Objekt (TGroupPanel)",
+    "type": "object",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Oft %Self% oder ${Var} mit der ID des gespawnten Templates"
    },
    {
     "name": "childName",
-    "type": "string",
     "label": "Kind Name",
+    "type": "string",
     "hint": "Name des zu modifizierenden Kind-Elements im Template"
    },
    {
     "name": "changes",
-    "type": "json",
     "label": "Änderungen (JSON)",
+    "type": "json",
     "hint": "Beispiel: { \"text\": \"Neuer Text\" }"
    }
   ],
@@ -132,14 +144,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:15869ea11a8a4c9d"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -157,23 +174,27 @@
   "parameters": [
    {
     "name": "variableName",
+    "label": "Ziel-Variable",
     "type": "variable",
-    "label": "Ziel-Variable"
+    "source": "variables"
    },
    {
     "name": "value",
+    "label": "Einfacher Wert (z.B. 555)",
     "type": "string",
-    "label": "Einfacher Wert (z.B. 555)"
+    "placeholder": "Literal oder ${var}"
    },
    {
     "name": "source",
+    "label": "(oder) Quell-Objekt / Variable",
     "type": "object",
-    "label": "(oder) Quell-Objekt / Variable"
+    "source": "objects"
    },
    {
     "name": "sourceProperty",
+    "label": "(oder) Eigenschaft (optional)",
     "type": "string",
-    "label": "(oder) Eigenschaft (optional)"
+    "placeholder": "z.B. text oder value"
    }
   ],
   "flags": {},
@@ -189,14 +210,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:06cdf57049178a0b"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -214,23 +240,27 @@
   "parameters": [
    {
     "name": "variableName",
+    "label": "Ziel-Variable",
     "type": "variable",
-    "label": "Ziel-Variable"
+    "source": "variables"
    },
    {
     "name": "value",
+    "label": "Einfacher Wert (z.B. 555)",
     "type": "string",
-    "label": "Einfacher Wert (z.B. 555)"
+    "placeholder": "Literal oder ${var}"
    },
    {
     "name": "source",
+    "label": "(oder) Quell-Objekt / Variable",
     "type": "object",
-    "label": "(oder) Quell-Objekt / Variable"
+    "source": "objects"
    },
    {
     "name": "sourceProperty",
+    "label": "(oder) Eigenschaft (optional)",
     "type": "string",
-    "label": "(oder) Eigenschaft (optional)"
+    "placeholder": "z.B. text oder value"
    }
   ],
   "flags": {
@@ -248,14 +278,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:e20babdc1a0ecbc8"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -273,13 +308,16 @@
   "parameters": [
    {
     "name": "resultVariable",
+    "label": "Ziel",
     "type": "variable",
-    "label": "Ziel"
+    "source": "variables"
    },
    {
     "name": "formula",
-    "type": "string",
     "label": "Wert",
+    "type": "string",
+    "multiline": true,
+    "placeholder": "z.B. myVar := score + 10",
     "hint": "Ziel := Ausdruck, z.B. myVar := 5 + score"
    }
   ],
@@ -296,14 +334,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:b048536bdb1deb29"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -321,8 +364,8 @@
   "parameters": [
    {
     "name": "changes",
-    "type": "keyvalue",
     "label": "Zuweisungen",
+    "type": "keyvalue",
     "hint": "Wähle Datenquellen (links) aus, die negiert werden sollen."
    }
   ],
@@ -339,14 +382,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1d3a40a778539d3c"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -364,8 +412,8 @@
   "parameters": [
    {
     "name": "changes",
-    "type": "keyvalue",
     "label": "Zuweisungen",
+    "type": "keyvalue",
     "hint": "Wähle Datenquellen (links) und den Wert, der addiert werden soll (rechts)."
    }
   ],
@@ -382,14 +430,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:47f1d029149cf08e"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -407,14 +460,19 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Ziel-Objekt",
+    "type": "select",
+    "source": "objects",
+    "allowVariableBinding": true,
+    "allowFreeText": true,
+    "defaultValue": "",
+    "placeholder": "--- Komponente auswählen ---",
     "hint": "Das zu animierende Objekt (\"self\" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name). Mehrere Ziele durch Komma trennen, z.B. \"Karte1, Karte2\"."
    },
    {
     "name": "effect",
-    "type": "select",
     "label": "Effekt",
+    "type": "select",
     "options": [
      "shake",
      "pulse",
@@ -431,67 +489,142 @@
      "wobble",
      "flip",
      "flip3d"
-    ]
+    ],
+    "defaultValue": "shake"
    },
    {
     "name": "duration",
-    "type": "number",
     "label": "Dauer (ms)",
+    "type": "number",
+    "defaultValue": 500,
     "hint": "Zeit in Millisekunden"
    },
    {
     "name": "source",
-    "type": "select",
     "label": "Quell-Objekt (Saug-Ziel)",
-    "hint": "Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte."
+    "type": "select",
+    "source": "objects",
+    "allowVariableBinding": true,
+    "defaultValue": "",
+    "placeholder": "--- Objekt auswählen ---",
+    "hint": "Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte.",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "implode"
+     ]
+    }
    },
    {
     "name": "targetScale",
-    "type": "number",
     "label": "Ziel-Skalierung",
-    "hint": "Für grow/shrink"
+    "type": "number",
+    "defaultValue": 2,
+    "hint": "Für grow/shrink",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "grow",
+      "shrink",
+      "pulse"
+     ]
+    }
    },
    {
     "name": "fragments",
-    "type": "number",
     "label": "Fragmente",
-    "hint": "Für explode/pop"
+    "type": "number",
+    "defaultValue": 9,
+    "hint": "Für explode/pop",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "explode",
+      "pop"
+     ]
+    }
    },
    {
     "name": "spread",
-    "type": "number",
     "label": "Ausbreitung (px)",
-    "hint": "Für explode"
+    "type": "number",
+    "defaultValue": 120,
+    "hint": "Für explode",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "explode"
+     ]
+    }
    },
    {
     "name": "degrees",
-    "type": "number",
     "label": "Grad",
-    "hint": "Für spin"
+    "type": "number",
+    "defaultValue": 360,
+    "hint": "Für spin",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "spin"
+     ]
+    }
    },
    {
     "name": "intensity",
-    "type": "number",
     "label": "Intensität",
-    "hint": "Für wobble/shake"
+    "type": "number",
+    "defaultValue": 15,
+    "hint": "Für wobble/shake",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "wobble",
+      "shake"
+     ]
+    }
    },
    {
     "name": "height",
-    "type": "number",
     "label": "Sprunghöhe (px)",
-    "hint": "Für bounce"
+    "type": "number",
+    "defaultValue": 20,
+    "hint": "Für bounce",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "bounce"
+     ]
+    }
    },
    {
     "name": "targetOpacity",
-    "type": "number",
     "label": "Ziel-Transparenz (0-1)",
-    "hint": "Für fade"
+    "type": "number",
+    "defaultValue": 0,
+    "hint": "Für fade",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "fade"
+     ]
+    }
    },
    {
     "name": "midpointTask",
-    "type": "select",
     "label": "Midpoint-Task",
-    "hint": "Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln)."
+    "type": "select",
+    "source": "tasks",
+    "defaultValue": "",
+    "placeholder": "--- Task auswählen ---",
+    "hint": "Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln).",
+    "visibleWhen": {
+     "field": "effect",
+     "values": [
+      "flip",
+      "flip3d"
+     ]
+    }
    }
   ],
   "flags": {},
@@ -507,14 +640,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1eb4209f092cd4b4"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -532,34 +670,40 @@
   "parameters": [
    {
     "name": "target",
-    "type": "object",
     "label": "Ziel-Objekt",
+    "type": "object",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Objektname, \"self\" oder ${Var} mit Objekt-ID/Name"
    },
    {
     "name": "x",
-    "type": "number",
-    "label": "Ziel-X"
+    "label": "Ziel-X",
+    "type": "number"
    },
    {
     "name": "y",
-    "type": "number",
-    "label": "Ziel-Y"
+    "label": "Ziel-Y",
+    "type": "number"
    },
    {
     "name": "lockDuringMove",
+    "label": "Während Bewegung nicht ziehbar",
     "type": "boolean",
-    "label": "Während Bewegung nicht ziehbar"
+    "defaultValue": false
    },
    {
     "name": "duration",
+    "label": "Dauer (ms)",
     "type": "number",
-    "label": "Dauer (ms)"
+    "defaultValue": 500
    },
    {
     "name": "easing",
+    "label": "Easing",
     "type": "select",
-    "label": "Easing"
+    "source": "easing-functions",
+    "defaultValue": "easeOut"
    }
   ],
   "flags": {},
@@ -575,14 +719,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1dbc1b03bbebeab2"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -600,24 +749,29 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Ziel-Sprite",
+    "type": "select",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Das Sprite mit einer TImageList (auch ${Var} mit Objekt-ID/Name)"
    },
    {
     "name": "fromFrame",
+    "label": "Start-Frame",
     "type": "number",
-    "label": "Start-Frame"
+    "defaultValue": 0
    },
    {
     "name": "toFrame",
+    "label": "End-Frame",
     "type": "number",
-    "label": "End-Frame"
+    "defaultValue": 7
    },
    {
     "name": "duration",
+    "label": "Dauer (ms)",
     "type": "number",
-    "label": "Dauer (ms)"
+    "defaultValue": 1000
    }
   ],
   "flags": {},
@@ -633,14 +787,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:49e645b38a6df793"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -658,8 +817,8 @@
   "parameters": [
    {
     "name": "target",
-    "type": "string",
-    "label": "Ziel-Projekt"
+    "label": "Ziel-Projekt",
+    "type": "string"
    }
   ],
   "flags": {
@@ -677,14 +836,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:6a2a60fedba6f8c1"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -702,13 +866,15 @@
   "parameters": [
    {
     "name": "stageId",
+    "label": "Ziel-Stage",
     "type": "select",
-    "label": "Ziel-Stage"
+    "source": "stages"
    },
    {
     "name": "reset",
-    "type": "boolean",
     "label": "Stage zurücksetzen",
+    "type": "boolean",
+    "defaultValue": false,
     "hint": "Wenn aktiviert, wird die Stage komplett neu aufgebaut (alle Komponenten auf Initialwerte)"
    }
   ],
@@ -725,14 +891,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c3926bd026ff16ff"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -761,14 +932,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:13a4920cd88d0e4b"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -786,52 +962,55 @@
   "parameters": [
    {
     "name": "url",
-    "type": "string",
-    "label": "URL"
+    "label": "URL",
+    "type": "string"
    },
    {
     "name": "method",
-    "type": "select",
     "label": "Methode",
+    "type": "select",
     "options": [
      "GET",
      "POST",
      "PUT",
      "DELETE"
-    ]
+    ],
+    "defaultValue": "GET"
    },
    {
     "name": "body",
+    "label": "Body (JSON-String oder Objekt)",
     "type": "string",
-    "label": "Body (JSON-String oder Objekt)"
+    "multiline": true
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis speichern in",
     "type": "variable",
-    "label": "Ergebnis speichern in"
+    "source": "variables"
    },
    {
     "name": "resultPath",
-    "type": "string",
     "label": "Daten-Pfad (Selektor)",
+    "type": "string",
     "hint": "Optional: Pfad zum Objekt in der Response (z.B. \"user\")"
    },
    {
     "name": "selectFields",
-    "type": "string",
     "label": "Felder (SELECT)",
+    "type": "string",
     "hint": "Kommagetrennte Liste der Felder oder count(*)"
    },
    {
     "name": "queryProperty",
-    "type": "string",
     "label": "Filter-Feld (WHERE)",
+    "type": "string",
     "hint": "z.B. id oder email"
    },
    {
     "name": "queryOperator",
-    "type": "select",
     "label": "Operator",
+    "type": "select",
     "options": [
      "==",
      "!=",
@@ -840,18 +1019,19 @@
      ">=",
      "<=",
      "CONTAINS"
-    ]
+    ],
+    "defaultValue": "=="
    },
    {
     "name": "queryValue",
-    "type": "string",
     "label": "Filter-Wert",
+    "type": "string",
     "hint": "Wert oder ${variable}"
    },
    {
     "name": "directFetch",
-    "type": "boolean",
     "label": "Direkter Abruf (keine Simulation)",
+    "type": "boolean",
     "hint": "Im Editor den ApiSimulator umgehen — z.B. für statische Dateien wie /videos/feature-videos.json"
    }
   ],
@@ -868,14 +1048,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:9a1fb6ae68095d72"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -893,19 +1078,20 @@
   "parameters": [
    {
     "name": "requestId",
-    "type": "string",
     "label": "Request ID",
+    "type": "string",
     "hint": "Wird automatisch vom onRequest-Event bereitgestellt."
    },
    {
     "name": "status",
+    "label": "HTTP Status",
     "type": "number",
-    "label": "HTTP Status"
+    "defaultValue": 200
    },
    {
     "name": "data",
-    "type": "string",
     "label": "Antwort-Daten (JSON)",
+    "type": "string",
     "hint": "Das Objekt, das als JSON gesendet wird."
    }
   ],
@@ -924,14 +1110,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a18cd877b7a3b51d"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -962,14 +1153,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:d04bec9e68880557"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -987,26 +1183,27 @@
   "parameters": [
    {
     "name": "dataStore",
-    "type": "select",
     "label": "Data Store (Komponente)",
+    "type": "select",
+    "source": "components",
     "hint": "Wähle eine TDataStore-Komponente (z.B. UserData)"
    },
    {
     "name": "selectFields",
-    "type": "string",
     "label": "Felder (SELECT)",
+    "type": "string",
     "hint": "Kommagetrennte Liste der Felder oder count(*)"
    },
    {
     "name": "queryProperty",
-    "type": "string",
     "label": "Filter-Feld (WHERE)",
+    "type": "string",
     "hint": "z.B. id oder email"
    },
    {
     "name": "queryOperator",
-    "type": "select",
     "label": "Operator",
+    "type": "select",
     "options": [
      "==",
      "!=",
@@ -1015,12 +1212,13 @@
      ">=",
      "<=",
      "CONTAINS"
-    ]
+    ],
+    "defaultValue": "=="
    },
    {
     "name": "queryValue",
-    "type": "string",
     "label": "Filter-Wert",
+    "type": "string",
     "hint": "Wert oder ${variable}"
    }
   ],
@@ -1037,14 +1235,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:9e395b26c92aadc0"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1075,14 +1278,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:d4a2c559e7c2cb97"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1100,49 +1308,54 @@
   "parameters": [
    {
     "name": "templateId",
-    "type": "string",
     "label": "Template",
+    "type": "string",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Das TSpriteTemplate"
    },
    {
     "name": "referenceObject",
-    "type": "string",
     "label": "Spawnen bei Objekt",
+    "type": "string",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Optional: Koords von dieses Objekts übernehmen"
    },
    {
     "name": "spawnMode",
-    "type": "select",
     "label": "Template Spawn Modus",
-    "hint": "Gilt nur, wenn das Bezugsobjekt ein Template ist.",
+    "type": "select",
     "options": [
      "normal",
      "all_active",
      "random_active"
-    ]
+    ],
+    "defaultValue": "normal",
+    "hint": "Gilt nur, wenn das Bezugsobjekt ein Template ist."
    },
    {
     "name": "offsetX",
-    "type": "number",
     "label": "Offset X",
+    "type": "number",
     "hint": "Verschiebung auf X-Achse"
    },
    {
     "name": "offsetY",
-    "type": "number",
     "label": "Offset Y",
+    "type": "number",
     "hint": "Verschiebung auf Y-Achse"
    },
    {
     "name": "x",
-    "type": "number",
     "label": "Absolute X-Position",
+    "type": "number",
     "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
    },
    {
     "name": "y",
-    "type": "number",
     "label": "Absolute Y-Position",
+    "type": "number",
     "hint": "Nur wenn kein Bezugsobjekt gewählt ist"
    }
   ],
@@ -1159,14 +1372,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c1bdf6fcdf31e80a"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1184,8 +1402,8 @@
   "parameters": [
    {
     "name": "target",
-    "type": "string",
     "label": "Ziel-Objekt",
+    "type": "string",
     "hint": "Pool-Instanz oder %Self%"
    }
   ],
@@ -1202,14 +1420,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:b476902c699b134f"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1227,23 +1450,25 @@
   "parameters": [
    {
     "name": "service",
+    "label": "Service",
     "type": "select",
-    "label": "Service"
+    "source": "services"
    },
    {
     "name": "method",
-    "type": "string",
-    "label": "Methode"
+    "label": "Methode",
+    "type": "string"
    },
    {
     "name": "serviceParams",
-    "type": "json",
-    "label": "Parameter-Liste"
+    "label": "Parameter-Liste",
+    "type": "json"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis speichern in",
     "type": "variable",
-    "label": "Ergebnis speichern in"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -1259,14 +1484,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:81c0214a0a1d3603"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1284,8 +1514,8 @@
   "parameters": [
    {
     "name": "game",
-    "type": "string",
-    "label": "Spiel-Identifikator"
+    "label": "Spiel-Identifikator",
+    "type": "string"
    }
   ],
   "flags": {
@@ -1303,14 +1533,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:ec28a6ba287c282a"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1328,8 +1563,8 @@
   "parameters": [
    {
     "name": "code",
-    "type": "string",
-    "label": "Raum-Code"
+    "label": "Raum-Code",
+    "type": "string"
    }
   ],
   "flags": {
@@ -1347,14 +1582,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:d39303647fcdd3f7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1372,22 +1612,24 @@
   "parameters": [
    {
     "name": "operation",
-    "type": "select",
     "label": "Operation",
+    "type": "select",
     "options": [
      "set",
      "delete"
-    ]
+    ],
+    "defaultValue": "set"
    },
    {
     "name": "token",
-    "type": "string",
-    "label": "Token (Daten)"
+    "label": "Token (Daten)",
+    "type": "string"
    },
    {
     "name": "tokenKey",
+    "label": "Speicher-Schlüssel",
     "type": "string",
-    "label": "Speicher-Schlüssel"
+    "defaultValue": "auth_token"
    }
   ],
   "flags": {
@@ -1405,14 +1647,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:27cf84811a8945b8"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1430,19 +1677,20 @@
   "parameters": [
    {
     "name": "message",
-    "type": "string",
-    "label": "Nachricht"
+    "label": "Nachricht",
+    "type": "string"
    },
    {
     "name": "toastType",
-    "type": "select",
     "label": "Typ",
+    "type": "select",
     "options": [
      "info",
      "success",
      "warning",
      "error"
-    ]
+    ],
+    "defaultValue": "info"
    }
   ],
   "flags": {},
@@ -1458,14 +1706,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:48ffba1ea5268cab"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1483,24 +1736,27 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Ziel (Objekt oder Service)",
     "type": "select",
-    "label": "Ziel (Objekt oder Service)"
+    "source": "objects_and_services"
    },
    {
     "name": "method",
+    "label": "Methode",
     "type": "select",
-    "label": "Methode"
+    "source": "methods_of_target"
    },
    {
     "name": "params",
-    "type": "json",
     "label": "Parameter (Array)",
+    "type": "json",
     "hint": "[\"param1\", \"param2\"]"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis speichern in",
     "type": "variable",
-    "label": "Ergebnis speichern in"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -1516,14 +1772,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:f8958a1242a9ef67"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1541,8 +1802,10 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Audio-Objekt",
+    "type": "select",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
    }
   ],
@@ -1559,14 +1822,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:638151e705aeb457"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1584,8 +1852,10 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Audio-Objekt",
+    "type": "select",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Das TAudio Element (auch ${Var} mit Objekt-ID/Name)"
    }
   ],
@@ -1602,14 +1872,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:b706501fc72d9f38"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1627,14 +1902,16 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Ziel (z.B. MainThemes)",
+    "type": "select",
+    "source": "objects",
     "hint": "Welches Theme soll überschrieben werden?"
    },
    {
     "name": "source",
-    "type": "select",
     "label": "Quelle (z.B. DataThemeDark)",
+    "type": "select",
+    "source": "objects",
     "hint": "Welches Theme soll geladen werden?"
    }
   ],
@@ -1651,14 +1928,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:786d6849f48f45b6"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1676,14 +1958,16 @@
   "parameters": [
    {
     "name": "themeId",
-    "type": "select",
     "label": "Theme",
+    "type": "select",
+    "source": "themes",
     "hint": "Verfügbare Themes aus dem ThemeRegistry"
    },
    {
     "name": "savePreference",
+    "label": "Präferenz speichern",
     "type": "boolean",
-    "label": "Präferenz speichern"
+    "defaultValue": true
    }
   ],
   "flags": {},
@@ -1699,14 +1983,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:9c4c68bbb29279b7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1724,8 +2013,9 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Theme-Dialog",
+    "type": "select",
+    "source": "theme_dialogs",
     "hint": "Vorhandener TThemeDialog auf der Stage"
    }
   ],
@@ -1742,14 +2032,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:f2f72432183fb2d2"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1767,8 +2062,8 @@
   "parameters": [
    {
     "name": "result",
-    "type": "json",
     "label": "Ergebnis (JSON)",
+    "type": "json",
     "hint": "{\"richtig\": 7, \"gesamt\": 10} — ${…} wird interpoliert"
    }
   ],
@@ -1785,14 +2080,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:078c2040ce9d8b9c"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1810,19 +2110,22 @@
   "parameters": [
    {
     "name": "target",
-    "type": "object",
     "label": "Dialog (TDialogRoot)",
+    "type": "object",
+    "source": "objects",
+    "allowVariableBinding": true,
     "hint": "Name des Dialog-Objekts (auch ${Var} mit Objekt-ID/Name)"
    },
    {
     "name": "mode",
-    "type": "select",
     "label": "Modus",
+    "type": "select",
     "options": [
      "toggle",
      "show",
      "hide"
-    ]
+    ],
+    "defaultValue": "toggle"
    }
   ],
   "flags": {},
@@ -1838,14 +2141,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:86839b0d8ced2433"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1863,13 +2171,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "value",
+    "label": "Wert",
     "type": "string",
-    "label": "Wert"
+    "placeholder": "Literal oder ${var}"
    }
   ],
   "flags": {},
@@ -1885,14 +2195,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a06091c8e4e3ddf3"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1910,13 +2225,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable (optional)",
     "type": "variable",
-    "label": "Ergebnis-Variable (optional)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -1932,14 +2249,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:af57047759f3cf9c"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -1957,28 +2279,32 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "index",
+    "label": "Index (0-basiert)",
     "type": "string",
-    "label": "Index (0-basiert)"
+    "placeholder": "0 oder ${var}"
    },
    {
     "name": "field",
+    "label": "Feld (optional)",
     "type": "string",
-    "label": "Feld (optional)"
+    "placeholder": "z.B. objectId — leer = ganze Zeile"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable",
     "type": "variable",
-    "label": "Ergebnis-Variable"
+    "source": "variables"
    },
    {
     "name": "defaultValue",
-    "type": "string",
-    "label": "Standard-Wert (bei Fehler)"
+    "label": "Standard-Wert (bei Fehler)",
+    "type": "string"
    }
   ],
   "flags": {},
@@ -1994,14 +2320,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:5ee71f453fd27b56"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2019,18 +2350,21 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "index",
+    "label": "Index (0-basiert)",
     "type": "string",
-    "label": "Index (0-basiert)"
+    "placeholder": "0 oder ${var}"
    },
    {
     "name": "value",
+    "label": "Neuer Wert",
     "type": "string",
-    "label": "Neuer Wert"
+    "placeholder": "Literal oder ${var}"
    }
   ],
   "flags": {},
@@ -2046,14 +2380,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c3c5c12cfb48115b"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2071,18 +2410,21 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "index",
+    "label": "Index (0-basiert)",
     "type": "string",
-    "label": "Index (0-basiert)"
+    "placeholder": "0 oder ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Entferntes Element in Variable (optional)",
     "type": "variable",
-    "label": "Entferntes Element in Variable (optional)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2098,14 +2440,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:9e27953dd1f0cb96"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2123,8 +2470,9 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2140,14 +2488,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a7423aea52db0ba8"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2165,13 +2518,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "seed",
+    "label": "Seed (optional, für deterministisch)",
     "type": "string",
-    "label": "Seed (optional, für deterministisch)"
+    "placeholder": "z.B. 42"
    }
   ],
   "flags": {},
@@ -2187,14 +2542,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:f154c49b060ba832"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2212,18 +2572,21 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "value",
+    "label": "Suchwert",
     "type": "string",
-    "label": "Suchwert"
+    "placeholder": "Literal oder ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable (boolean)",
     "type": "variable",
-    "label": "Ergebnis-Variable (boolean)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2239,14 +2602,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:738750e4df83c5c7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2264,13 +2632,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Listen-Variable",
     "type": "variable",
-    "label": "Listen-Variable"
+    "source": "variables"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable (Zahl)",
     "type": "variable",
-    "label": "Ergebnis-Variable (Zahl)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2286,14 +2656,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:ce275e358cfe8eaa"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2311,23 +2686,26 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Map-Variable",
     "type": "variable",
-    "label": "Map-Variable"
+    "source": "variables"
    },
    {
     "name": "key",
+    "label": "Schlüssel",
     "type": "string",
-    "label": "Schlüssel"
+    "placeholder": "Key oder ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable",
     "type": "variable",
-    "label": "Ergebnis-Variable"
+    "source": "variables"
    },
    {
     "name": "defaultValue",
-    "type": "string",
-    "label": "Standard-Wert (bei fehlendem Key)"
+    "label": "Standard-Wert (bei fehlendem Key)",
+    "type": "string"
    }
   ],
   "flags": {},
@@ -2343,14 +2721,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:089d630d9bdf22ee"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2368,18 +2751,21 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Map-Variable",
     "type": "variable",
-    "label": "Map-Variable"
+    "source": "variables"
    },
    {
     "name": "key",
+    "label": "Schlüssel",
     "type": "string",
-    "label": "Schlüssel"
+    "placeholder": "Key oder ${var}"
    },
    {
     "name": "value",
+    "label": "Wert",
     "type": "string",
-    "label": "Wert"
+    "placeholder": "Literal oder ${var}"
    }
   ],
   "flags": {},
@@ -2395,14 +2781,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:4272a7767b1cc681"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2420,13 +2811,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Map-Variable",
     "type": "variable",
-    "label": "Map-Variable"
+    "source": "variables"
    },
    {
     "name": "key",
+    "label": "Schlüssel",
     "type": "string",
-    "label": "Schlüssel"
+    "placeholder": "Key oder ${var}"
    }
   ],
   "flags": {},
@@ -2442,14 +2835,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:2a91950d2f7f8455"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2467,18 +2865,21 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Map-Variable",
     "type": "variable",
-    "label": "Map-Variable"
+    "source": "variables"
    },
    {
     "name": "key",
+    "label": "Schlüssel",
     "type": "string",
-    "label": "Schlüssel"
+    "placeholder": "Key oder ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable (boolean)",
     "type": "variable",
-    "label": "Ergebnis-Variable (boolean)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2494,14 +2895,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:083de24244029968"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2519,13 +2925,15 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Map-Variable",
     "type": "variable",
-    "label": "Map-Variable"
+    "source": "variables"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis-Variable (Liste)",
     "type": "variable",
-    "label": "Ergebnis-Variable (Liste)"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2541,14 +2949,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:1b9da32c77c081e0"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2566,20 +2979,27 @@
   "parameters": [
    {
     "name": "target",
-    "type": "select",
     "label": "Ziel-Komponente",
+    "type": "select",
+    "source": "objects_and_variables",
+    "defaultValue": "",
+    "allowVariableBinding": true,
     "hint": "Komponente oder Variable, die das Event-Mapping erhaelt (auch self bei Pool-Sprites)."
    },
    {
     "name": "event",
-    "type": "select",
     "label": "Event",
+    "type": "select",
+    "source": "events_of_target",
+    "defaultValue": "",
     "hint": "Bei Variable als Target werden alle bekannten Events angeboten."
    },
    {
     "name": "task",
-    "type": "select",
     "label": "Task",
+    "type": "select",
+    "source": "tasks",
+    "defaultValue": "",
     "hint": "Leer = Zuweisung entfernen."
    }
   ],
@@ -2596,14 +3016,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:072814a42331470c"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2621,13 +3046,18 @@
   "parameters": [
    {
     "name": "target",
+    "label": "Ziel-Komponente",
     "type": "select",
-    "label": "Ziel-Komponente"
+    "source": "objects_and_variables",
+    "defaultValue": "",
+    "allowVariableBinding": true
    },
    {
     "name": "event",
+    "label": "Event",
     "type": "select",
-    "label": "Event"
+    "source": "events_of_target",
+    "defaultValue": ""
    }
   ],
   "flags": {},
@@ -2643,14 +3073,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:60c639ed0a59b8d1"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2668,18 +3103,20 @@
   "parameters": [
    {
     "name": "intensity",
-    "type": "select",
     "label": "Intensität",
+    "type": "select",
     "options": [
      "light",
      "medium",
      "heavy"
-    ]
+    ],
+    "defaultValue": "medium"
    },
    {
     "name": "duration",
+    "label": "Dauer (ms)",
     "type": "number",
-    "label": "Dauer (ms)"
+    "defaultValue": 250
    }
   ],
   "flags": {},
@@ -2695,14 +3132,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c6ea21a0d0468b08"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2720,23 +3162,32 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "target",
+    "label": "Ziel-Objekt",
     "type": "select",
-    "label": "Ziel-Objekt"
+    "source": "objects",
+    "allowVariableBinding": true,
+    "allowFreeText": true,
+    "defaultValue": "self",
+    "placeholder": "self / Objektname / Zeilenindex"
    },
    {
     "name": "field",
+    "label": "Feldname",
     "type": "string",
-    "label": "Feldname"
+    "placeholder": "z.B. isSelected"
    },
    {
     "name": "value",
+    "label": "Wert",
     "type": "string",
-    "label": "Wert"
+    "placeholder": "true / false / Zahl / ${var}"
    }
   ],
   "flags": {},
@@ -2752,14 +3203,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:0395fe3fd8aea929"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2777,23 +3233,32 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "target",
+    "label": "Ziel-Objekt",
     "type": "select",
-    "label": "Ziel-Objekt"
+    "source": "objects",
+    "allowVariableBinding": true,
+    "allowFreeText": true,
+    "defaultValue": "self",
+    "placeholder": "self / Objektname / Zeilenindex"
    },
    {
     "name": "field",
+    "label": "Feldname",
     "type": "string",
-    "label": "Feldname"
+    "placeholder": "z.B. isSelected"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis in Variable",
     "type": "variable",
-    "label": "Ergebnis in Variable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2809,14 +3274,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a408c2479af5e346"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2834,18 +3304,26 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "target",
+    "label": "Ziel-Objekt",
     "type": "select",
-    "label": "Ziel-Objekt"
+    "source": "objects",
+    "allowVariableBinding": true,
+    "allowFreeText": true,
+    "defaultValue": "self",
+    "placeholder": "self / Objektname / Zeilenindex"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis in Variable",
     "type": "variable",
-    "label": "Ergebnis in Variable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2861,14 +3339,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:7c46d8d2c13aae58"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2886,23 +3369,28 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "field",
+    "label": "Feldname",
     "type": "string",
-    "label": "Feldname"
+    "placeholder": "z.B. isSelected"
    },
    {
     "name": "value",
+    "label": "Gesuchter Wert",
     "type": "string",
-    "label": "Gesuchter Wert"
+    "placeholder": "true / false / Zahl / ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis in Variable",
     "type": "variable",
-    "label": "Ergebnis in Variable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2918,14 +3406,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:749224ac460838cc"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -2943,23 +3436,28 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "field",
+    "label": "Feldname",
     "type": "string",
-    "label": "Feldname"
+    "placeholder": "z.B. isSelected"
    },
    {
     "name": "value",
+    "label": "Gesuchter Wert",
     "type": "string",
-    "label": "Gesuchter Wert"
+    "placeholder": "true / false / Zahl / ${var}"
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnis in Variable",
     "type": "variable",
-    "label": "Ergebnis in Variable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -2975,14 +3473,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:95536f1575057b9c"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -3000,18 +3503,22 @@
   "parameters": [
    {
     "name": "list",
+    "label": "Objekt-Liste",
     "type": "select",
-    "label": "Objekt-Liste"
+    "source": "objects",
+    "placeholder": "--- TObjectList waehlen ---"
    },
    {
     "name": "field",
+    "label": "Feldname",
     "type": "string",
-    "label": "Feldname"
+    "placeholder": "z.B. isSelected"
    },
    {
     "name": "value",
+    "label": "Wert (leer = Default)",
     "type": "string",
-    "label": "Wert (leer = Default)"
+    "placeholder": "leer lassen fuer Schema-Default"
    }
   ],
   "flags": {},
@@ -3027,14 +3534,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:0e41af75f74559d7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -3052,35 +3564,37 @@
   "parameters": [
    {
     "name": "eventName",
-    "type": "string",
-    "label": "Eventname"
+    "label": "Eventname",
+    "type": "string"
    },
    {
     "name": "payload",
+    "label": "Nutzdaten (JSON)",
     "type": "json",
-    "label": "Nutzdaten (JSON)"
+    "defaultValue": {}
    },
    {
     "name": "correlationId",
-    "type": "string",
     "label": "Bezug zum Eingangs-Event",
+    "type": "string",
     "hint": "Leer: Kennung des auslösenden Stage-Events."
    },
    {
     "name": "stageId",
-    "type": "string",
-    "label": "Ziel-Stage (leer = aktiv)"
+    "label": "Ziel-Stage (leer = aktiv)",
+    "type": "string"
    },
    {
     "name": "eventId",
-    "type": "string",
     "label": "Event-Kennung",
+    "type": "string",
     "hint": "Bei Wiederholung dieselbe Kennung senden; leer erzeugt eine neue."
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnisvariable",
     "type": "variable",
-    "label": "Ergebnisvariable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -3096,14 +3610,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:654ce911eab80ec7"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  },
  {
@@ -3121,24 +3640,26 @@
   "parameters": [
    {
     "name": "eventName",
-    "type": "string",
-    "label": "Eventname"
+    "label": "Eventname",
+    "type": "string"
    },
    {
     "name": "payload",
+    "label": "Nutzdaten (JSON)",
     "type": "json",
-    "label": "Nutzdaten (JSON)"
+    "defaultValue": {}
    },
    {
     "name": "correlationId",
-    "type": "string",
     "label": "Bezug zum Eingangs-Event",
+    "type": "string",
     "hint": "Leer: Kennung des auslösenden Stage-Events."
    },
    {
     "name": "resultVariable",
+    "label": "Ergebnisvariable",
     "type": "variable",
-    "label": "Ergebnisvariable"
+    "source": "variables"
    }
   ],
   "flags": {},
@@ -3154,14 +3675,19 @@
   },
   "version": {
    "lastChecked": "2026-10-17",
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:417b9817dbe0784f"
   },
   "provenance": {
    "method": [
     "registry-extract"
    ],
-   "confidence": "verified"
+   "confidence": "verified",
+   "facts": {
+    "registration": "verified",
+    "parameters": "verified",
+    "flags": "verified"
+   }
   }
  }
 ]

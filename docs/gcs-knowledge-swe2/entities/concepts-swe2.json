@@ -23,14 +23,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:d70ec6d9bb1ed176"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -57,14 +60,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:c9b0dd83cc768ff3"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -91,14 +97,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:22ae4e506606c94d"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -125,14 +134,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:e30d16235d45dd25"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -159,14 +171,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:44045d6599af4736"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -193,14 +208,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:0aaf5c7e37c06b3d"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -227,14 +245,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:adae5fad45590089"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -261,14 +282,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a9bde867cf2f5d58"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -295,14 +319,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:7604ac636197c7be"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -329,14 +356,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a8e5f87b30c8380c"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -363,14 +393,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a5e214b3cec37a62"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -397,14 +430,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:157ec382c40d2147"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -431,14 +467,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:a17d00b1f8c097ed"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -465,14 +504,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:2872f4b5691ac0d9"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  },
  {
@@ -499,14 +541,17 @@
    ]
   },
   "version": {
-   "extractedAt": "2026-10-18T09:29:52.026Z",
+   "extractedAt": "2026-10-18T10:54:39.412Z",
    "contentHash": "sha256:f601a7e126c02b9a"
   },
   "provenance": {
    "method": [
     "markdown-parse"
    ],
-   "confidence": "documented"
+   "confidence": "documented",
+   "facts": {
+    "content": "documented"
+   }
   }
  }
 ]

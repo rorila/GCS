@@ -1,12 +1,12 @@
 /**
  * swe2-adapter-argon.js — Client-seitiges Adapter- & Darstellungsmodul für die
- * SWE-2-Wissensbasis im GCS Documentation Portal (Argon).
+ * SWE-2-Wissensbasis (Schema 1.1.0) im GCS Documentation Portal (Argon).
  *
  * Setzt die Vertragsregeln aus docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md (§2.2–§2.5) um:
- * - Kennzeichnung von provenance.confidence (verified | documented | inferred)
- * - Kennzeichnung von status.dev (implementiert | geplant | veraltet)
+ * - Kennzeichnung von provenance.confidence (verified | documented | inferred) inkl. provenance.facts
+ * - Kennzeichnung von status.dev (implementiert | geplant | veraltet | unbekannt) ohne optimistische Fallbacks
  * - Sperre für gelöschte Dokumente (missing: true → kein Link)
- * - Kennzeichnung von Action-Flags (hidden, requiresServer, requiresMultiplayer, isAlias)
+ * - Kennzeichnung von Action-Flags (hidden, requiresServer, requiresMultiplayer, isAlias) & allen Parameterfeldern
  * - Darstellung von SWE-2-Relations (COMP, FEAT, ACT, MTH, EVT, SCM, GUIDE, DOC, CON)
  * - Spezial-Ansichten für Methoden (MTH), Events (EVT), Schemas (SCM) & Konzepte (CON)
  */
@@ -14,7 +14,7 @@
   'use strict';
 
   function esc(str) {
-    return String(str || '')
+    return String(str ?? '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -24,23 +24,42 @@
   function confidenceBadge(confidence) {
     const c = String(confidence || 'documented').toLowerCase();
     if (c === 'verified') {
-      return '<span class="hb-status-pill hb-status-ok" title="Quellcode-/Registry-belegt (provenance.confidence = verified)">✔ Verifiziert (Code/Registry)</span>';
+      return '<span class="hb-status-pill hb-status-ok" title="Quellcode-/Registry-belegt (confidence = verified)">✔ Verifiziert (Code/Registry)</span>';
     }
     if (c === 'inferred') {
-      return '<span class="hb-status-pill hb-status-danger" title="Abgeleitet, nicht vollständig verifiziert (provenance.confidence = inferred)">⚠️ Nicht verifiziert (inferred)</span>';
+      return '<span class="hb-status-pill hb-status-danger" title="Abgeleitet, nicht vollständig verifiziert (confidence = inferred)">⚠️ Nicht verifiziert (inferred)</span>';
     }
-    return '<span class="hb-status-pill hb-status-info" title="Aus Dokumentation/Inventar übernommen (provenance.confidence = documented)">📄 Dokumentiert</span>';
+    return '<span class="hb-status-pill hb-status-info" title="Aus Dokumentation/Inventar übernommen (confidence = documented)">📄 Dokumentiert</span>';
   }
 
-  function devStatusBadge(devStatus) {
-    const d = String(devStatus || 'implementiert').toLowerCase();
+  function confidencePillCompact(confidence) {
+    const c = String(confidence || 'documented').toLowerCase();
+    if (c === 'verified') {
+      return '<span class="hb-status-pill hb-status-ok" title="confidence = verified">✔ verified</span>';
+    }
+    if (c === 'inferred') {
+      return '<span class="hb-status-pill hb-status-danger" title="confidence = inferred">⚠️ inferred</span>';
+    }
+    return '<span class="hb-status-pill hb-status-info" title="confidence = documented">📄 documented</span>';
+  }
+
+  function devStatusBadge(devStatus, prefix) {
+    const raw = String(devStatus || '').trim();
+    const d = raw.toLowerCase();
+    const pref = prefix ? `${esc(prefix)}: ` : '';
     if (d === 'geplant') {
       return '<span class="hb-status-pill hb-status-warn" title="status.dev = geplant">🚧 Geplant (nicht implementiert)</span>';
+    }
+    if (d === 'experimentell') {
+      return '<span class="hb-status-pill hb-status-warn" title="status.dev = experimentell">🧪 Experimentell</span>';
     }
     if (d === 'veraltet') {
       return '<span class="hb-status-pill hb-status-danger" title="status.dev = veraltet">🗄️ Veraltet</span>';
     }
-    return `<span class="hb-status-pill hb-status-ok">Dev: ${esc(devStatus || 'implementiert')}</span>`;
+    if (d === 'implementiert') {
+      return `<span class="hb-status-pill hb-status-ok">${pref}implementiert</span>`;
+    }
+    return `<span class="hb-status-pill hb-status-warn" title="status.dev fehlt oder ist unbekannt">⚠️ Status: ${esc(raw || 'unbekannt')}</span>`;
   }
 
   function actionFlagsBadges(flags) {
@@ -61,9 +80,42 @@
     return pills.join(' ');
   }
 
+  function renderProvenanceFactsBar(provenance) {
+    const facts = provenance?.facts;
+    if (!facts || typeof facts !== 'object' || Object.keys(facts).length === 0) return '';
+    const factLabels = {
+      status: 'Status',
+      description: 'Beschreibung',
+      properties: 'Eigenschaften',
+      events: 'Events',
+      inheritanceChain: 'Vererbung',
+      limitations: 'Einschränkungen',
+      registration: 'Registrierung',
+      parameters: 'Parameter',
+      flags: 'Flags'
+    };
+    const entries = Object.entries(facts).map(([k, val]) => {
+      const label = factLabels[k] || k;
+      return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-subtle);font-size:0.75rem"><strong>${esc(label)}:</strong> ${confidencePillCompact(val)}</span>`;
+    }).join(' ');
+
+    return `
+      <div class="hb-callout hb-callout-proof" style="margin:12px 0 18px">
+        <div class="hb-callout-icon">🔬</div>
+        <div class="hb-callout-body">
+          <div style="margin-bottom:6px">
+            <strong>Abschnitts-Provenance (<code>provenance.facts</code> · Schema 1.1.0):</strong>
+            <small class="hb-muted">Der Gesamtstatus <code>provenance.confidence = "${esc(provenance.confidence || 'documented')}"</code> entspricht <code>max(facts)</code>; einzelne Teilbereiche besitzen folgende Belegtiefe:</small>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${entries}</div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderContractNoticeBanner(entity) {
     if (!entity) return '';
-    const dev = String(entity.devStatus || entity.status?.dev || '').toLowerCase();
+    const dev = String(entity.devStatus || entity.status?.dev || 'unbekannt').toLowerCase();
     const conf = String(entity.confidence || entity.provenance?.confidence || '').toLowerCase();
     const notices = [];
 
@@ -77,6 +129,16 @@
           </div>
         </div>
       `);
+    } else if (dev === 'experimentell') {
+      notices.push(`
+        <div class="hb-callout hb-callout-warn">
+          <div class="hb-callout-icon">🧪</div>
+          <div class="hb-callout-body">
+            <strong>Experimentelle Funktion (<code>status.dev = "experimentell"</code>):</strong>
+            Dieses Element (${esc(entity.id)}) befindet sich im experimentellen Stadium; Schnittstellen und Laufzeitverhalten können sich ändern.
+          </div>
+        </div>
+      `);
     } else if (dev === 'veraltet') {
       notices.push(`
         <div class="hb-callout hb-callout-danger">
@@ -84,6 +146,16 @@
           <div class="hb-callout-body">
             <strong>Veraltetes Element (<code>status.dev = "veraltet"</code>):</strong>
             Dieses Element (${esc(entity.id)}) ist als veraltet eingestuft und sollte in neuen Projekten nicht mehr verwendet werden.
+          </div>
+        </div>
+      `);
+    } else if (dev !== 'implementiert') {
+      notices.push(`
+        <div class="hb-callout hb-callout-warn">
+          <div class="hb-callout-icon">⚠️</div>
+          <div class="hb-callout-body">
+            <strong>Unbekannter Entwicklungsstatus (<code>status.dev = "${esc(dev)}"</code>):</strong>
+            Für dieses Element (${esc(entity.id)}) liegt kein bestätigter Implementierungsstatus vor.
           </div>
         </div>
       `);
@@ -125,6 +197,14 @@
     }).join(' ');
   }
 
+  function renderEventConditions(conditions) {
+    if (!Array.isArray(conditions) || conditions.length === 0) return '';
+    return conditions.map(c => {
+      const valStr = typeof c.equals === 'boolean' || typeof c.equals === 'number' ? String(c.equals) : JSON.stringify(c.equals ?? '');
+      return `<div style="margin-top:3px"><span class="hb-status-pill hb-status-warn" title="${esc(c.note || '')}">⚡ Bedingung: <code>${esc(c.property)} = ${esc(valStr)}</code></span>${c.note ? ` <small class="hb-muted">${esc(c.note)}</small>` : ''}</div>`;
+    }).join('');
+  }
+
   function renderComponentSwe2Section(comp) {
     const props = comp.properties || [];
     const eventsDetail = comp.eventsDetail || [];
@@ -135,24 +215,29 @@
 
     return `
       ${renderContractNoticeBanner(comp)}
+      ${renderProvenanceFactsBar(comp.provenance)}
 
       ${props.length > 0 ? `
-        <h2 id="swe2-properties" class="hb-h2">Eigenschaften &amp; Standardwerte (SWE-2 Schema &amp; Inspector)</h2>
+        <h2 id="swe2-properties" class="hb-h2">Eigenschaften &amp; Standardwerte (SWE-2 Schema 1.1.0 · ${props.length})</h2>
         <div class="hb-table-wrap">
           <table class="hb-table">
             <thead>
-              <tr><th>Eigenschaft</th><th>Label / Gruppe</th><th>Typ</th><th>Standardwert</th><th>Quelle &amp; Beschreibung</th></tr>
+              <tr><th>Eigenschaft</th><th>Label / Gruppe</th><th>Typ &amp; Optionen</th><th>Standardwert</th><th>Quelle, Confidence &amp; Beschreibung</th></tr>
             </thead>
             <tbody>
               ${props.map(p => `
                 <tr>
                   <td><code>${esc(p.name)}</code></td>
                   <td>${esc(p.label || p.name)} <small class="hb-muted">(${esc(p.group || '—')})</small></td>
-                  <td><code>${esc(p.type || 'string')}</code></td>
+                  <td>
+                    <code>${esc(p.type || 'string')}</code>
+                    ${(Array.isArray(p.options) && p.options.length > 0) ? `<div style="margin-top:4px;font-size:0.75rem"><span class="hb-muted">Optionen:</span> ${p.options.map(opt => `<code>${esc(opt)}</code>`).join(', ')}</div>` : ''}
+                  </td>
                   <td><code>${esc(typeof p.defaultValue === 'object' ? JSON.stringify(p.defaultValue) : String(p.defaultValue ?? '—'))}</code></td>
                   <td>
                     <span class="hb-status-pill ${p.source === 'schema' ? 'hb-status-ok' : 'hb-status-info'}">${esc(p.source || 'schema')}</span>
-                    ${p.description ? ` <small>${esc(p.description)}</small>` : ''}
+                    ${confidencePillCompact(p.confidence || 'documented')}
+                    ${p.description ? `<div style="margin-top:4px"><small>${esc(p.description)}</small></div>` : ''}
                   </td>
                 </tr>
               `).join('')}
@@ -169,13 +254,20 @@
             ${eventsDetail.length > 0 ? `
               <div class="hb-table-wrap" style="margin:6px 0 0">
                 <table class="hb-table">
-                  <thead><tr><th>SWE-2 ID</th><th>Event</th><th>Herkunft</th></tr></thead>
+                  <thead><tr><th>SWE-2 ID</th><th>Event</th><th>Herkunft, Bedingung &amp; Confidence</th></tr></thead>
                   <tbody>
                     ${eventsDetail.map(ev => `
                       <tr>
                         <td>${ev.id ? `<a href="#devref/events?q=${encodeURIComponent(ev.id)}" class="hb-code hb-comp-ref">${esc(ev.id)}</a>` : '—'}</td>
                         <td><code>${esc(ev.name)}</code></td>
-                        <td><small>${esc(ev.origin)} (${esc(ev.source)})</small></td>
+                        <td>
+                          <div>
+                            <span class="hb-status-pill ${ev.origin === 'own' ? 'hb-status-ok' : 'hb-status-info'}">${esc(ev.origin === 'inherited' ? `inherited (${ev.inheritedFrom || ev.declaredIn || 'Basis'})` : 'own')}</span>
+                            ${confidencePillCompact(ev.confidence || 'documented')}
+                            ${ev.source ? ` <small class="hb-muted">[${esc(ev.source)}]</small>` : ''}
+                          </div>
+                          ${renderEventConditions(ev.conditions)}
+                        </td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -199,6 +291,7 @@
                           ${(m.parameters && m.parameters.length > 0)
                             ? m.parameters.map(p => `<code>${esc(p.name)}: ${esc(p.type)}</code>`).join(', ')
                             : `<small class="hb-muted">${esc(m.origin)} (${esc(m.source)})</small>`}
+                          ${confidencePillCompact(m.confidence || 'verified')}
                         </td>
                       </tr>
                     `).join('')}
@@ -265,12 +358,13 @@
             <div class="hb-card-top">
               <span class="hb-card-num">🔧 ${esc(m.id)} · ${esc(m.name)}()</span>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
-                ${devStatusBadge(m.devStatus)}
+                ${devStatusBadge(m.devStatus, 'Dev')}
                 ${confidenceBadge(m.confidence)}
               </div>
             </div>
             <h3 class="hb-card-title">${esc(m.name)}(${(m.parameters || []).map(p => `${esc(p.name)}${p.optional ? '?' : ''}: ${esc(p.type)}`).join(', ')})</h3>
             <p class="hb-card-goal">${esc(m.description)}</p>
+            ${renderContractNoticeBanner(m)}
             ${(m.usedByComponents && m.usedByComponents.length > 0) ? `
               <div class="hb-comp-row">
                 <small class="hb-muted">Komponenten:</small>
@@ -293,7 +387,7 @@
 
     return `
       <div class="hb-hero-card">
-        <div class="hb-hero-badge">SWE-2 Event-Katalog · ${events.length} Events (EVT-0001…0158)</div>
+        <div class="hb-hero-badge">SWE-2 Event-Katalog · ${events.length} Events (EVT-0001…0163)</div>
         <h1 class="hb-hero-title">Ereignis-Referenz aller GCS-Komponenten</h1>
         <p class="hb-hero-lead">Vollständiges Verzeichnis aus <code>docs/gcs-knowledge-swe2/entities/events-swe2.json</code> mit aufgelösten <code>declaresEvent</code>-Relations.</p>
         <input
@@ -313,7 +407,7 @@
               <tr>
                 <td><code>${esc(ev.id)}</code></td>
                 <td><strong><code>${esc(ev.name)}</code></strong></td>
-                <td>${devStatusBadge(ev.devStatus)} ${confidenceBadge(ev.confidence)}</td>
+                <td>${devStatusBadge(ev.devStatus, 'Dev')} ${confidenceBadge(ev.confidence)}</td>
                 <td>
                   <div class="hb-comp-row">
                     ${(ev.relations || []).map(r => `<a href="${esc(r.href)}" class="hb-comp-tag">🧩 ${esc(r.target)} (${esc(r.targetName)})</a>`).join(' ')}
@@ -355,10 +449,14 @@
             <div>
               <div class="hb-card-top">
                 <span class="hb-card-num">${esc(sc.id)} · ${esc(sc.name)}</span>
-                ${confidenceBadge(sc.confidence)}
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  ${devStatusBadge(sc.devStatus, 'Dev')}
+                  ${confidenceBadge(sc.confidence)}
+                </div>
               </div>
               <h3 class="hb-card-title">${esc(sc.title)}</h3>
               <p class="hb-card-goal">${esc(sc.description)}</p>
+              ${renderContractNoticeBanner(sc)}
               <div class="hb-comp-row" style="margin-top:8px">${renderRelationsPills(sc.relations)}</div>
             </div>
           </div>
@@ -372,10 +470,14 @@
             <div>
               <div class="hb-card-top">
                 <span class="hb-card-num">${esc(con.id)} · ${esc(con.name)}</span>
-                ${confidenceBadge(con.confidence)}
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  ${devStatusBadge(con.devStatus, 'Dev')}
+                  ${confidenceBadge(con.confidence)}
+                </div>
               </div>
               <h3 class="hb-card-title">${esc(con.title)}</h3>
               <p class="hb-card-goal">${esc(con.description)}</p>
+              ${renderContractNoticeBanner(con)}
             </div>
             <div class="hb-card-meta"><span>📄 ${esc((con.sources?.docs || [])[0] || '')}</span></div>
           </a>
@@ -384,15 +486,151 @@
     `;
   }
 
+  function renderActionParamMeta(p) {
+    const details = [];
+    if (p.defaultValue !== undefined && p.defaultValue !== '') {
+      details.push(`<span>Default: <code>${esc(typeof p.defaultValue === 'object' ? JSON.stringify(p.defaultValue) : String(p.defaultValue))}</code></span>`);
+    }
+    if (Array.isArray(p.options) && p.options.length > 0) {
+      details.push(`<span>Optionen: ${p.options.map(o => `<code>${esc(o)}</code>`).join(', ')}</span>`);
+    }
+    if (p.placeholder) {
+      details.push(`<span>Platzhalter: <code>${esc(p.placeholder)}</code></span>`);
+    }
+    if (p.allowVariableBinding !== undefined) {
+      details.push(`<span>Variablen-Binding: <code>${p.allowVariableBinding ? 'ja' : 'nein'}</code></span>`);
+    }
+    if (p.allowFreeText !== undefined) {
+      details.push(`<span>Freitext: <code>${p.allowFreeText ? 'ja' : 'nein'}</code></span>`);
+    }
+    if (p.multiline) {
+      details.push(`<span>Mehrzeilig: <code>ja</code></span>`);
+    }
+    if (p.visibleWhen && typeof p.visibleWhen === 'object') {
+      const vw = Object.entries(p.visibleWhen).map(([k, v]) => `${k}=${Array.isArray(v) ? v.join('|') : v}`).join(', ');
+      details.push(`<span>Sichtbar wenn: <code>${esc(vw)}</code></span>`);
+    }
+    if (p.hint) {
+      details.push(`<span>${esc(p.hint)}</span>`);
+    }
+    return details.length > 0 ? details.join(' · ') : '—';
+  }
+
+  function renderActionsCatalog(data, uiState) {
+    const actions = data.devref.actions || [];
+    const q = (uiState.actionQuery || '').trim().toLowerCase();
+    const filtered = actions.filter(a => {
+      if (!q) return true;
+      const pStr = (a.parameters || []).map(p => `${p.name} ${p.label || ''} ${p.hint || ''} ${p.source || ''}`).join(' ');
+      const flagStr = `${a.flags?.hidden ? 'hidden' : ''} ${a.flags?.isAlias ? 'alias' : ''} ${a.devStatus || ''} ${a.confidence || ''}`;
+      return `${a.id || ''} ${a.type} ${a.label || ''} ${a.description || ''} ${pStr} ${flagStr}`.toLowerCase().includes(q);
+    });
+
+    return `
+      <div class="hb-hero-card">
+        <div class="hb-hero-badge">Entwicklerreferenz · ${actions.length} SWE-2 Action-Typen (ACT-0001 bis ACT-0059)</div>
+        <h1 class="hb-hero-title">Action-Katalog (ActionRegistry &amp; SWE-2 Schema 1.1.0)</h1>
+        <p class="hb-hero-lead">Alle ${actions.length} Action-Typen aus <code>entities/actions-swe2.json</code> inkl. vollständiger Parameter-Spezifikation (Default, Quelle, Optionen, Sichtbarkeit), Flags (<code>hidden</code>, <code>isAlias</code>, <code>requiresServer</code>), Provenance und Status.</p>
+        <input type="search" id="devref-action-search" value="${esc(uiState.actionQuery || '')}" placeholder="Nach ACT-ID, Action-Typ, Parameter oder Flag suchen (z. B. ACT-0001, navigate_stage, property, hidden, geplant)…" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-app);color:var(--text-primary);font-size:0.9rem" />
+      </div>
+      <div style="display:grid;gap:14px">
+        ${filtered.map(act => `
+          <div class="hb-card" style="cursor:default">
+            <div class="hb-card-top">
+              <span class="hb-card-num" style="font-size:0.84rem">${esc(act.id)} · ⚡ ${esc(act.type)}</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                ${devStatusBadge(act.devStatus, 'Dev')}
+                ${confidenceBadge(act.confidence)}
+                ${actionFlagsBadges(act.flags)}
+              </div>
+            </div>
+            <h3 class="hb-card-title">${esc(act.label || act.type)}</h3>
+            <p class="hb-card-goal" style="-webkit-line-clamp:none">${esc(act.description || 'Keine Beschreibung hinterlegt.')}</p>
+            ${renderContractNoticeBanner(act)}
+            ${(act.limitations && act.limitations.length > 0) ? `<div style="font-size:0.8rem;color:var(--warning);margin:4px 0">⚠️ ${act.limitations.map(esc).join(' · ')}</div>` : ''}
+            ${(act.parameters && act.parameters.length > 0) ? `
+              <div class="hb-table-wrap" style="margin:8px 0 0">
+                <table class="hb-table">
+                  <thead><tr><th>Parameter</th><th>Label</th><th>Typ / Quelle</th><th>Standardwert, Optionen &amp; Metadaten</th></tr></thead>
+                  <tbody>
+                    ${act.parameters.map(p => `
+                      <tr>
+                        <td><code>${esc(p.name)}</code></td>
+                        <td>${esc(p.label || '—')}</td>
+                        <td><code>${esc(p.type || 'string')}</code>${p.source ? ` <small class="hb-muted">(${esc(p.source)})</small>` : ''}</td>
+                        <td style="font-size:0.8rem">${renderActionParamMeta(p)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : ''}
+            ${(act.relations && act.relations.length > 0) ? `<div class="hb-comp-row" style="margin-top:8px">${renderRelationsPills(act.relations)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderSwe2InterfaceView(data) {
+    const swe2 = data.meta.swe2Integration;
+    const counts = swe2.entityCountsByKind || {};
+    return `
+      <div class="hb-hero-card">
+        <div class="hb-hero-badge">SWE-2 Wissensbasis integriert · Schema v${esc(swe2.schemaVersion)} · Commit ${esc(swe2.sourceCommit)}</div>
+        <h1 class="hb-hero-title">SWE-2 Wissensbasis &amp; Datenvertrag (SCHNITTSTELLE-ARGON.md)</h1>
+        <p class="hb-hero-lead">${esc(swe2.description)}</p>
+      </div>
+      <div class="hb-prose">
+        <div class="hb-callout hb-callout-goal">
+          <div class="hb-callout-icon">✔</div>
+          <div class="hb-callout-body">
+            <strong>Integrationsstatus: Aktiv &amp; Verifiziert (Schema v${esc(swe2.schemaVersion)}).</strong> Alle <strong>${swe2.totalEntities} Entities</strong> in 9 Typen sowie
+            <strong>${swe2.totalChunks} Chunks</strong> aus <code>docs/gcs-knowledge-swe2/</code> sind über <code>import-swe2-argon.cjs</code> mit SHA-256-Prüfsummenvalidierung in das Portal eingebunden.
+            Unauflösbare Relationen: <strong>${swe2.unresolvedRelationsCount}</strong>.
+          </div>
+        </div>
+        <h2 class="hb-h2">Integrierte SWE-2 Entity-Typen &amp; Primärschlüssel</h2>
+        <div class="hb-table-wrap">
+          <table class="hb-table">
+            <thead><tr><th>Entity-Typ (kind)</th><th>ID-Präfix</th><th>Anzahl</th><th>Portal-Zielansicht</th></tr></thead>
+            <tbody>
+              <tr><td><code>component</code></td><td><code>COMP-0001..0128</code></td><td><strong>${counts.component || 128}</strong></td><td><a href="#components" class="hb-comp-tag">🧩 Komponentenreferenz</a></td></tr>
+              <tr><td><code>feature</code></td><td><code>FEAT-0001..0012</code></td><td><strong>${counts.feature || 12}</strong></td><td><a href="#features" class="hb-comp-tag">✨ Feature-Katalog</a></td></tr>
+              <tr><td><code>action-type</code></td><td><code>ACT-0001..0059</code></td><td><strong>${counts['action-type'] || 59}</strong></td><td><a href="#devref/actions" class="hb-comp-tag">⚡ Action-Katalog</a></td></tr>
+              <tr><td><code>method</code></td><td><code>MTH-0001..0038</code></td><td><strong>${counts.method || 38}</strong></td><td><a href="#devref/methods" class="hb-comp-tag">🔧 Methoden-Referenz</a></td></tr>
+              <tr><td><code>event</code></td><td><code>EVT-0001..0163</code></td><td><strong>${counts.event || 163}</strong></td><td><a href="#devref/events" class="hb-comp-tag">🔔 Event-Katalog</a></td></tr>
+              <tr><td><code>schema</code></td><td><code>SCM-0001..0013</code></td><td><strong>${counts.schema || 13}</strong></td><td><a href="#devref/schemas" class="hb-comp-tag">📐 JSON-Schemas</a></td></tr>
+              <tr><td><code>guide-chapter</code></td><td><code>GUIDE-0001..0023</code></td><td><strong>${counts['guide-chapter'] || 23}</strong></td><td><a href="#handbook" class="hb-comp-tag">📖 Autoren-Handbuch</a></td></tr>
+              <tr><td><code>document</code></td><td><code>DOC-0001..0242</code></td><td><strong>${counts.document || 242}</strong></td><td><a href="#devref/doc-inventory" class="hb-comp-tag">🗂️ Dokumenten-Inventar</a></td></tr>
+              <tr><td><code>concept</code></td><td><code>CON-0001..0015</code></td><td><strong>${counts.concept || 15}</strong></td><td><a href="#devref/schemas" class="hb-comp-tag">💡 Domänenkonzepte</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h2 class="hb-h2">Verbindliche Kennzeichnungsregeln (Provenance &amp; Status)</h2>
+        <ul class="hb-ul">
+          <li>${confidenceBadge('verified')} — Direkt gegen <code>src/**</code>, <code>schemas/**</code> oder <code>tests/**</code> verifiziert.</li>
+          <li>${confidenceBadge('documented')} — Aus kanonischer Dokumentation übernommen (nicht als <code>verified</code> umdeklariert).</li>
+          <li>${confidenceBadge('inferred')} — Heuristisch abgeleitet; im Portal als „Nicht verifiziert“ markiert.</li>
+          <li>${devStatusBadge('geplant')} / ${devStatusBadge('veraltet')} — Geplante oder veraltete Funktionen werden mit Warnbanner gekennzeichnet.</li>
+        </ul>
+      </div>
+    `;
+  }
+
   window.ArgonSwe2Adapter = {
     confidenceBadge,
+    confidencePillCompact,
     devStatusBadge,
     actionFlagsBadges,
+    renderProvenanceFactsBar,
     renderContractNoticeBanner,
     renderRelationsPills,
     renderComponentSwe2Section,
+    renderActionsCatalog,
     renderMethodsCatalog,
     renderEventsCatalog,
-    renderSchemasAndConcepts
+    renderSchemasAndConcepts,
+    renderSwe2InterfaceView
   };
 })();

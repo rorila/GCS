@@ -1,71 +1,52 @@
-# Integrationsvorschlag — noch nicht implementiert
+# Bewertung der tatsächlich implementierten Integration
 
-## Zielarchitektur und Verantwortlichkeit
+Stand 18.10.2026. Dies ist eine Bewertung mit Verbesserungsvorschlägen, keine implementierte Änderung.
 
-SWE-2 wird alleinige Quelle strukturierter technischer Fakten. Argon übernimmt Darstellung, Navigation, Filter, Original-Markdown-Rendering und Offline-Bereitstellung. Originaldokumente bleiben unverändert; SWE-2 liest sie weiterhin zusammen mit Schemas/Registries/Quellcode. Argon darf dieselben Markdown-Dateien für HTML lesen, aber daraus keine konkurrierenden Komponenten-, Event- oder Action-Verzeichnisse mehr ableiten.
+## Datenfluss
 
-Build-Kette:
+SWE-2 erzeugt versionierte Entities und JSONL-Chunks aus Inventar, Registries, Schema-Modulen, Markdown und ausgewählten Quellscans. Argon lädt Manifest, neun konfigurierte Entity-Dateien und die Chunks über import-swe2-argon.cjs. Der Build projiziert die Daten auf das Portalmodell, rendert zusätzlich Original-Markdown und schreibt JSON sowie das klassische JavaScript-Offline-Bundle. Der Browser verwendet dieses Bundle und den Adapter; kein Online-Service ist erforderlich.
 
-1. Fixierter Quellstand und Eingabe-Hashmanifest → SWE-2-Generator.
-2. Entity-Schema, semantische Prüfungen, Chunk-Integrität, Status- und Quellenregeln → freigegebener Snapshot.
-3. Argon liest Manifest und Snapshot → reiner, versionierter Adapter → Portal-Datenmodell und Suchindex.
-4. Original-Markdown nur für Artikelinhalt rendern; Inhalte über Entity-ID/Quellpfad zuordnen.
-5. Ein selbstständiges Offline-Paket aus HTML, CSS, JavaScript und Daten-Bundle veröffentlichen.
+Die Knowledge Base ist weiterhin eigenständig nutzbar. Ihr Generator importiert keine Portalmodule. Das Portal ist hingegen nicht allein aus einem SWE-2-Snapshot reproduzierbar: Inventar, Kapitelvorgaben und Markdown-Dateien werden zusätzlich benötigt. Markdown für HTML zu lesen ist kein Problem; eigene technische Fakten daraus zu ergänzen erzeugt jedoch einen zweiten Vertrag.
 
-Keine Runtime-/Editor-Änderung, kein Backendabruf, keine parallele manuell gepflegte Overlay-Wissensbasis. Der Adapter ist eine reproduzierbare Projektion, keine zweite Wahrheit. Bei fehlerhaften oder fehlenden Daten Build abbrechen, statt unbemerkt auf ein altes zweites Verzeichnis zurückzufallen.
+## Vertragsprüfung
 
-## Reihenfolge der Umsetzung nach Freigabe
+| Anforderung | Bewertung |
+|---|---|
+| Manifest zuerst | erfüllt |
+| Neun Entity-Kategorien | geladen und auf Kataloge/Handbuch abgebildet |
+| Stabile IDs | im vorliegenden Bestand übernommen; keine neuen Entity-IDs erzeugt |
+| Relationen | ursprüngliche Ziele vorhanden; ungültige Ziele werden lediglich markiert/gezählt, nicht buildverhindernd |
+| Fehlende Dokumente | missing:true im Inventar korrekt ohne Dateilink |
+| Confidence/Status | Daten vielfach übernommen; Katalogbadge falsch, Schema-/Konzeptstatus unsichtbar |
+| Limitations | an Komponenten, Features und Actions übernommen und dargestellt; keine pauschale Vollständigkeitsgarantie der Quelle |
+| Technische Flags | in der Entwickler-Actionreferenz erkennbar; keine Aussage über Runtimefunktion allein durch Flag |
+| Schemaversion | Major 2 abgelehnt, aber Präfixprüfung akzeptiert 1.broken |
+| Einmalige Datenpflege | noch nicht erfüllt: 333 zusätzliche Markdown-Properties und weitere Präsentations-/Metadatenquellen |
+| Buildreihenfolge | SWE-2 vor Argon ist richtig und wurde erfolgreich getestet; keine automatische harte Verknüpfung mit Validierung/Freshness |
+| Offlinebetrieb | grundsätzlich erhalten, HTTP/file:// real geprüft |
+| Aktualität | aktueller ausgelieferter Stand ist inhaltlich frisch; veränderte/veraltete Snapshots können trotzdem unbemerkt angenommen werden |
 
-### 1. Datenqualität und Vertrag absichern
+Die 1817 Suchzeilen bestehen aus 1774 Chunks und 43 Zusatzzeilen. Alle 43 Zusatzzeilen haben derzeit kein gültiges text-Feld. Nur 171 kanonische Entities werden durch Chunks abgedeckt. Die nominal hohe Indexgröße verschleiert die fehlenden Basistreffer für 517 Entities.
 
-Zuerst C02, C03, C04, C06 beheben: eindeutige Chunks, verlustfreie Parameter, belastbare Event-Vererbung, echter Draft-2020-12-Validator. Herkunft/Vertrauen gemäß C09 präzisieren. Nicht ungeprüft bestehende Fehler in den Adapter übertragen. Für neue Aussagen keine künstliche Verifikation aus Dokumentationsstatus ableiten.
+## Empfohlene Reihenfolge nach Freigabe
 
-Das Manifest künftig um explizite Dateiliste je Entity-Art, Chunk-Schema/-Version, Eingabehashes und Ausgabe-Prüfsummen ergänzen. Aktuell enthält files.entities nur einen Verzeichnispfad: Bis zur vertraglichen Erweiterung die neun im Vertrag benannten Dateien in einer versionierten Adapter-Tabelle festlegen, sortiert lesen und gegen Manifestzähler prüfen. Keine beliebigen JSON-Dateien aus dem Verzeichnis als Entities annehmen. Pfade müssen innerhalb des Snapshots bleiben. Additive Minor-/Patch-Felder tolerieren, unbekannte Major-Versionen ablehnen.
+1. **Sicherheitsgate:** Fallbackbeschreibung als Text escapen, alle HTML-Einstiegspfade vereinheitlichen und den A01-Test als Regression übernehmen. Keine gemischte Annahme „JSON ist Text, htmlContent ist immer sicher“.
+2. **Datenvertrag absichern:** Vollständiger Draft-2020-12-Validator, Chunk-Schema, Zähler-/ID-/Relationschecks und striktes SemVer. Fehler verhindern den Build; fehlender Status ist unbekannt, nicht implementiert.
+3. **SWE-2-Fakten reparieren:** Verluste bei Parametern, Event-Vererbung und Chunk-Identität upstream beheben. Faktenherkunft und Confidence präzisieren. Keine Portal-Korrekturen, die Wissen und Oberfläche erneut auseinanderlaufen lassen.
+4. **Eine strukturierte Wahrheit:** Technische Properties einschließlich Optionen vollständig in SWE-2 führen. Im Portal nur noch projizieren; Markdown bleibt Originalartikelinhalt. Registry-Methoden und dokumentierte Komponentenmethoden nicht allein aufgrund gleicher Namen als identisch voraussetzen.
+5. **Suche reparieren:** Typisierte Textfelder für alle Einträge, Basistreffer pro Entity, Chunk-Deduplizierung und sichere Snippets. Alle ID-/Namens-Suchwege mit echten Browseraktionen prüfen; Trefferkontext zugehörigem Abschnitt zuordnen.
+6. **Bedeutung konsistent anzeigen:** Gemeinsame Badge-/Bannerfunktion in Katalog, Detail, Suche und Querverweisen; drei Statusachsen, Confidence und technische Voraussetzungen getrennt halten. Mobile Menüfläche, Inhaltsverzeichnis und fehlerhafte URLs korrigieren.
+7. **Release absichern:** Manifest bindet Dateiinhalt und alle Eingaben per Prüfsummen. Dateipfade an Snapshotgrenze binden. Toolversionen, ID-Map und fester Buildzeitpunkt versionieren. In frischem Staging bauen und atomar veröffentlichen.
 
-### 2. Stabile Identitäten und verlustfreies Mapping
+## Abnahmekriterien
 
-| SWE-2 | Argon-Projektion | Regel |
-|---|---|---|
-| entity.id | entityId und Route | ID übernehmen, niemals neu vergeben |
-| component.name | Anzeigename und bestehender T*-Alias | Alte #components/TSprite-Links bleiben Alias; COMP-ID kanonisch |
-| properties-Map | sortierte Property-Zeilen | Namen, Typen, Defaults, Optionen, Gruppen, Quellen vollständig erhalten; fehlend von leer unterscheiden |
-| events/methods | strukturierte Referenzen | origin/source beibehalten; geerbt, deklariert, dokumentiert getrennt anzeigen |
-| status | drei unabhängige Statusachsen | Entwicklung, Tests und Dokumentation nicht zu verfügbar verschmelzen |
-| provenance | Entity- und Faktennachweise | verified/documented/inferred explizit anzeigen; keine Testaussage daraus ableiten |
-| action.name + ACT-ID | technischer type-Alias und ACT-Route | Alias nicht zur Haupt-ID machen; hidden und Laufzeitanforderungen übernehmen |
-| parameters | verlustfreie Parametertabelle | source, default/defaultValue, Bindbarkeit und Sichtbarkeitsbedingungen kanonisieren |
-| relations.target | zentraler ID-Linkresolver | Zielart prüfen; unbekannte Ziele verursachen Fehler |
-| sources.docs | Dokument-/Artikelzuordnung | normalisierter Repository-Pfad als Join-Hilfe, nicht DOC.name/Basename |
-| GUIDE-ID + name + Quelle | bestehende Kapitelroute | Automatisch aus Kapitelmetadaten und Quellpfad ableiten, keine zweite Kapitelliste von Hand |
-| DOC missing:true | Bestandsnachweis ohne aktiven Link | Ursprung und Grund sichtbar, keine Verfügbarkeitsbehauptung |
+- Der harmlose A01-HTML-Marker wird in keinem Renderingpfad ausgeführt.
+- Alle 688 Entities sind über ID auffindbar; Action-, Methoden-, Event- und Schema-Ziele werden tatsächlich erreicht.
+- Keine kollidierenden Entity-/Chunk-IDs, keine unaufgelösten Relationen, keine unbegründeten Parameter-/Optionsverluste.
+- Ungültige Daten und Major-Versionen werden vor jeder Ausgabe verworfen; auch fehlender Status bleibt als Fehler sichtbar.
+- Documented wird niemals als verified bezeichnet. Geplant/veraltet/inferred/missing gelten in allen neun Kategorien.
+- Zwei saubere Builds mit gleichem Snapshot und fixem Zeitpunkt sind bytegleich; veraltete oder manipulierte Daten werden erkannt.
+- HTTP, file://, Suchaktionen, Direktaufruf/Reload und echtes mobiles Menüverhalten sind durch Playwright abgedeckt.
+- Der Dateischutz wird unabhängig von git status über Hashes bestätigt.
 
-Registry-Methoden (38) und dokumentierte Komponentenmethoden sind verschiedene Mengen. Verbindungen nur über nachgewiesene Besitzer/Registrierung herstellen; bloße Namensgleichheit genügt nicht. Komponentenereignisse und globale Event-Entities brauchen ebenfalls die deklarierende Klasse sowie die tatsächlich erbenden Komponenten. Der vollständige Inspector-Vertrag ist gesondert gegen Quellen zu prüfen; SWE-2 allein garantiert derzeit keine lückenlose Auflistung.
-
-Die persistente ID-Map gehört in den versionierten SWE-2-Buildzustand. Nicht löschen oder im Argon-Build neu aufbauen. Renames benötigen explizite Alias-/Migrationsregeln, gelöschte IDs dürfen nicht wiederverwendet werden. Reihenfolge, Metadatenkorrekturen und Darstellung ändern keine Entity-ID. Chunk-ID um den Quellpfad ergänzen; Migration bestehender Chunk-IDs einmalig dokumentieren.
-
-### 3. Portal und Suche auf dieselbe Projektion umstellen
-
-Eigene Inventar-/Action-/Property-Extraktion aus Argons technischem Datenpfad entfernen. Artikel-HTML, Lesefortschritt, Checklisten und Sprechertexte bleiben Präsentationsdaten. Aus dem SWE-Snapshot abgeleitete Zähler statt separater Konfigurationswerte verwenden.
-
-Die globale Suche aus SWE-2-Chunks und je Entity einem abgeleiteten Basistreffer bauen. Dies sichert die sieben dokumentierten Entities ohne Chunks und andere Entitäten ohne Fließtext. Keine parallele alte 246-Einträge-Suche weiterpflegen. Je Treffer entityId, chunkId, Titel, Status, Vertrauen, Quelle und stabile Zielroute führen. Mehrere Chunks desselben Artikels zusammenfassen; Snippet und Abschnittsziel erhalten. Fehlende Dokumente dürfen nicht in aktive Quellenlinks münden.
-
-Statusregeln gelten für Katalog, Suche, Detail, Vorschläge und Querverweise gleichermaßen: geplant/veraltet markiert; experimentell mit Hinweis; inferred als abgeleitet. Standardansicht bevorzugt implementierte Funktionen. Verborgene Actions nur nach bewusster Expertenauswahl anzeigen. requiresServer/requiresMultiplayer sind Einsatzbedingungen und bleiben sichtbar, auch bei implementiertem Status.
-
-C08 zuerst mit getrenntem Pfad-/Query-Parsing beheben. Anschließend ID-basierte Detailrouten für ACT/MTH/EVT anbieten; alte technische Namenslinks als Alias auflösen. Kein Suchtreffer darf still auf eine Bereichsübersicht zurückfallen.
-
-### 4. Reproduzierbares Offline-Release
-
-SWE-2 und Argon in einem frischen temporären Staging-Verzeichnis bauen. Reihenfolge, Node-/Validator-/Parser-Versionen und Lockfile fixieren. Einen festen Buildzeitpunkt verwenden, etwa über SOURCE_DATE_EPOCH; alle Generatoren müssen ihn tatsächlich beachten. Manifest-Fingerprints decken den Arbeitsstand einschließlich uncommitteter Eingaben ab; sourceCommit allein genügt nicht.
-
-Die erzeugten Portal-Daten für file:// als klassisches JavaScript-Bundle einbetten; keine zur Laufzeit nötigen fetch-Aufrufe auf lokale JSON-Dateien einführen. Fonts, Symbole und Skripte lokal halten. Snapshotdateien und gerenderte Inhalte atomar als ein Release veröffentlichen, damit C11 nicht wiederkehrt.
-
-## Freigabegates
-
-1. Alle hoch priorisierten Fehler C01–C06/C08 behoben und C07 nachgewiesen geprüft.
-2. Keine Entity-/Chunk-ID-Kollision; keine unbegründeten Parameterverluste oder Event-Lücken.
-3. Schema-, Negativ-, Quellen-, Relationen- und Statusprüfungen erfolgreich.
-4. Zwei saubere Builds sind mit fixiertem Zeitpunkt byteidentisch; alte erzeugte Daten werden zuverlässig erkannt.
-5. Offline-Playwright prüft jede Entity-Zielroute, Suchklicks und fehlende/veraltete/geplante/verborgene Einträge.
-6. Änderungsprüfung bestätigt: Original-Markdown sowie Runtime/Editor unberührt.
-
-Danach getrennte Abnahme durch den Nutzer. Dieser Vorschlag verändert keine Datei der beiden geprüften Systeme.
+Originaldokumentation, Runtime und Editor müssen für diese Integration weiterhin nicht geändert werden. Umsetzung erst nach Nutzerfreigabe.

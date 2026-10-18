@@ -1,0 +1,200 @@
+{
+  "audit": "Abschließendes Regression-Audit A01–A15",
+  "head": "40968be44dbebe5b15e94d29d1af56675ff85d8b",
+  "worktree": "Tatsächlicher uncommitteter Arbeitsstand; vollständiger Git-Status unter re-audit/GIT.json",
+  "decision": "KEINE FREIGABE",
+  "originalFindings": {
+    "passed": 14,
+    "failed": 1,
+    "notTestable": 0,
+    "results": [
+      {
+        "id": "A01",
+        "priority": "P0",
+        "title": "HTML-Ausführung über ungefilterte Komponentenbeschreibung",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + automatisierter Test + Browser-Test",
+        "assessment": "Fallback escaped Beschreibung; ursprüngliche img/onerror-Payload ergibt über HTTP und file:// null ausführbare Bilder/Scripts, Marker 0. Auch Methodenbeschreibung als Text geprüft.",
+        "evidence": "build-argon.cjs:169; re-audit/BROWSER.json: xss/otherEscaping; suite-argon.log"
+      },
+      {
+        "id": "A02",
+        "priority": "P1",
+        "title": "Globale Suche bricht bei vorhandenen Einträgen ab",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Test + Browser-Test",
+        "assessment": "Alle 2510 Suchtexte sind Strings. runtime, TD-001 und FEAT-0005 liefern Treffer ohne Ausnahme in beiden Protokollen.",
+        "evidence": "app-argon.js:749; re-audit/DATA.json; re-audit/BROWSER.json: search/errors"
+      },
+      {
+        "id": "A03",
+        "priority": "P1",
+        "title": "517 Entities haben keinen eigenen Suchdatensatz",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Test + Browser-Test",
+        "assessment": "693 Entity-Basistreffer vorhanden; alle 693 IDs im echten HTTP-Browser gesucht, kein Ausfall. 670 unterschiedliche Entity-Zielrouten ohne Fehleransicht; echte Suchklicks auf COMP/ACT/MTH/EVT in beiden Protokollen erfolgreich.",
+        "evidence": "import-swe2-argon.cjs:430; re-audit/BROWSER.json: exhaustiveSearch/entityRoutes/navigation"
+      },
+      {
+        "id": "A04",
+        "priority": "P1",
+        "title": "Import und Build akzeptieren ungültige oder widersprüchliche Daten",
+        "result": "FEHLGESCHLAGEN",
+        "verification": "Statische Codeprüfung + automatisierte Negativtests",
+        "assessment": "Die ursprünglichen Pflichtfeld-, Duplikat-, Relations- und Versionsfälle werden inzwischen abgewiesen. Ein leeres checksums-Objekt umgeht jedoch Importer und Validator; zusätzlich akzeptiert der Portalbuild fehlende provenance.facts. Siehe R01/R02.",
+        "evidence": "import-swe2-argon.cjs:162,202; validate-knowledge-swe2.cjs:125; re-audit/GATES.json; re-audit/TESTS.json: probes"
+      },
+      {
+        "id": "A05",
+        "priority": "P1",
+        "title": "82 wiederholte Chunk-IDs im Wissens- und Suchbestand",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Test",
+        "assessment": "1774 eindeutige Chunk-IDs. Eine absichtlich anders aufgebaute opake ID wird mit korrekter Prüfsumme importiert; kein Parsing erforderlich. Duplikat wird verworfen.",
+        "evidence": "re-audit/DATA.json; re-audit/TESTS.json: opaqueChunkId/duplicateChunk"
+      },
+      {
+        "id": "A06",
+        "priority": "P1",
+        "title": "Action-Wissen verliert 181 Parameter-Metadatenfelder",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Datenvergleich + Browser-Test",
+        "assessment": "Kein Verlust der aktuellen kanonischen Property-Typen, Defaults, Optionen, Quellen/Confidence oder irgendeines Action-Parameterfeldes. animate zeigt Default 500/shake, Quelle, Binding und Sichtbarkeitsbedingungen.",
+        "evidence": "build-argon.cjs:95,529; re-audit/DATA.json: propertyLoss/actionLoss; re-audit/BROWSER.json: parameterText"
+      },
+      {
+        "id": "A07",
+        "priority": "P1",
+        "title": "Geerbte Events fehlen in der strukturierten Referenz",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + automatisierter Test + Browser-Test",
+        "assessment": "AST-Auflösung statt Regex; TSprite 23 Events (10 eigene, 13 geerbte), Herkunft und isHiddenInRun-Bedingungen erhalten. Vergleich aller aktuellen Event-Projektionen ohne Feldverlust.",
+        "evidence": "build-knowledge-swe2.cjs:191; re-audit/DATA.json: eventLoss; suite-swe.log; re-audit/BROWSER.json: spriteText"
+      },
+      {
+        "id": "A08",
+        "priority": "P1",
+        "title": "118 dokumentierte Komponenten werden als verified bezeichnet",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + automatisierter Test + Browser-Test",
+        "assessment": "Drei Confidence-Stufen getrennt; facts im aktuellen Datenbestand vorhanden und in der Detailansicht dargestellt. Neue max(facts)-Semantik wird kenntlich gemacht, documented nicht mehr pauschal zu verified umgedeutet. Import ungültiger facts separat unter R02.",
+        "evidence": "swe2-adapter-argon.js:35,89; re-audit/DATA.json: missingFacts; re-audit/BROWSER.json: synthetic/spriteText"
+      },
+      {
+        "id": "A09",
+        "priority": "P2",
+        "title": "Strukturierte Eigenschaften bleiben teilweise doppelt gepflegt und werden verlustbehaftet projiziert",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + automatisierter Datenvergleich + Browser-Test",
+        "assessment": "Keine Markdown-Properties im technischen Portalbestand; kanonische Optionen und Parameter-Metadaten vollständig übernommen. Der ursprüngliche A09 und die zusätzlichen Property-Anforderungen sind damit erfüllt.",
+        "evidence": "build-argon.cjs:95; re-audit/DATA.json: markdownProperties/propertyLoss/actionLoss"
+      },
+      {
+        "id": "A10",
+        "priority": "P2",
+        "title": "Mobiler Menübutton wird durch die Suche verdeckt",
+        "result": "BESTANDEN",
+        "verification": "Browser-Test",
+        "assessment": "390 x 844: normaler Pointer-Klick öffnet und schließt die Sidebar. Trefferelement ist btn-sidebar-toggle, keine Überdeckung. HTTP und file:// geprüft.",
+        "evidence": "styles-argon.css:568; re-audit/BROWSER.json: mobile; re-audit/http-mobile.png"
+      },
+      {
+        "id": "A11",
+        "priority": "P2",
+        "title": "Inhaltsverzeichnis verweist auf nicht vorhandene Abschnitte",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + Browser-Test",
+        "assessment": "Inhaltsverzeichnis aus DOM-Überschriften. Alle zwölf angebotenen TSprite-Ziel-IDs existieren in beiden Protokollen.",
+        "evidence": "app-argon.js:340; re-audit/BROWSER.json: toc"
+      },
+      {
+        "id": "A12",
+        "priority": "P2",
+        "title": "Schema- und Konzeptkarten zeigen den Entwicklungsstatus nicht",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Test + Browser-Test mit synthetischem Datensatz",
+        "assessment": "Schema-Testkarte mit geplant und inferred zeigt beide Hinweise; auch Konzept-/Schema-Renderer verwenden Status und Confidence.",
+        "evidence": "swe2-adapter-argon.js:431; suite-argon.log; re-audit/BROWSER.json: synthetic"
+      },
+      {
+        "id": "A13",
+        "priority": "P2",
+        "title": "Beschädigte Hash-URL verursacht unbehandelten URIError",
+        "result": "BESTANDEN",
+        "verification": "Browser-Test",
+        "assessment": "Beschädigte Prozentkodierung, unbekannte Komponenten-ID und unbekannter Bereich zeigen verständlichen Fehlerzustand, ohne URIError oder stillen Redirect.",
+        "evidence": "app-argon.js:503; re-audit/BROWSER.json: invalid/errors"
+      },
+      {
+        "id": "A14",
+        "priority": "P2",
+        "title": "Kein vollständiger Nachweis der Snapshot-Aktualität und Byte-Reproduzierbarkeit",
+        "result": "BESTANDEN",
+        "verification": "Automatisierter Build-Test",
+        "assessment": "Zwei SWE-2-/Argon-Buildketten mit identischen festen Zeitpunkten liefern byte-identische Dateien. Änderung bei vorhandenen Prüfsummen wird abgelehnt. Unvollständige Prüfsummenabdeckung bleibt unter A04/R01 offen.",
+        "evidence": "build-argon.cjs:743; build-knowledge-swe2.cjs:35; re-audit/TESTS.json: byteDifferent/checksumMismatch"
+      },
+      {
+        "id": "A15",
+        "priority": "P2",
+        "title": "Importpfade sind nicht an den Snapshot gebunden",
+        "result": "BESTANDEN",
+        "verification": "Statische Codeprüfung + automatisierter Test einschließlich echter Junction",
+        "assessment": "Relative Traversierung, absoluter Fremdpfad und reale Windows-Junction außerhalb des Snapshots werden abgewiesen. Junction-Test erforderte Ausführung außerhalb der Standardsandbox; er wurde anschließend erfolgreich ausgeführt.",
+        "evidence": "import-swe2-argon.cjs:51; re-audit/TESTS.json: boundaries; re-audit/JUNCTION.json"
+      }
+    ]
+  },
+  "newlyConfirmedResiduals": [
+    {
+      "id": "R01",
+      "priority": "P1",
+      "relatedFinding": "A04",
+      "title": "Leere oder unvollständige Prüfsummenliste wird nicht als Fehler behandelt",
+      "locations": [
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:162",
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:202",
+        "docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs:125"
+      ],
+      "description": "Die Prüfungen verlangen nur ein Objekt und iterieren vorhandene Einträge. Sie verlangen nicht, dass jede verwendete Nutzdatei darin vertreten ist. Das ist eine neu isolierte Restursache des ursprünglichen A04, keine erneut defekte Oberfläche.",
+      "reproduction": [
+        "Nur in der Auditkopie knowledge-index-swe2.json laden.",
+        "checksums auf {} setzen und components-swe2.json an einer Beschreibung verändern, ohne einen Hash zu ergänzen.",
+        "Originalimporter, buildPortalData({writeFiles:false}) und den unveränderten SWE-2-Validator ausführen."
+      ],
+      "expected": "Fehler wegen fehlender Prüfsummenabdeckung für die tatsächlich importierten Dateien; kein Portal-Payload.",
+      "actual": "Importer akzeptiert 693 Entities, Portalbuild erzeugt den Payload, SWE-2-Validator endet mit Exit 0. Mit regulär vorhandenem, aber falschem Hash wird die Änderung korrekt abgewiesen.",
+      "solution": "Pflichtmenge aus den neun files.entityFiles, files.chunks und den vertraglich gebundenen weiteren Nutzdateien bestimmen; jede Datei muss exakt eine gültige SHA-256-Prüfsumme besitzen. Fehlende Einträge vor jedem Lesen/Build ablehnen. Negativtests für {} und einen einzeln entfernten Eintrag ergänzen.",
+      "evidence": [
+        "re-audit/TESTS.json: emptyChecksumsWithChangedEntity",
+        "re-audit/GATES.json: empty-checksums",
+        "re-audit/validator-empty-checksums.log"
+      ]
+    },
+    {
+      "id": "R02",
+      "priority": "P2",
+      "relatedFinding": "A04",
+      "title": "Portalimport prüft Schema-1.1.0-Fakten und Status-Enums nur teilweise",
+      "locations": [
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:114",
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:117",
+        "docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs:74"
+      ],
+      "description": "Der aktuelle Produktionsdatenbestand ist gültig. Die behauptete strenge Importvalidierung ist jedoch schwächer als der SWE-2-Validator.",
+      "reproduction": [
+        "Nur in der Kopie provenance.facts entfernen oder status.test auf AUDIT-INVALID setzen.",
+        "Datei-Prüfsumme korrekt neu berechnen, um allein die semantische Prüfung zu testen.",
+        "Importer laden; für fehlende facts zusätzlich den Portalbuild und SWE-2-Validator ausführen."
+      ],
+      "expected": "Schemawidrige Angaben werden vor der Portalprojektion abgelehnt.",
+      "actual": "Beide Fälle werden vom Importer akzeptiert. Fehlende facts werden auch vom Portalbuild akzeptiert, während der SWE-2-Validator mit Exit 1 abbricht.",
+      "solution": "Gemeinsame vollständige Vertragsvalidierung im Portal-Buildpfad ausführen; facts-Werte/max(facts) und alle Status-Enums prüfen. Erfolgreiche unabhängige Vorvalidierung darf keine bloße Bedienkonvention bleiben.",
+      "evidence": [
+        "re-audit/TESTS.json: missingFacts/invalidTestStatus",
+        "re-audit/GATES.json: missing-facts",
+        "re-audit/validator-missing-facts.log"
+      ]
+    }
+  ]
+}

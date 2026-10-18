@@ -1,0 +1,114 @@
+{
+  "suites": {
+    "swe": {
+      "command": "node docs/gcs-knowledge-swe2/test-knowledge-swe2.cjs",
+      "exitCode": 0,
+      "summary": [
+        "=== ERGEBNIS: 31 PASS / 0 FAIL ==="
+      ]
+    },
+    "argon": {
+      "command": "node docs/gcs-doc-portal-argon/test-integration-argon.cjs",
+      "exitCode": 0,
+      "summary": [
+        "  ✔ [PASS] A15 Negativtest 9: Pfad-Traversierung (../../package.json) außerhalb docs/gcs-knowledge-swe2/ wird blockiert ([import-swe2-argon] Boundary-Fehler: Pfad liegt außerhalb des erlaubten SWE-2-Verzeichnisses (../../package.json).)",
+        "=== Ergebnis: 35 bestanden, 0 fehlgeschlagen ==="
+      ]
+    },
+    "validator": {
+      "command": "node docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs",
+      "exitCode": 0,
+      "summary": [
+        "ERGEBNIS: BESTANDEN (14 Warnungen)"
+      ]
+    }
+  },
+  "byteDifferent": [],
+  "probes": [
+    {
+      "name": "version2",
+      "accepted": false,
+      "error": "[import-swe2-argon] Inkompatible SWE-2 schemaVersion: \"2.0.0\" (erwartet SemVer ^1.x.y)."
+    },
+    {
+      "name": "versionBroken",
+      "accepted": false,
+      "error": "[import-swe2-argon] Inkompatible SWE-2 schemaVersion: \"1.broken\" (erwartet SemVer ^1.x.y)."
+    },
+    {
+      "name": "count",
+      "accepted": false,
+      "error": "[import-swe2-argon] Manifestzähler-Abweichung (counts.entities): Manifest=694, Ist=693."
+    },
+    {
+      "name": "missingExtractedAt",
+      "accepted": false,
+      "error": "[import-swe2-argon] Pflichtfeld version.extractedAt fehlt bei Entity COMP-0001."
+    },
+    {
+      "name": "missingStatus",
+      "accepted": false,
+      "error": "[import-swe2-argon] Pflichtfeld status.dev fehlt oder ist ungültig (\"undefined\") bei Entity COMP-0001."
+    },
+    {
+      "name": "duplicateId",
+      "accepted": false,
+      "error": "[import-swe2-argon] Doppelte Entity-ID erkannt: COMP-0001."
+    },
+    {
+      "name": "badRelation",
+      "accepted": false,
+      "error": "[import-swe2-argon] Unauflösbare Relation bei COMP-0001: seeAlso -> COMP-9999."
+    },
+    {
+      "name": "duplicateChunk",
+      "accepted": false,
+      "error": "[import-swe2-argon] Doppelte chunkId erkannt: COMP-0001:tapiserver:_intro."
+    },
+    {
+      "name": "missingFacts",
+      "accepted": true,
+      "entities": 693,
+      "chunks": 1774
+    },
+    {
+      "name": "invalidTestStatus",
+      "accepted": true,
+      "entities": 693,
+      "chunks": 1774
+    },
+    {
+      "name": "checksumMismatch",
+      "accepted": false,
+      "error": "[import-swe2-argon] Prüfsummenfehler für entities/components-swe2.json: erwartet sha256:7873af5089a8122ee9e1780209e0abeba76d4e3c2215f711623c098093bc89eb, erhalten sha256:dc987c841fea4926e5dde00c0124b676dc7fe664830cc337f8fa58b4b57ffc19."
+    },
+    {
+      "name": "emptyChecksumsWithChangedEntity",
+      "accepted": true,
+      "entities": 693,
+      "chunks": 1774
+    },
+    {
+      "name": "opaqueChunkId",
+      "accepted": true,
+      "entities": 693,
+      "chunks": 1774
+    }
+  ],
+  "boundaries": [
+    {
+      "name": "traversal",
+      "blocked": true,
+      "error": "[import-swe2-argon] Boundary-Fehler: Pfad liegt außerhalb des erlaubten SWE-2-Verzeichnisses (..\\..\\sentinel.json)."
+    },
+    {
+      "name": "absolute",
+      "blocked": true,
+      "error": "[import-swe2-argon] Boundary-Fehler: Pfad liegt außerhalb des erlaubten SWE-2-Verzeichnisses (C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v2\\docs\\gcs-review-codex\\re-audit\\sentinel.json)."
+    },
+    {
+      "name": "junctionEscape",
+      "notTested": "EPERM: operation not permitted, symlink 'C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v2\\docs\\gcs-review-codex\\re-audit' -> 'C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v2\\docs\\gcs-review-codex\\re-audit\\sandbox\\repo\\docs\\gcs-knowledge-swe2\\audit-junction'"
+    }
+  ]
+}

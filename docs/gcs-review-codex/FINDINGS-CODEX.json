@@ -1,252 +1,368 @@
 {
-  "reviewDate": "2026-10-18",
-  "scope": [
-    "docs/gcs-doc-portal-argon/",
-    "docs/gcs-knowledge-swe2/"
-  ],
-  "decision": "Integrationsfreigabe zurückstellen; Umsetzung erst nach Nutzerfreigabe",
-  "classificationCounts": {
-    "Fehler": 8,
-    "Risiko": 3,
-    "Verbesserungsvorschlag": 1
+  "audit": "Unabhängiges Audit der integrierten GCS-Dokumentationsplattform",
+  "date": "2026-10-18",
+  "decision": "KEINE FREIGABE",
+  "priorities": {
+    "P0": 1,
+    "P1": 7,
+    "P2": 7,
+    "P3": 0
+  },
+  "assessments": {
+    "humanPortal": "KEINE FREIGABE",
+    "aiKnowledge": "KEINE FREIGABE",
+    "futureRagFoundation": "BEDINGTE FREIGABE als Entwicklungsgrundlage; keine Freigabe für automatisierte Planung"
   },
   "findings": [
     {
-      "id": "C01",
+      "id": "A01",
+      "priority": "P0",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "SWE-2-Daten werden nicht übernommen",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "HTML-Ausführung über ungefilterte Komponentenbeschreibung",
+      "locations": [
+        "docs/gcs-doc-portal-argon/build-argon.cjs:181",
+        "docs/gcs-doc-portal-argon/views-argon.js:448",
+        "docs/gcs-doc-portal-argon/app-argon.js:638"
+      ],
+      "description": "Die Fallback-Referenz für Komponenten ohne Markdown übernimmt description unmittelbar als HTML. Das Portal setzt diesen Inhalt anschließend per innerHTML ein. P0 gemäß Auditdefinition für ein bestätigtes Sicherheitsproblem; nachgewiesen ist die Ausführung einer manipulierten Wissensbeschreibung, kein Einbruch in den aktuellen Datenbestand.",
+      "reproduction": [
+        "Nur in der isolierten Kopie description von COMP-0122 durch das harmlose img/onerror-Testfragment ersetzen.",
+        "Originalbuild in der Kopie ausführen.",
+        "Die entstandene Komponente im isolierten Browser mit der unveränderten Renderfunktion einsetzen."
+      ],
+      "expected": "Die Beschreibung wird als Text angezeigt; Ereignisattribute aus Wissensdaten werden nicht ausgeführt.",
+      "actual": "hasMdFile=false; ein img mit onerror bleibt erhalten, window.__auditXss wird auf 1 gesetzt. Keine Originaldaten verändert; kein externer Abruf und keine Datenentnahme.",
+      "solution": "Beschreibung vor der HTML-Erzeugung escapen. Für beabsichtigtes Rich HTML einen zentralen Sanitizer mit enger Allowlist verwenden; Regressionstest für den Fallback ergänzen. Eine CSP kann zusätzlich absichern.",
       "evidence": [
-        "docs/gcs-doc-portal-argon/portal-config-argon.json:77",
-        "docs/gcs-doc-portal-argon/build-argon.cjs:395",
-        "DATA-EVIDENCE.json: portalMeta.swe2Integration"
+        "audit-v2/EXTRA.json: fallbackHtmlFixture",
+        "audit-v2/FOCUSED-BROWSER.json: xss",
+        "audit-v2/XSS-FIXTURE.json"
       ],
-      "reproduce": [
-        "Konfiguration und Build lesen.",
-        "Manifestpfad knowledge-index-swe2.json mit tatsächlichen Lesezugriffen vergleichen.",
-        "loadedOverlays im erzeugten Portal prüfen: leer."
-      ],
-      "impact": "enabled:true bezeichnet nur die vorbereitete Schnittstelle. Der Build liest weiterhin Inventar, Markdown und Action-Metadaten separat. Auch vorhandene optionale Overlays würden lediglich mit Dateiname und Schlüsseln protokolliert.",
-      "recommendation": "Manifest-gesteuerten Build-Adapter entwickeln; tatsächlichen Importstatus getrennt von konfigurierter Aktivierung ausweisen.",
-      "acceptance": "Portal bezieht technische Entitäten ausschließlich aus dem validierten SWE-2-Snapshot; unbekannte Major-Version und fehlender Snapshot brechen den Build ab."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C02",
+      "id": "A02",
+      "priority": "P1",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Suchsegmente besitzen nicht eindeutige chunkId-Werte",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "Globale Suche bricht bei vorhandenen Einträgen ab",
+      "locations": [
+        "docs/gcs-doc-portal-argon/build-argon.cjs:632",
+        "docs/gcs-doc-portal-argon/build-argon.cjs:653",
+        "docs/gcs-doc-portal-argon/build-argon.cjs:674",
+        "docs/gcs-doc-portal-argon/build-argon.cjs:695",
+        "docs/gcs-doc-portal-argon/app-argon.js:826"
+      ],
+      "description": "43 zusätzliche Artikel-/Debt-Einträge besitzen kein text-Feld. Der Controller verwendet trotz anfänglichem Fallback später entry.text.slice().",
+      "reproduction": [
+        "Portal öffnen.",
+        "Suche öffnen, Eingabe leeren, runtime, TD-001 oder FEAT-0005 eingeben.",
+        "Browser-Konsole prüfen."
+      ],
+      "expected": "Trefferliste einschließlich Zusatzartikeln erscheint fehlerfrei.",
+      "actual": "TypeError: Cannot read properties of undefined (reading slice). HTTP und file:// betroffen; Treffer können leer bleiben oder vom vorherigen Suchlauf stehen bleiben.",
+      "solution": "Beim Build gültige Textfelder erzeugen und ein Suchdatensatz-Schema prüfen. Im Controller ausschließlich die bereits normalisierte Textvariable verwenden.",
       "evidence": [
-        "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:230",
-        "DATA-EVIDENCE.json: chunkProblems.duplicateIds"
+        "audit-v2/BROWSER.json",
+        "audit-v2/FOCUSED-BROWSER.json: queries/errors",
+        "audit-v2/file-search-runtime-error.png"
       ],
-      "reproduce": [
-        "JSONL laden und nach chunkId gruppieren.",
-        "Beispiel FEAT-0005:_intro und die verschiedenen zugehörigen Texte vergleichen."
-      ],
-      "impact": "1774 Segmente enthalten 82 weitere Vorkommen bereits verwendeter IDs, verteilt auf 51 kollidierende IDs. Ein Index mit chunkId als Schlüssel überschreibt Inhalte oder weist sie uneindeutig zu.",
-      "recommendation": "Entity-ID, normalisierten Quelldokumentpfad, Abschnittsanker und Teilsegment zur Identität kombinieren; globale Eindeutigkeit validieren.",
-      "acceptance": "Anzahl Segmente entspricht Anzahl eindeutiger chunkId; Wiederholungsbuild hält die IDs unveränderter Segmente stabil."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C03",
+      "id": "A03",
+      "priority": "P1",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Action-Parameter verlieren Defaults und Steuerungsmetadaten",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "517 Entities haben keinen eigenen Suchdatensatz",
+      "locations": [
+        "docs/gcs-doc-portal-argon/build-argon.cjs:607",
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:292"
+      ],
+      "description": "Die Suche übernimmt Chunks, ergänzt aber keinen Basistreffer pro Entity. Chunks existieren nur für 171 der 688 Entities.",
+      "reproduction": [
+        "Suchindex nach entityId mit allen Entities verbinden.",
+        "Im Browser ACT-0001, MTH-0001, EVT-0001, SCM-0001 und COMP-0122 suchen."
+      ],
+      "expected": "Jede relevante Entity ist mindestens über ihre stabile ID und ihren technischen Namen auffindbar.",
+      "actual": "Kein eigener Treffer für 59 Actions, 38 Methoden, 158 Events, 13 Schemas, 242 Dokumente und sieben Komponenten. Die genannten ID-Suchen ergeben null Treffer. speak findet lediglich Textnennungen; das ist kein nachgewiesener Methoden-Entity-Treffer.",
+      "solution": "Basistreffer aus allen Entities erzeugen und Chunk-Treffer daran anbinden. Deduplizierung pro Entity und stabile Zielroute vorsehen.",
       "evidence": [
+        "audit-v2/DATA.json: search.fallbackMissing",
+        "audit-v2/FOCUSED-BROWSER.json: queries",
+        "audit-v2/file-missing-action-search.png"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
+    },
+    {
+      "id": "A04",
+      "priority": "P1",
+      "classification": "Fehler",
+      "title": "Import und Build akzeptieren ungültige oder widersprüchliche Daten",
+      "locations": [
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:43",
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:73",
+        "docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs:52"
+      ],
+      "description": "Der Importer prüft im Wesentlichen eine Versionspräfixfolge und JSON-Lesbarkeit. Schema, Zähler, Eindeutigkeit und Relationsintegrität sind keine verlässlichen Build-Gates.",
+      "reproduction": [
+        "Nur in der Kopie getrennt schemaVersion=1.broken, falsche Manifestzähler, doppelte ID, fehlendes extractedAt und eine nicht existente Relation testen.",
+        "Fehlenden Status und entfernte Komponente zusätzlich durch den Originalbuild schicken."
+      ],
+      "expected": "Ungültige Eingaben werden mit genauer Fehlermeldung verworfen; fehlende Angaben werden nicht als implementiert ergänzt.",
+      "actual": "Alle genannten Importfälle werden akzeptiert. Build liefert bei doppelter ID 129 Komponenten, bei fehlender Komponente 127, bei kaputter Relation unresolved=1, jeweils Exit 0. Fehlender Status wird zu implementiert. Der SWE-2-Validator akzeptiert fehlendes Pflichtfeld extractedAt ebenfalls mit Exit 0. Major 2.0.0 wird korrekt abgelehnt.",
+      "solution": "Draft-2020-12-Schema-Engine und fachliche Integritätsprüfungen vor Projektion ausführen; striktes SemVer, Manifestzählung, doppelte IDs und fehlende Relationen prüfen; bei Fehler abbrechen.",
+      "evidence": [
+        "audit-v2/TESTS.json: importNegatives/validatorMissingExtractedAt",
+        "audit-v2/EXTRA.json: buildNegatives"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
+    },
+    {
+      "id": "A05",
+      "priority": "P1",
+      "classification": "Fehler",
+      "title": "82 wiederholte Chunk-IDs im Wissens- und Suchbestand",
+      "locations": [
+        "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:230"
+      ],
+      "description": "Chunk-IDs bestehen aus Entity und Überschrift. Unterschiedliche Quelldokumente derselben Entity können dieselbe Überschrift besitzen.",
+      "reproduction": [
+        "1774 JSONL-Zeilen nach chunkId gruppieren.",
+        "FEAT-0005:_intro und zugehörige Texte/Quellen vergleichen."
+      ],
+      "expected": "Jeder Chunk hat eine eindeutige, über Wiederholungsbuilds stabile Identität.",
+      "actual": "82 zusätzliche Vorkommen bereits verwendeter IDs, verteilt auf 51 kollidierende IDs. Auch der Portal-Suchindex übernimmt diese Kollisionen. Ein keyed Retrieval-Store könnte Inhalte überschreiben.",
+      "solution": "Normalisierten Quelldokumentpfad, Abschnittsanker und Teilsegment in die Identität aufnehmen. Eindeutigkeit als zwingendes Gate prüfen und ID-Migration dokumentieren.",
+      "evidence": [
+        "audit-v2/DATA.json: chunks.duplicateIds/search.duplicateIds"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
+    },
+    {
+      "id": "A06",
+      "priority": "P1",
+      "classification": "Fehler",
+      "title": "Action-Wissen verliert 181 Parameter-Metadatenfelder",
+      "locations": [
         "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:437",
-        "DATA-EVIDENCE.json: actionParameterLoss"
+        "src/runtime/ActionRegistry.ts:20",
+        "src/runtime/actions/handlers/AnimationActions.ts:149"
       ],
-      "reproduce": [
-        "59 Action-Definitionen nach technischem Namen verbinden.",
-        "Parameter aus Argons Action-Metadaten mit SWE-2-Entitäten vergleichen.",
-        "animate.duration: defaultValue=500 ist in SWE-2 nicht mehr vorhanden."
+      "description": "Die Wissensgenerierung übernimmt nur ausgewählte Parameterfelder. Insbesondere liest sie default statt des in der Registry verwendeten defaultValue.",
+      "reproduction": [
+        "Action-Metadaten und SWE-2 über technische Namen und Parameternamen verbinden.",
+        "animate.duration und animate.effect prüfen."
       ],
-      "impact": "181 Feldvorkommen fehlen: source 71, defaultValue 41, placeholder 39, allowVariableBinding 15, visibleWhen 9, allowFreeText 4, multiline 2. Namen und Typen stimmen zwar überein, der semantische Vertrag ist aber unvollständig.",
-      "recommendation": "Parameter vollständig und typisiert übernehmen. defaultValue bewusst auf ein kanonisches default abbilden; Bedingungen und Referenzquellen erhalten.",
-      "acceptance": "Verlustvergleich hat keine unbegründeten Differenzen; animate.effect=shake und animate.duration=500 bleiben erhalten."
+      "expected": "Defaults, Referenzquellen, Bindbarkeit, Bedingungen und Eingabehinweise bleiben semantisch vollständig erhalten.",
+      "actual": "Fehlen: source 71, defaultValue 41, placeholder 39, allowVariableBinding 15, visibleWhen 9, allowFreeText 4, multiline 2. animate.duration=500 und effect=shake gehen verloren. Namen und Typen stimmen; das genügt nicht für korrekte Planung.",
+      "solution": "Verlustfreies, typisiertes Parametermodell definieren und vorhandene Registry-Felder übernehmen. Differenztest gegen echte Handler-Metadaten ergänzen.",
+      "evidence": [
+        "audit-v2/DATA.json: parameterLoss"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C04",
+      "id": "A07",
+      "priority": "P1",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Geerbte Events werden unvollständig extrahiert",
-      "confidence": "bestätigt durch Prüfung",
-      "evidence": [
+      "title": "Geerbte Events fehlen in der strukturierten Referenz",
+      "locations": [
         "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:90",
         "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:310",
         "src/components/TWindow.ts:208",
-        "src/components/TSprite.ts:370",
-        "DATA-EVIDENCE.json: eventComparisons"
+        "src/components/TSprite.ts:370"
       ],
-      "reproduce": [
-        "TSprite.getEvents lesen: const events = super.getEvents(); Rückgabe enthält ...events.",
-        "SWE-2 events für TSprite prüfen: nur zehn eigene Events.",
-        "TWindow hat einen if-Block vor der tatsächlichen Rückgabe; Regex endet am ersten schließenden Block."
+      "description": "Der Regex-Extraktor beendet den Methodenrumpf am ersten schließenden Block und erkennt den lokalen super-Rückgabewert von TSprite nicht.",
+      "reproduction": [
+        "getEvents in TComponent, TWindow und TSprite anhand des TypeScript-AST vergleichen.",
+        "Die kumulierte Liste mit SWE-2 und dem Portal vergleichen."
       ],
-      "impact": "TSprite verliert unter anderem onFocus, onBlur, onFlipMidpoint und UI-Basisereignisse. TWindow hat im Datensatz keine Eventliste. Dokumentation und strukturierte Referenz widersprechen sich.",
-      "recommendation": "TypeScript-AST und Basisklassenauflösung einsetzen; eigene, geerbte und nur dokumentierte Events unterscheiden. Bedingte Laufzeitverfügbarkeit gesondert darstellen.",
-      "acceptance": "Regressionstests erfassen super-Aufruf über lokale Variable, verschachtelte Blöcke und sichtbare/verborgene Komponenten."
-    },
-    {
-      "id": "C05",
-      "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Verfügbarkeit und verborgene Actions fehlen in sichtbaren Such-/Action-Ergebnissen",
-      "confidence": "bestätigt durch Prüfung",
+      "expected": "Eigene, geerbte und bedingte Ereignisse werden korrekt unterschieden und vollständig dokumentiert.",
+      "actual": "Für ein sichtbares TSprite ergeben die drei Quellklassen 23 unterschiedliche Events; Wissen und Portal enthalten nur zehn eigene. TWindow besitzt keine entsprechende vollständige Eventliste. Die Originalprosa erwähnt geerbte Ereignisse dennoch.",
+      "solution": "AST-Auswertung mit Basisklassenauflösung einsetzen; lokale super-Aufrufe und verschachtelte Blöcke testen. hiddenInRun als Bedingung ausweisen.",
       "evidence": [
-        "docs/gcs-doc-portal-argon/app-argon.js:861",
-        "docs/gcs-doc-portal-argon/views-argon.js:740",
-        "BROWSER-EVIDENCE.json: plannedSearch, hiddenAction",
-        "browser-planned-search.png",
-        "browser-hidden-action.png"
+        "audit-v2/EXTRA.json: events",
+        "audit-v2/file-sprite.png"
       ],
-      "reproduce": [
-        "Globale Suche öffnen und TImage suchen.",
-        "Mit SWE-2 status.dev=geplant für COMP-0035 bis COMP-0038 vergleichen.",
-        "Action-Katalog nach execute_login_request filtern; hidden=true in ACT-0017 gegen die Darstellung prüfen."
-      ],
-      "impact": "Alle 246 Suchdatensätze enthalten weder Status noch confidence. Geplante Bildkomponenten erscheinen ohne Statusbadge; vier verborgene Actions werden ohne Hidden-Hinweis angeboten. Komponenten-Detail und Katalog haben teilweise bereits Statusanzeigen; der Fehler betrifft nicht sämtliche Ansichten.",
-      "recommendation": "Status und Vertrauensstufe in jeden Suchtreffer übernehmen; geplant/veraltet klar markieren, verborgen standardmäßig ausblenden und im Expertenmodus kennzeichnen; Server-/Multiplayer-Anforderungen ausweisen.",
-      "acceptance": "Geplante/veraltete Funktionen erscheinen auf keiner Einstiegsfläche unqualifiziert als verfügbar. Hidden-Actions sind nur bewusst im Expertenmodus sichtbar."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C06",
+      "id": "A08",
+      "priority": "P1",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Vorhandener Validator ersetzt keine JSON-Schema-Validierung",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "118 dokumentierte Komponenten werden als verified bezeichnet",
+      "locations": [
+        "docs/gcs-doc-portal-argon/views-argon.js:366",
+        "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:391"
+      ],
+      "description": "Die Katalogkarte behandelt jedes Vertrauen außer inferred als verified. Zusätzlich garantiert ein entitätsweites verified der Wissensbasis nicht die Verifikation jeder Einzelangabe.",
+      "reproduction": [
+        "Komponenten-Katalog mit allen Komponenten rendern.",
+        "confidence-Verteilung im Datenbestand mit den ausgegebenen verified-Beschriftungen vergleichen."
+      ],
+      "expected": "documented, inferred und verified bleiben in jeder Ansicht getrennt.",
+      "actual": "Daten: 118 documented, zehn verified. Darstellung: 128-mal verified. Der Detailadapter unterscheidet die Stufen korrekt; der Katalog widerspricht ihm.",
+      "solution": "Zentrale Confidence-Badge-Funktion überall einsetzen. Vertrauen nach Möglichkeit pro Fakt/Quelle führen; Teststatus unabhängig davon anzeigen.",
       "evidence": [
-        "docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs:52",
-        "docs/gcs-knowledge-swe2/knowledge-schema-swe2.json:138",
-        "BUILD-EVIDENCE.json: negativeMissingExtractedAt",
-        "validate-negative-missing-extractedAt.log"
+        "audit-v2/CONFIDENCE.json"
       ],
-      "reproduce": [
-        "Nur in der isolierten Kopie bei erster Komponente version.extractedAt entfernen.",
-        "Unveränderten SWE-2-Validator starten: Exit 0.",
-        "Unabhängigen Schema-Regeltest ausführen: Objekt wird abgelehnt."
-      ],
-      "impact": "Ein vom veröffentlichten Schema vorgeschriebenes Feld darf fehlen, obwohl die Prüfung BESTANDEN meldet. Doppelte chunkIds werden ebenfalls nicht beanstandet.",
-      "recommendation": "Echten Draft-2020-12-Validator zusätzlich zu semantischen Prüfungen einsetzen; Negativtests und Chunk-Schema ergänzen.",
-      "acceptance": "Fehlendes extractedAt, falsche Typen, ungültige Enums, kaputte Referenzen und doppelte chunkId führen jeweils zu Exit ungleich 0."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C07",
+      "id": "A09",
+      "priority": "P2",
       "classification": "Fehler",
-      "severity": "mittel",
-      "title": "Strukturierte Eigenschaften bleiben bei 20 Portal-Komponenten leer",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "Strukturierte Eigenschaften bleiben teilweise doppelt gepflegt und werden verlustbehaftet projiziert",
+      "locations": [
+        "docs/gcs-doc-portal-argon/build-argon.cjs:95",
+        "docs/gcs-doc-portal-argon/build-argon.cjs:112"
+      ],
+      "description": "Argon ergänzt nach dem SWE-2-Import weiterhin ein eigenes technisches Property-Verzeichnis aus Markdown. options wird bei der SWE-2-Projektion nicht übernommen.",
+      "reproduction": [
+        "Portal-Properties nach componentId/name mit SWE-2 verbinden.",
+        "SWE-2-Eigenschaften mit options im Portal prüfen."
+      ],
+      "expected": "Ein kanonischer strukturierter Vertrag mit vollständigen Optionen; Markdown wird nur zur Darstellung verwendet.",
+      "actual": "333 zusätzliche Property-Zeilen kommen aus Argons Markdown-Auswertung; 13 vorhandene SWE-2-Optionsdefinitionen fehlen in der Portal-Projektion. Die zusätzlichen Zeilen sind nicht pauschal falsch, ihre Richtigkeit ist aber keine SWE-2-Garantie.",
+      "solution": "Fehlende Fakten upstream kanonisieren, im Portal nur projizieren und options erhalten. Übergangsergänzungen ausdrücklich als solche markieren und auf Konflikte prüfen.",
       "evidence": [
-        "docs/gcs-doc-portal-argon/build-argon.cjs:56",
-        "DATA-EVIDENCE.json: portalPropertyCoverage",
-        "browser-component.png"
+        "audit-v2/EXTRA.json: duplicateTechnicalProperties/propertyOptionsLost"
       ],
-      "reproduce": [
-        "Portal-Bundle components.items nach properties.length===0 filtern.",
-        "TSprite mit SWE-2 vergleichen: Portal 0, SWE-2 18 Eigenschaften."
-      ],
-      "impact": "Die Prosa im Originalartikel bleibt lesbar, aber strukturierte Tabellen/Zähler/Filter bilden vorhandenes Wissen nicht ab. Nicht jede der 20 Komponenten muss tatsächlich Eigenschaften besitzen; TSprite belegt den konkreten Verlust.",
-      "recommendation": "Technische Eigenschaftslisten aus SWE-2 übernehmen statt parallel Markdown-Tabellen zu extrahieren; auch SWE-2 auf Vollständigkeit gegenüber Inspector/Schema prüfen.",
-      "acceptance": "TSprite zeigt die kanonischen Eigenschaften im strukturierten Bereich; fehlende oder nur teilweise bekannte Definitionen werden ausdrücklich markiert."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C08",
+      "id": "A10",
+      "priority": "P2",
       "classification": "Fehler",
-      "severity": "hoch",
-      "title": "Alle 59 Action-Suchlinks führen zur Entwicklerübersicht",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "Mobiler Menübutton wird durch die Suche verdeckt",
+      "locations": [
+        "docs/gcs-doc-portal-argon/styles-argon.css:104",
+        "docs/gcs-doc-portal-argon/styles-argon.css:142",
+        "docs/gcs-doc-portal-argon/styles-argon.css:568"
+      ],
+      "description": "Die schmale Kopfzeile überlagert die Menüfläche; die Sidebar wird dabei unzweckmäßig angeschnitten dargestellt.",
+      "reproduction": [
+        "Viewport 390 x 844 setzen.",
+        "Startseite öffnen und den Menübutton mit normalem Pointer-Klick betätigen."
+      ],
+      "expected": "Menü ist sichtbar, erreichbar und lässt sich öffnen/schließen.",
+      "actual": "Playwright-Klick scheitert, weil btn-open-search Pointer-Ereignisse abfängt. document.elementFromPoint bestätigt denselben Überlagerer. HTTP und file:// betroffen; kein force-Klick verwendet.",
+      "solution": "Mobile Kopfzeile mit kompaktem Suchbutton, passenden Flex-Grenzen und eindeutigem Sidebar-Zustand gestalten. Echten Pointer-Test ergänzen.",
       "evidence": [
-        "docs/gcs-doc-portal-argon/build-argon.cjs:504",
-        "docs/gcs-doc-portal-argon/app-argon.js:600",
-        "docs/gcs-doc-portal-argon/app-argon.js:758",
-        "BROWSER-EVIDENCE.json: routes, actionSearchClick",
-        "browser-action-search-destination.png"
+        "audit-v2/BROWSER.json: mobile",
+        "audit-v2/http-mobile.png",
+        "audit-v2/file-mobile.png"
       ],
-      "reproduce": [
-        "Globale Suche nach navigate_stage.",
-        "Action-Treffer anklicken.",
-        "Erzeugtes Ziel #devref/actions?q=navigate_stage wird zu #devref umgeleitet."
-      ],
-      "impact": "Der Router behandelt actions?q=... als Dokument-ID. 59 von 246 Suchzielen verlieren deshalb das konkrete Ziel; die anderen 187 bleiben auf der angeforderten Route.",
-      "recommendation": "Hash-Pfad und Query separat parsen; Action-Filter aus q initialisieren oder stabile ACT-Detailroute anbieten.",
-      "acceptance": "Jeder Action-Treffer öffnet exakt die gesuchte Action; direkter Aufruf und Neuladen derselben Offline-URL funktionieren."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C09",
+      "id": "A11",
+      "priority": "P2",
+      "classification": "Fehler",
+      "title": "Inhaltsverzeichnis verweist auf nicht vorhandene Abschnitte",
+      "locations": [
+        "docs/gcs-doc-portal-argon/app-argon.js:640",
+        "docs/gcs-doc-portal-argon/swe2-adapter-argon.js:140"
+      ],
+      "description": "Controller und Adapter verwenden unterschiedliche IDs für SWE-2-Abschnitte.",
+      "reproduction": [
+        "TSprite-Detail öffnen.",
+        "data-toc-target-Werte mit DOM-IDs vergleichen."
+      ],
+      "expected": "Jeder angebotene Abschnittslink erreicht ein vorhandenes Ziel.",
+      "actual": "swe2-eigenschaften, swe2-events und swe2-relationen fehlen in der geprüften Ansicht; der Adapter verwendet unter anderem swe2-properties und einen anders benannten Provenance-Abschnitt.",
+      "solution": "Abschnitts-IDs zentral definieren oder das Inhaltsverzeichnis aus tatsächlichen Überschriften ableiten.",
+      "evidence": [
+        "audit-v2/BROWSER.json: missingTocTargets"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
+    },
+    {
+      "id": "A12",
+      "priority": "P2",
       "classification": "Risiko",
-      "severity": "mittel",
-      "title": "Entitätsweites verified überdeckt rein dokumentierte Einzelangaben",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "Schema- und Konzeptkarten zeigen den Entwicklungsstatus nicht",
+      "locations": [
+        "docs/gcs-doc-portal-argon/swe2-adapter-argon.js:330"
+      ],
+      "description": "Der Adapter zeigt Confidence, aber kein status.dev für Schema- und Konzeptkarten. Der fehlende Warnhinweis wurde mit einem geplanten Testdatensatz nachgewiesen.",
+      "reproduction": [
+        "Nur im Browserspeicher eine Schema-Karte auf devStatus=geplant und confidence=inferred setzen.",
+        "Mit unveränderter Adapterfunktion rendern."
+      ],
+      "expected": "Beide Hinweise werden unabhängig voneinander sichtbar.",
+      "actual": "inferred wird angezeigt, Geplant nicht. Es handelt sich um einen synthetischen Vertragsfall, nicht um den Nachweis eines derzeit geplanten produktiven Schemaeintrags.",
+      "solution": "Status-Badges und Vertragsbanner für alle neun Entity-Kategorien konsistent verwenden.",
       "evidence": [
-        "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:391",
-        "docs/gcs-knowledge-swe2/knowledge-index-swe2.json: provenanceLegend",
-        "DATA-EVIDENCE.json: verifiedComponents"
+        "audit-v2/BROWSER.json: synthetic"
       ],
-      "reproduce": [
-        "confidence-Berechnung mit Inventar-docStatus vergleichen.",
-        "TButton/TSprite: entity verified, Methoden zum Teil origin=documented."
-      ],
-      "impact": "Zehn Komponenten erhalten verified aus vorhandener Referenzkarte plus technisch geprüft. Dies ist kein pauschaler Nachweis aller Eigenschaften, Methoden, geerbten Events oder erfolgreicher Laufzeittests.",
-      "recommendation": "Quellen und Vertrauen pro Aussage/Feld halten; verified als quellbelegt und unabhängig vom Teststatus erklären. Registry-Methoden von dokumentierten Komponentenmethoden trennen.",
-      "acceptance": "Portal kann bei jedem technischen Fakt dessen Herkunft und Vertrauensniveau anzeigen; Teststatus wird niemals aus confidence abgeleitet."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C10",
-      "classification": "Risiko",
-      "severity": "mittel",
-      "title": "Build ist inhaltlich, aber nicht byteidentisch reproduzierbar",
-      "confidence": "bestätigt durch Prüfung",
+      "id": "A13",
+      "priority": "P2",
+      "classification": "Fehler",
+      "title": "Beschädigte Hash-URL verursacht unbehandelten URIError",
+      "locations": [
+        "docs/gcs-doc-portal-argon/app-argon.js:563"
+      ],
+      "description": "decodeURIComponent wird auf den gesamten Hash ohne Fehlerbehandlung angewendet.",
+      "reproduction": [
+        "Direkt #devref/%E0%A4%A aufrufen.",
+        "Konsole und Inhaltsdarstellung prüfen."
+      ],
+      "expected": "Verständlicher Fehlerzustand oder sicherer Fallback ohne unbehandelte Ausnahme.",
+      "actual": "URI malformed; vorheriger Inhalt bleibt stehen. Unbekannte normale Komponenten-IDs werden dagegen still auf die Übersicht umgeleitet.",
+      "solution": "Pfad-/Query-Decodierung absichern und eine klare Nicht-gefunden-/Ungültige-URL-Ansicht anbieten.",
       "evidence": [
-        "BUILD-EVIDENCE.json: repeatability",
+        "audit-v2/BROWSER.json: errors/unknown"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
+    },
+    {
+      "id": "A14",
+      "priority": "P2",
+      "classification": "Risiko",
+      "title": "Kein vollständiger Nachweis der Snapshot-Aktualität und Byte-Reproduzierbarkeit",
+      "locations": [
+        "docs/gcs-doc-portal-argon/build-argon.cjs:714",
+        "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:388",
         "docs/gcs-knowledge-swe2/build-knowledge-swe2.cjs:738"
       ],
-      "reproduce": [
-        "Beide Builds zweimal in identischer Kopie starten.",
-        "Ausgaben byteweise und nach Normalisierung ausschließlich generated/generatedAt/extractedAt vergleichen."
+      "description": "Zeitstempel verändern zwölf Ausgaben. Der Importer bindet die importierten Inhalte nicht durch Prüfsummen an das Manifest; sourceCommit stammt aus dem Inventar.",
+      "reproduction": [
+        "Beide Builds zweimal ausführen und Ausgaben vergleichen.",
+        "In der Kopie eine Entity ändern, ohne Manifest/Versionshash zu aktualisieren, dann Argon bauen."
       ],
-      "impact": "Zwölf Dateien unterscheiden sich wegen Zeitstempeln; normalisiert gibt es keine Unterschiede. sourceCommit stammt aus dem Inventar und weist lokale Änderungen nicht vollständig nach.",
-      "recommendation": "Reproduzierbaren Buildzeitpunkt vorgeben oder flüchtige Metadaten aus fachlichen Artefakten auslagern; Hashmanifest aller Eingaben und genaue Toolversionen speichern.",
-      "acceptance": "Zwei saubere Builds gleicher Eingaben und festem Epoch-Wert sind bytegleich; veränderte lokale Eingaben ändern den Snapshot-Fingerprint."
+      "expected": "Identische Eingaben mit fixiertem Buildzeitpunkt ergeben identische Bytes; veränderte oder veraltete Snapshots werden erkannt.",
+      "actual": "Inhalte nach Normalisierung von generated/generatedAt/extractedAt gleich, zwölf Dateien byteverschieden. Der manipulierte Snapshot wird mit Exit 0 gebaut. Gelieferte Daten entsprechen diesmal dem frischen Build nach Zeitstempelbereinigung.",
+      "solution": "Eingabe-/Ausgabehashmanifest, fixierter Buildzeitpunkt, Versionierung und atomarer Release-Snapshot; Registry-/Quelländerungen vollständig in Fachhashes aufnehmen.",
+      "evidence": [
+        "audit-v2/TESTS.json: repeat/staleManifest"
+      ],
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     },
     {
-      "id": "C11",
+      "id": "A15",
+      "priority": "P2",
       "classification": "Risiko",
-      "severity": "mittel",
-      "title": "Ausgeliefertes Argon-Bundle entspricht nicht vollständig dem frischen Build",
-      "confidence": "bestätigt durch Prüfung",
+      "title": "Importpfade sind nicht an den Snapshot gebunden",
+      "locations": [
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:37",
+        "docs/gcs-doc-portal-argon/import-swe2-argon.cjs:49"
+      ],
+      "description": "Pfadangaben aus der Konfiguration werden ohne kanonische Begrenzung an rootDir angehängt. Dies erfordert Vertrauen in die Buildkonfiguration.",
+      "reproduction": [
+        "In der isolierten Kopie den Komponentenpfad auf ../../outside-snapshot.json setzen.",
+        "Dort ausschließlich eine harmlose leere JSON-Liste innerhalb des Auditverzeichnisses bereitstellen.",
+        "Importer mit dieser Konfiguration laden."
+      ],
+      "expected": "Entities werden nur aus dem freigegebenen Knowledge-Snapshot gelesen.",
+      "actual": "Importer akzeptiert die Datei außerhalb der Kopie und lädt null Komponenten. Keine private Datei gelesen; kein Nachweis eines extern erreichbaren Angriffs auf die aktuelle Konfiguration.",
+      "solution": "Pfade nach realpath/resolve auf Snapshotgrenze prüfen; Symlinks und Traversierung ablehnen. Dateiliste aus dem Manifest verifizieren.",
       "evidence": [
-        "BUILD-EVIDENCE.json: repeatability.shippedVsFreshNormalizedDifferent",
-        "ARGON-REBUILD-DIFF.json"
+        "audit-v2/EXTRA.json: pathBoundary"
       ],
-      "reproduce": [
-        "Mitgelieferte Daten mit isoliert neu erzeugtem Portal vergleichen; Zeitstempel ignorieren.",
-        "Sechs Feldunterschiede rund um Developer Guidelines und deren Suche prüfen."
-      ],
-      "impact": "Unter anderem fehlt der neue Abschnitt Muster 32 im ausgelieferten Bundle. SWE-2 stimmt dagegen nach Zeitstempelbereinigung mit seinem frischen Build überein. Ein veraltetes Portal kann Quellen und Suche unterschiedlich aktuell darstellen.",
-      "recommendation": "Gemeinsamen Release-Snapshot bauen und CI-Prüfung auf veraltete generierte Artefakte einführen.",
-      "acceptance": "Ein sauberer Build erzeugt keine ungeplanten fachlichen Unterschiede zu den ausgelieferten Dateien."
-    },
-    {
-      "id": "C12",
-      "classification": "Verbesserungsvorschlag",
-      "severity": "niedrig",
-      "title": "Beschriebene Umfangszahlen sind veraltet",
-      "confidence": "bestätigt durch Prüfung",
-      "evidence": [
-        "docs/gcs-doc-portal-argon/README-ARGON.md:21",
-        "docs/gcs-doc-portal-argon/README-ARGON.md:42",
-        "docs/gcs-knowledge-swe2/README-SWE2.md:40",
-        "DATA-EVIDENCE.json"
-      ],
-      "reproduce": [
-        "README-Zähler mit Manifest und Portal-Metadaten vergleichen."
-      ],
-      "impact": "SWE-2 nennt 1287 statt 1774 Chunks, Argon 11 statt 13 Kategorien und 17 statt 19 Technical-Debt-Einträge. Das erschwert die unabhängige Vollständigkeitsprüfung.",
-      "recommendation": "Umfangszahlen aus dem Manifest erzeugen oder auf das Manifest verweisen.",
-      "acceptance": "Keine manuell gepflegten widersprüchlichen Bestandszähler in der Integrationsdokumentation."
+      "verification": "nachgewiesen; synthetische Testdaten sind ausdrücklich bezeichnet"
     }
   ]
 }

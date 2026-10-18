@@ -1,16 +1,16 @@
 {
- "schemaVersion": "1.0.0",
- "generated": "2026-10-18T09:29:52.026Z",
+ "schemaVersion": "1.1.0",
+ "generated": "2026-10-18T10:54:39.412Z",
  "generatedBy": "build-knowledge-swe2.cjs",
  "sourceCommit": "53e3dfb",
  "counts": {
-  "entities": 688,
+  "entities": 693,
   "byKind": {
    "component": 128,
    "feature": 12,
    "action-type": 59,
    "method": 38,
-   "event": 158,
+   "event": 163,
    "schema": 13,
    "guide-chapter": 23,
    "document": 242,
@@ -22,19 +22,44 @@
   "SCM": 13,
   "ACT": 59,
   "MTH": 38,
-  "EVT": 158,
+  "EVT": 164,
   "GUIDE": 23,
   "CON": 15
  },
  "files": {
   "schema": "knowledge-schema-swe2.json",
   "entities": "entities/",
+  "entityFiles": {
+   "component": "entities/components-swe2.json",
+   "feature": "entities/features-swe2.json",
+   "action-type": "entities/action-types-swe2.json",
+   "method": "entities/methods-swe2.json",
+   "event": "entities/events-swe2.json",
+   "schema": "entities/schemas-swe2.json",
+   "guide-chapter": "entities/guide-chapters-swe2.json",
+   "document": "entities/documents-swe2.json",
+   "concept": "entities/concepts-swe2.json"
+  },
   "chunks": "chunks/chunks-swe2.jsonl",
   "idMap": "id-map-swe2.json"
  },
+ "checksums": {
+  "entities/components-swe2.json": "sha256:fa9cdbaa83f2bfbd37381158dba92c10b04ee9da5ebf6a73c39be243843a83a7",
+  "entities/features-swe2.json": "sha256:35f5e17deb6bf900fe58a2f20d609775b783e7e1118fe793a9eec7f46bc6413f",
+  "entities/action-types-swe2.json": "sha256:a21f51cd90b5a962d08d936da894b7aeaf1ea8578f03511a68d41a12f2e7dd21",
+  "entities/methods-swe2.json": "sha256:8999ee5a0ef38c05095797909e62600a13530f1cc91cb7577073f45c3bb47046",
+  "entities/events-swe2.json": "sha256:78b3b32dc4a4c16a64acbc31d6946e3dfeaef0db8ac868c9e28b25d7c85f6ec1",
+  "entities/schemas-swe2.json": "sha256:2543e1d549e4b084bcf51ee0ea9e534fb80860d40b9b67bb8994aff496639af8",
+  "entities/guide-chapters-swe2.json": "sha256:e843d8650da3795cadc78f5ff43609ac4043688b405c8e5fb6fe8da5f29b8514",
+  "entities/documents-swe2.json": "sha256:48f99c7c89f924b0ab8bcb0df6157ed2d5fea3f31990d3acd2d0428007a81aa0",
+  "entities/concepts-swe2.json": "sha256:b226164a7ee07fdb1911207741fd0ca748c2c81e2264f79b0f7ae3cddf085c51",
+  "chunks/chunks-swe2.jsonl": "sha256:57484d8dcff7d4e832721e69bf04a7157dcf9cb3f9762bcba4d060c4f98c91f1",
+  "id-map-swe2.json": "sha256:68cfd6bf2b983632d4d55425c76a3987b88655ef238b56868a7dc4db5bf9b197"
+ },
  "provenanceLegend": {
-  "verified": "Quellcode-/Registry-belegt (getEvents, MethodRegistry, ActionRegistry, Schemas)",
+  "verified": "Quellcode-/Registry-belegt (getEvents-AST, MethodRegistry, ActionRegistry, Schemas)",
   "documented": "Dokumentations-Selbstauskunft (Inventar, Referenzkarten, Markdown)",
-  "inferred": "Abgeleitet, nicht vollständig verifiziert"
+  "inferred": "Abgeleitet, nicht vollständig verifiziert",
+  "_note": "confidence ist die HÖCHSTE Stufe der Entity — Einzelangaben faktenbezogen unter provenance.facts prüfen."
  }
 }

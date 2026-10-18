@@ -13,14 +13,18 @@
  *   8. Status-Kennzeichnung (geplant/veraltet konsistent)
  *   9. Chunk-Integrität (entityId auflösbar, keine leeren Texte)
  *
- * Aufruf: node docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs
- * Exit-Code 1 bei Fehlern.
+ * Aufruf: node docs/gcs-knowledge-swe2/validate-knowledge-swe2.cjs [--dir=<snapshot>]
+ *   --dir  Snapshot-Verzeichnis (Default: docs/gcs-knowledge-swe2).
+ *          Ermöglicht Negativtests gegen manipulierte Kopien.
+ * Exit-Code 1 bei Fehlern (Codex A04: ungültige Daten sind ein hartes Gate).
  */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..', '..');
-const OUT = __dirname;
+const dirArg = process.argv.find(a => a.startsWith('--dir='));
+const OUT = dirArg ? path.resolve(dirArg.slice(6)) : __dirname;
 const read = (p) => fs.readFileSync(p, 'utf-8');
 const exists = (p) => fs.existsSync(p);
 
@@ -52,6 +56,7 @@ const DOC = new Set(['entwurf', 'technisch geprüft', 'fachlich freigegeben']);
 const CONF = new Set(['verified', 'documented', 'inferred']);
 const RELTYPES = new Set(['inherits', 'hasSchema', 'dependsOn', 'documentedIn', 'seeAlso', 'declaresEvent', 'hasMethod', 'usedIn']);
 
+const CONF_RANK = { inferred: 0, documented: 1, verified: 2 };
 const seenIds = new Set();
 for (const e of entities) {
     if (!e.id || !ID_RE.test(e.id)) err(`Ungültige ID: ${e.id} (${e.name})`);
@@ -66,7 +71,23 @@ for (const e of entities) {
     const p = e.provenance || {};
     if (!Array.isArray(p.method) || !p.method.length) err(`${e.id}: provenance.method fehlt`);
     if (!CONF.has(p.confidence)) err(`${e.id}: provenance.confidence '${p.confidence}' ungültig`);
+    // provenance.facts: faktenbezogene Stufen müssen vorhanden sein und die
+    // Entity-Stufe muss dem Maximum entsprechen (A08).
+    if (!p.facts || typeof p.facts !== 'object' || !Object.keys(p.facts).length) {
+        err(`${e.id}: provenance.facts fehlt oder leer`);
+    } else {
+        let max = 'inferred';
+        for (const v of Object.values(p.facts)) {
+            if (v === undefined) continue;
+            if (!CONF.has(v)) err(`${e.id}: provenance.facts enthält ungültige Stufe '${v}'`);
+            else if (CONF_RANK[v] > CONF_RANK[max]) max = v;
+        }
+        if (CONF.has(p.confidence) && p.confidence !== max) {
+            err(`${e.id}: confidence '${p.confidence}' != max(provenance.facts) '${max}'`);
+        }
+    }
     if (!e.sources || typeof e.sources !== 'object') err(`${e.id}: sources fehlt`);
+    if (!e.version?.extractedAt) err(`${e.id}: version.extractedAt fehlt (Pflichtfeld)`);
     if (!e.version?.contentHash) err(`${e.id}: version.contentHash fehlt`);
     for (const r of e.relations || []) {
         if (!RELTYPES.has(r.type)) err(`${e.id}: unbekannter relation.type '${r.type}'`);
@@ -74,10 +95,42 @@ for (const e of entities) {
     }
     for (const ev of e.events || []) {
         if (!ev.name) err(`${e.id}: Event ohne name`);
+        if (ev.origin && !['own', 'inherited', 'runtime', 'documented'].includes(ev.origin)) {
+            err(`${e.id}: Event '${ev.name}' mit unbekanntem origin '${ev.origin}'`);
+        }
     }
     for (const pm of e.parameters || []) {
         if (!pm.name || !pm.type) err(`${e.id}: Parameter ohne name/type`);
     }
+}
+
+/* ── 1b. Manifest-Integrität (Codex A04) ── */
+if (!/^\d+\.\d+\.\d+$/.test(index.schemaVersion || '')) {
+    err(`schemaVersion '${index.schemaVersion}' ist kein striktes SemVer`);
+}
+if (index.counts?.entities !== entities.length) {
+    err(`Manifestzähler counts.entities=${index.counts?.entities} != tatsächlich ${entities.length}`);
+}
+if (index.counts?.chunks !== chunks.length) {
+    err(`Manifestzähler counts.chunks=${index.counts?.chunks} != tatsächlich ${chunks.length}`);
+}
+for (const [kind, file] of Object.entries(index.files?.entityFiles || {})) {
+    const n = entities.filter(e => e.kind === kind).length;
+    if (index.counts?.byKind?.[kind] !== n) {
+        err(`Manifestzähler byKind.${kind}=${index.counts?.byKind?.[kind]} != tatsächlich ${n}`);
+    }
+    if (!exists(path.join(OUT, file))) err(`entityFiles.${kind} '${file}' nicht vorhanden`);
+}
+// Snapshot-Bindung: Checksummen aus dem Manifest prüfen (A14/A15)
+if (index.checksums && typeof index.checksums === 'object') {
+    for (const [f, expected] of Object.entries(index.checksums)) {
+        const fp = path.join(OUT, f);
+        if (!exists(fp)) { err(`checksums-Datei fehlt: ${f}`); continue; }
+        const actual = 'sha256:' + crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
+        if (actual !== expected) err(`Checksum-Mismatch ${f}: Snapshot wurde nach Manifest-Erzeugung verändert`);
+    }
+} else {
+    err('index.checksums fehlt — Snapshot nicht an Manifest gebunden');
 }
 
 /* ── 2. ID-Stabilität ── */
@@ -150,6 +203,29 @@ for (const t of metaTypes) {
     if (!actEntities.some(a => a.name === t)) err(`Action-Typ '${t}' aus Registry fehlt in der Wissensbasis`);
 }
 
+/* ── 6b. Action-Parameter-Vollständigkeit (Codex A06) ── */
+// Jedes Metadatenfeld der Registry muss in der Entity identisch sein.
+const metaByType = new Map(actionMeta.types.map(t => [t.type, t]));
+let paramLoss = 0;
+for (const a of actEntities) {
+    const meta = metaByType.get(a.name);
+    if (!meta) continue;
+    const entityParams = new Map((a.parameters || []).map(p => [p.name, p]));
+    for (const rp of meta.parameters || []) {
+        const ep = entityParams.get(rp.name);
+        if (!ep) { err(`${a.id} (${a.name}): Parameter '${rp.name}' fehlt komplett`); paramLoss++; continue; }
+        for (const [field, val] of Object.entries(rp)) {
+            if (val === undefined) continue;
+            if (!(field in ep)) { err(`${a.id} (${a.name}).${rp.name}: Metadatenfeld '${field}' verloren`); paramLoss++; continue; }
+            if (JSON.stringify(ep[field]) !== JSON.stringify(val)) {
+                err(`${a.id} (${a.name}).${rp.name}: Feld '${field}' abweichend (${JSON.stringify(ep[field])} != ${JSON.stringify(val)})`);
+                paramLoss++;
+            }
+        }
+    }
+}
+if (paramLoss === 0) console.log('  Parameter-Vollständigkeit: 0 Verluste');
+
 /* ── 7. Parameter-Gültigkeit ── */
 const PARAM_TYPES = new Set(['string', 'number', 'boolean', 'select', 'color', 'keyvalue',
     'textarea', 'image_picker', 'audio_picker', 'objects', 'object', 'variable', 'variables',
@@ -196,9 +272,16 @@ for (const d of inventory.documents.filter(x => /veraltet/.test(x.rating))) {
 }
 
 /* ── 9. Chunk-Integrität ── */
+// Eindeutigkeit ist ein hartes Gate (Codex A05): kollidierende IDs würden
+// in keyed Retrieval-Stores Inhalte überschreiben.
 const chunkEntityIds = new Set(chunks.map(c => c.entityId));
+const seenChunkIds = new Set();
 for (const c of chunks) {
+    if (!c.chunkId) { err(`Chunk ohne chunkId (entityId ${c.entityId})`); continue; }
+    if (seenChunkIds.has(c.chunkId)) err(`Doppelte chunkId: ${c.chunkId}`);
+    seenChunkIds.add(c.chunkId);
     if (!mapEntityIds.has(c.entityId)) err(`Chunk ${c.chunkId}: entityId ${c.entityId} nicht auflösbar`);
+    if (!c.metadata?.sourceDoc) err(`Chunk ${c.chunkId}: metadata.sourceDoc fehlt`);
     if (!c.text || !c.text.trim()) err(`Chunk ${c.chunkId}: leerer Text`);
     if (c.charCount !== c.text.length) warn(`Chunk ${c.chunkId}: charCount ${c.charCount} != ${c.text.length}`);
     if (c.charCount > 4500) warn(`Chunk ${c.chunkId}: ${c.charCount} Zeichen > Richtwert 4000`);

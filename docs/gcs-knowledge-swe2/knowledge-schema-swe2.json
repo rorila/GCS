@@ -2,7 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gcs.local/schemas/knowledge-entity-swe2.json",
   "title": "GCS Knowledge Entity (SWE-2)",
-  "description": "Einheitliches Datenformat für Wissenseinheiten der GCS-Wissensbasis. Unbekannte Felder werden weggelassen, nie erfunden.",
+  "description": "Einheitliches Datenformat für Wissenseinheiten der GCS-Wissensbasis. Unbekannte Felder werden weggelassen, nie erfunden. Schema-Version 1.1.0.",
+  "x-schemaVersion": "1.1.0",
   "type": "object",
   "required": ["id", "kind", "name", "status", "sources", "provenance", "version"],
   "additionalProperties": true,
@@ -42,7 +43,8 @@
           "options": {},
           "description": { "type": "string" },
           "group": { "type": "string" },
-          "source": { "type": "string", "enum": ["schema", "inspector-card", "source-scan"] }
+          "source": { "type": "string", "enum": ["schema", "inspector-card", "source-scan"] },
+          "confidence": { "type": "string", "enum": ["verified", "documented", "inferred"] }
         }
       }
     },
@@ -54,7 +56,22 @@
         "properties": {
           "name": { "type": "string" },
           "origin": { "type": "string", "enum": ["own", "inherited", "runtime", "documented"] },
-          "source": { "type": "string" }
+          "declaredIn": { "type": "string", "description": "Klasse, die das Event deklariert (AST-aufgelöst)" },
+          "inheritedFrom": { "type": "string", "description": "Bei origin=inherited: deklarierende Elternklasse" },
+          "source": { "type": "string" },
+          "conditions": {
+            "type": "array",
+            "description": "Bedingungen für die Verfügbarkeit, z. B. {guard:'isHiddenInRun', availableWhen:false} = nur wenn sichtbar",
+            "items": {
+              "type": "object",
+              "required": ["guard", "availableWhen"],
+              "properties": {
+                "guard": { "type": "string" },
+                "availableWhen": { "type": "boolean" }
+              }
+            }
+          },
+          "confidence": { "type": "string", "enum": ["verified", "documented", "inferred"] }
         }
       }
     },
@@ -74,7 +91,7 @@
     },
     "parameters": {
       "type": "array",
-      "description": "Für action-type/method: Parameterliste aus Registry-Metadaten",
+      "description": "Für action-type/method: Parameterliste — verlustfreie Kopie der Registry-Metadatenfelder",
       "items": {
         "type": "object",
         "required": ["name", "type"],
@@ -83,9 +100,22 @@
           "type": { "type": "string" },
           "label": { "type": "string" },
           "hint": { "type": "string" },
-          "default": {},
+          "defaultValue": {},
           "options": {},
-          "optional": { "type": "boolean" }
+          "optional": { "type": "boolean" },
+          "source": { "type": "string", "description": "Referenzquelle für select-Parameter, z. B. objects|variables|tasks|easing-functions" },
+          "placeholder": { "type": "string" },
+          "allowVariableBinding": { "type": "boolean" },
+          "allowFreeText": { "type": "boolean" },
+          "multiline": { "type": "boolean" },
+          "visibleWhen": {
+            "type": "object",
+            "description": "Sichtbarkeitsbedingung: {field, values[]}",
+            "properties": {
+              "field": { "type": "string" },
+              "values": { "type": "array" }
+            }
+          }
         }
       }
     },
@@ -154,7 +184,12 @@
         "confidence": {
           "type": "string",
           "enum": ["verified", "documented", "inferred"],
-          "description": "verified = Quellcode/Registry belegt; documented = Doku-Selbstauskunft; inferred = abgeleitet, nicht vollständig verifiziert"
+          "description": "HÖCHSTE Stufe der faktenbezogenen Stufen (max von provenance.facts). Ist KEIN Beweis aller Einzelangaben — facts pro Feldgruppe prüfen."
+        },
+        "facts": {
+          "type": "object",
+          "description": "Faktenbezogene Vertrauensstufen je Feldgruppe, z. B. {status:'documented', properties:'verified', events:'verified'}",
+          "additionalProperties": { "type": "string", "enum": ["verified", "documented", "inferred"] }
         }
       }
     }

@@ -74,11 +74,11 @@
   },
   "swe2Integration": {
     "enabled": true,
-    "schemaVersion": "1.0.0",
+    "schemaVersion": "1.1.0",
     "contractFile": "docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md",
     "knowledgeDir": "docs/gcs-knowledge-swe2",
     "manifestFile": "docs/gcs-knowledge-swe2/knowledge-index-swe2.json",
-    "description": "Verbindliche Integration der SWE-2-Wissensbasis (688 Entities in 9 Kategorien + 1.774 Volltext-Chunks) gemäß docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md.",
+    "description": "Verbindliche Integration der SWE-2-Wissensbasis (Schema 1.1.0: 693 Entities in 9 Kategorien + 1.774 Volltext-Chunks mit SHA-256-Snapshot-Bindung und provenance.facts) gemäß docs/gcs-knowledge-swe2/SCHNITTSTELLE-ARGON.md.",
     "entityFiles": {
       "components": "docs/gcs-knowledge-swe2/entities/components-swe2.json",
       "features": "docs/gcs-knowledge-swe2/entities/features-swe2.json",
@@ -96,7 +96,7 @@
       "feature": "id (FEAT-0001..FEAT-0012)",
       "actionType": "id (ACT-0001..ACT-0059) | name",
       "method": "id (MTH-0001..MTH-0038) | name",
-      "event": "id (EVT-0001..EVT-0158) | name",
+      "event": "id (EVT-0001..EVT-0164, 163 aktiv) | name",
       "schema": "id (SCM-0001..SCM-0013) | name",
       "guideChapter": "id (GUIDE-0001..GUIDE-0023) | name (A01..B08)",
       "document": "id (DOC-0001..DOC-0242) | sources.docs[0]",
